@@ -2,13 +2,12 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-//import 'package:mobile_app/Project%20Management/employee_tile.dart';
-//import 'package:mobile_app/calendar/calendarHome.dart';
+import 'package:mobile_app/Project%20Management/employee_tile.dart';
 import 'package:mobile_app/chat/chatHomePage.dart';
 import 'package:mobile_app/mail/mailHomePage.dart';
-//import 'package:mobile_app/Project Management/Employees.dart';
+import 'package:mobile_app/Project Management/Employees.dart';
 
-//List<Employee> employees = getMockEmployees();
+List<Employee> employees = getMockEmployees();
 
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
@@ -283,13 +282,13 @@ class _HomePageState extends State<HomePage> {
                         child: InkWell(
                           borderRadius: BorderRadius.circular(10),
                           onTap: () {
-                            //Navigator.push(
-                            // context,
-                            //MaterialPageRoute(
-                            //builder: (context) =>
-                            //  EmployeeDirectoryPage(), // You need to pass the actual 'employee' object you want to display.
-//),
-                            // );
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) =>
+                                    EmployeeDirectoryPage(), // You need to pass the actual 'employee' object you want to display.
+                              ),
+                            );
                           },
                           child: Container(
                             width: 60,
