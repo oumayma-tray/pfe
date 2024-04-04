@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:haroun/chat/Conversation.dart';
+import 'package:mobile_app/chat/Conversation.dart';
 
 class Chat extends StatefulWidget {
   const Chat({Key? key}) : super(key: key);
