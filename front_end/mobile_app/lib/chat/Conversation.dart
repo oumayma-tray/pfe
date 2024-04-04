@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:haroun/chat/call.dart';
-import 'package:haroun/chat/vedio.dart';
+import 'package:mobile_app/chat/call.dart';
+import 'package:mobile_app/chat/vedio.dart';
 import 'package:intl/intl.dart'; // Ensure you have added the intl package for date formatting
 //import 'package:emoji_picker_flutter/emoji_picker_flutter.dart';
 

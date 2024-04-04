@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:haroun/chat/Speaker.dart';
+import 'package:mobile_app/chat/Speaker.dart';
 
 class CallPage extends StatefulWidget {
   final String name;

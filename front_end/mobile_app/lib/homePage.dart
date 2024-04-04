@@ -4,8 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 //import 'package:mobile_app/Project%20Management/employee_tile.dart';
 //import 'package:mobile_app/calendar/calendarHome.dart';
-//import 'package:mobile_app/chat/chatHomePage.dart';
-//import 'package:mobile_app/mail/mailHomePage.dart';
+import 'package:mobile_app/chat/chatHomePage.dart';
+import 'package:mobile_app/mail/mailHomePage.dart';
 //import 'package:mobile_app/Project Management/Employees.dart';
 
 //List<Employee> employees = getMockEmployees();
@@ -179,12 +179,12 @@ class _HomePageState extends State<HomePage> {
                           borderRadius: BorderRadius.circular(10),
                           onTap: () {
                             // Add the navigation to MailHomePage here
-                            //Navigator.push(
-                            // context,
-                            // MaterialPageRoute(
-                            //builder: (context) => MailHomePage(),
-                            //),
-                            // );
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => MailHomePage(),
+                              ),
+                            );
                           },
                           child: Container(
                             width: 60,
@@ -516,12 +516,12 @@ class _HomePageState extends State<HomePage> {
                           borderRadius: BorderRadius.circular(10),
                           onTap: () {
                             // Add the navigation to MailHomePage here
-                            // Navigator.push(
-                            //context,
-                            // MaterialPageRoute(
-                            //  builder: (context) => Chat(),
-                            // ),
-                            //);
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => Chat(),
+                              ),
+                            );
                           },
                           child: Container(
                             width: 60,
