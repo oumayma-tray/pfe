@@ -2,11 +2,16 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:mobile_app/mail/CompanyMail.dart';
+import 'package:mobile_app/mail/Draft.dart';
 import 'package:mobile_app/mail/PersonalMail.dart';
 import 'package:mobile_app/mail/ImportantMail.dart';
 import 'package:mobile_app/mail/PrivateMail.dart';
+import 'package:mobile_app/mail/Starred.dart';
 import 'package:mobile_app/mail/TrashMail.dart';
+import 'package:mobile_app/mail/compose.dart';
 import 'package:mobile_app/mail/inbox.dart';
+import 'package:mobile_app/mail/sent.dart';
+import 'package:mobile_app/mail/spam.dart';
 
 class MailHomePage extends StatefulWidget {
   @override
@@ -171,16 +176,17 @@ class _MailHomePageState extends State<MailHomePage> {
           // Email folder buttons using images
           Column(
             children: <Widget>[
-              _buildEmailFolderButton(
-                  context, 'assets/inbox.png', 'Inbox', 3, Colors.blue),
-              _buildEmailFolderButton(
-                  context, 'assets/send.png', 'Sent', 0, Colors.orange),
-              _buildEmailFolderButton(
-                  context, 'assets/draft.png', 'Draft', 4, Colors.blue),
-              _buildEmailFolderButton(
-                  context, 'assets/starred.png', 'Starred', 0, Colors.blue),
-              _buildEmailFolderButton(
-                  context, 'assets/spam.png', 'Spam', 2, Colors.blue),
+              _buildEmailFolderButton(context, 'assets/inbox.png', 'Inbox', 3,
+                  Colors.blue, InboxPage()),
+              _buildEmailFolderButton(context, 'assets/send.png', 'Sent', 0,
+                  Colors.orange, sentPage()),
+              _buildEmailFolderButton(context, 'assets/draft.png', 'Draft', 4,
+                  Colors.blue, DraftPage()),
+              _buildEmailFolderButton(context, 'assets/starred.png', 'Starred',
+                  0, Colors.blue, StarredPage()),
+              _buildEmailFolderButton(context, 'assets/spam.png', 'Spam', 2,
+                  Colors.blue, spamPage()),
+              // Add more buttons as needed
             ],
           ),
 
@@ -190,7 +196,10 @@ class _MailHomePageState extends State<MailHomePage> {
               padding: EdgeInsets.all(5), // Padding around the button
               child: ElevatedButton(
                 onPressed: () {
-                  // TODO: Implement compose action
+                  Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => ComposeMailScreen()));
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Color(0xFF312D4B), // Button background color
@@ -246,7 +255,7 @@ class _MailHomePageState extends State<MailHomePage> {
   }
 
   Widget _buildEmailFolderButton(BuildContext context, String imagePath,
-      String title, int count, Color iconColor) {
+      String title, int count, Color iconColor, Widget destinationPage) {
     return Container(
       height: 47,
       margin: EdgeInsets.only(top: 5), // Adjust margins as necessary
@@ -264,15 +273,8 @@ class _MailHomePageState extends State<MailHomePage> {
         title: Text(title, style: TextStyle(color: Colors.white)),
         trailing: _buildCounter(count, iconColor),
         onTap: () {
-          switch (title.toLowerCase()) {
-            case 'inbox':
-              Navigator.push(context,
-                  MaterialPageRoute(builder: (context) => InboxPage()));
-              break;
-
-            default:
-              print('Unknown folder: $title');
-          }
+          Navigator.push(context,
+              MaterialPageRoute(builder: (context) => destinationPage));
         },
       ),
     );
