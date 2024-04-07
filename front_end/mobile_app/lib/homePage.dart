@@ -1,11 +1,15 @@
 import 'dart:math';
 
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:mobile_app/Project%20Management/employee_tile.dart';
+import 'package:mobile_app/calendar/calendarHome.dart';
 import 'package:mobile_app/chat/chatHomePage.dart';
 import 'package:mobile_app/mail/mailHomePage.dart';
 import 'package:mobile_app/Project Management/Employees.dart';
+import 'package:mobile_app/Project%20Management/EmployeeDetails.dart';
 
 List<Employee> employees = getMockEmployees();
 
@@ -17,6 +21,9 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  String employeeImageUrl = "assets/image 1.png";
+  String name = 'tray oumayma';
+  String address = 'Anywhere St., Any City123';
   @override
   Widget build(BuildContext context) {
     return SafeArea(
@@ -27,34 +34,51 @@ class _HomePageState extends State<HomePage> {
             fit: StackFit.expand,
             clipBehavior: Clip.antiAliasWithSaveLayer,
             children: <Widget>[
-              Positioned.fill(
+              Positioned(
                   child: Align(
                 alignment: Alignment.topCenter,
                 child: Image.asset(
                   "assets/Group2.png",
                   fit: BoxFit.cover,
+                  width: double.infinity,
+                  height: 300,
                 ),
               )),
               Positioned(
-                right: 65,
-                top: 150,
-                child: Image.asset(
-                  "assets/image 1.png",
-                  fit: BoxFit.cover,
+                top: 140,
+                right: 100,
+                child: Center(
+                  child: CircleAvatar(
+                    radius: 110, // Adjust the size to fit your layout
+                    backgroundImage: AssetImage(employeeImageUrl),
+                    backgroundColor: Colors.transparent,
+                    onBackgroundImageError: (exception, stackTrace) {
+                      // Handle the error of image loading if needed
+                    },
+                    // You might want to show a placeholder if the image takes time to load or fails to load
+                    child: employeeImageUrl.isEmpty
+                        ? Icon(
+                            Icons.account_circle,
+                            size:
+                                120, // Adjust the size to fit the circle avatar
+                            color: Colors.grey,
+                          )
+                        : null,
+                  ),
                 ),
               ),
               Positioned(
-                top: 370,
-                right: 50,
-                child: Text('Hello, Jonnathan Petterson',
+                top: 360,
+                right: 100,
+                child: Text('Hello, $name',
                     style: GoogleFonts.roboto(
                         fontSize: 20,
                         color: Colors.white,
                         fontWeight: FontWeight.w700)),
               ),
               Positioned(
-                bottom: 330,
-                right: 30,
+                bottom: 230,
+                right: 70,
                 child: Material(
                   color: Colors.transparent,
                   child: Ink(
@@ -83,7 +107,7 @@ class _HomePageState extends State<HomePage> {
                             ),
                             SizedBox(width: 6),
                             Text(
-                              'Anywhere St., Any City123 ',
+                              '$address',
                               style: GoogleFonts.roboto(
                                 fontSize: 20,
                                 color: Colors.white,
@@ -98,8 +122,8 @@ class _HomePageState extends State<HomePage> {
                 ),
               ),
               Positioned(
-                bottom: 280,
-                right: 110,
+                bottom: 180,
+                right: 150,
                 child: Material(
                   color: Colors.transparent,
                   child: Ink(
@@ -115,7 +139,8 @@ class _HomePageState extends State<HomePage> {
                     child: InkWell(
                       borderRadius: BorderRadius.circular(10),
                       onTap: () {
-                        // Your button action goes here
+                        // Assuming the login page is the previous one in the stack
+                        Navigator.pop(context);
                       },
                       child: Container(
                         padding:
@@ -143,12 +168,8 @@ class _HomePageState extends State<HomePage> {
                 ),
               ),
               Positioned(
-                  right: 20,
-                  bottom: 230,
-                  child: Image.asset("assets/menu.png")),
-              Positioned(
                 left: 20,
-                bottom: 230,
+                bottom: 150,
                 child: Text(
                   "Apps & Pages",
                   style: GoogleFonts.roboto(
@@ -158,397 +179,132 @@ class _HomePageState extends State<HomePage> {
                 ),
               ),
               Positioned(
-                left: 10,
-                bottom: 140,
-                child: Column(
-                  children: [
-                    Material(
-                      color: Colors.transparent,
-                      child: Ink(
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            colors: [
-                              Color.fromRGBO(145, 85, 253, 0.5),
-                              Color.fromRGBO(197, 165, 254, 0.5)
-                            ],
-                          ),
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: InkWell(
-                          borderRadius: BorderRadius.circular(10),
-                          onTap: () {
-                            // Add the navigation to MailHomePage here
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => MailHomePage(),
-                              ),
-                            );
-                          },
-                          child: Container(
-                            width: 60,
-                            height: 60,
-                            padding: EdgeInsets.all(2),
-                            child: Image.asset(
-                              "assets/email.png",
-                              width: 70,
-                              height: 70,
-                              fit: BoxFit.cover,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                    SizedBox(
-                        height: 2), // Space between the button and the text
-                    Text(
-                      "Dynamic Email",
-                      style: GoogleFonts.roboto(
-                          fontSize: 9,
-                          color: Colors.white,
-                          fontWeight: FontWeight.w900),
-                    ),
-                  ],
-                ),
-              ),
-              Positioned(
-                  left: 100,
-                  bottom: 140,
+                top:
+                    520, // Adjust this value so it is below the "Apps & Pages" text
+                left: 0,
+                right: 0,
+                bottom: 0,
+                child: SingleChildScrollView(
                   child: Column(
                     children: [
-                      Material(
-                        color: Colors.transparent,
-                        child: Ink(
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              colors: [
-                                Color.fromRGBO(145, 85, 253, 0.5),
-                                Color.fromRGBO(197, 165, 254, 0.5)
-                              ],
-                            ),
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          child: InkWell(
-                            borderRadius: BorderRadius.circular(10),
-                            onTap: () {
-                              //Navigator.push(
-                              //context,
-                              //MaterialPageRoute(
-                              //builder: (context) => CalendarHome(),
-                              //),
-                              //);
-                            },
-                            child: Container(
-                              width: 60,
-                              height: 60,
-                              padding: EdgeInsets.all(2),
-                              child: Image.asset(
-                                "assets/calendar.png",
-                                width: 70,
-                                height: 70,
-                                fit: BoxFit.cover,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                      SizedBox(height: 2), // Espace entre le bouton et le texte
-                      Text(
-                        "Smart Calendar",
-                        style: GoogleFonts.roboto(
-                            fontSize: 9,
-                            color: Colors.white,
-                            fontWeight: FontWeight.w900),
-                      ),
+                      // App Tiles in individual Rows
+                      appRow(context, 'Dynamic Email', Icons.email, () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => MailHomePage()),
+                        );
+                      }),
+                      SizedBox(height: 5),
+                      appRow(context, 'Smart Calendar', Icons.calendar_month,
+                          () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => CalendarHome()),
+                        );
+                      }),
+                      SizedBox(height: 5),
+                      appRow(context, 'Project Management',
+                          Icons.manage_accounts_outlined, () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => EmployeeDirectoryPage()),
+                        );
+                      }),
+                      SizedBox(height: 5),
+                      appRow(context, 'Smart Recruitment',
+                          Icons.recent_actors_outlined, () {
+                        // Add navigation to Smart Recruitment page
+                      }),
+                      SizedBox(height: 5),
+                      appRow(context, 'Chat', Icons.chat, () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => Chat()),
+                        );
+                      }),
+                      // ... Add more app rows as needed
                     ],
-                  )),
-              Positioned(
-                right: 100,
-                bottom: 140,
-                child: Column(
-                  children: [
-                    Material(
-                      color: Colors.transparent,
-                      child: Ink(
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            colors: [
-                              Color.fromRGBO(145, 85, 253, 0.5),
-                              Color.fromRGBO(197, 165, 254, 0.5)
-                            ],
-                          ),
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: InkWell(
-                          borderRadius: BorderRadius.circular(10),
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) =>
-                                    EmployeeDirectoryPage(), // You need to pass the actual 'employee' object you want to display.
-                              ),
-                            );
-                          },
-                          child: Container(
-                            width: 60,
-                            height: 60,
-                            padding: EdgeInsets.all(2),
-                            child: Image.asset(
-                              "assets/management.png",
-                              width: 70,
-                              height: 70,
-                              fit: BoxFit.cover,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                    SizedBox(height: 2), // Espace entre le bouton et le texte
-                    Text(
-                      "Project Management",
-                      style: GoogleFonts.roboto(
-                          fontSize: 9,
-                          color: Colors.white,
-                          fontWeight: FontWeight.w900),
-                    ),
-                  ],
-                ),
-              ),
-              Positioned(
-                right: 15,
-                bottom: 140,
-                child: Column(
-                  children: [
-                    Material(
-                      color: Colors.transparent,
-                      child: Ink(
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            colors: [
-                              Color.fromRGBO(145, 85, 253, 0.5),
-                              Color.fromRGBO(197, 165, 254, 0.5)
-                            ],
-                          ),
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: InkWell(
-                          borderRadius: BorderRadius.circular(10),
-                          onTap: () {},
-                          child: Container(
-                            width: 60,
-                            height: 60,
-                            padding: EdgeInsets.all(2),
-                            child: Image.asset(
-                              "assets/recruit.png",
-                              width: 70,
-                              height: 70,
-                              fit: BoxFit.cover,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                    SizedBox(height: 2), // Espace entre le bouton et le texte
-                    Text(
-                      "Smart Recruitment",
-                      style: GoogleFonts.roboto(
-                          fontSize: 9,
-                          color: Colors.white,
-                          fontWeight: FontWeight.w900),
-                    ),
-                  ],
-                ),
-              ),
-              Positioned(
-                left: 15,
-                bottom: 50,
-                child: Column(
-                  children: [
-                    Material(
-                      color: Colors.transparent,
-                      child: Ink(
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            colors: [
-                              Color.fromRGBO(145, 85, 253, 0.5),
-                              Color.fromRGBO(197, 165, 254, 0.5)
-                            ],
-                          ),
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: InkWell(
-                          borderRadius: BorderRadius.circular(10),
-                          onTap: () {},
-                          child: Container(
-                            width: 60,
-                            height: 60,
-                            padding: EdgeInsets.all(2),
-                            child: Image.asset(
-                              "assets/invoice.png",
-                              width: 70,
-                              height: 70,
-                              fit: BoxFit.cover,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                    SizedBox(height: 2), // Espace entre le bouton et le texte
-                    Text(
-                      "Smart Invoice",
-                      style: GoogleFonts.roboto(
-                          fontSize: 9,
-                          color: Colors.white,
-                          fontWeight: FontWeight.w900),
-                    ),
-                  ],
-                ),
-              ),
-              Positioned(
-                left: 100,
-                bottom: 50,
-                child: Column(
-                  children: [
-                    Material(
-                      color: Colors.transparent,
-                      child: Ink(
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            colors: [
-                              Color.fromRGBO(145, 85, 253, 0.5),
-                              Color.fromRGBO(197, 165, 254, 0.5)
-                            ],
-                          ),
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: InkWell(
-                          borderRadius: BorderRadius.circular(10),
-                          onTap: () {},
-                          child: Container(
-                            width: 60,
-                            height: 60,
-                            padding: EdgeInsets.all(2),
-                            child: Image.asset(
-                              "assets/payroll.png",
-                              width: 70,
-                              height: 70,
-                              fit: BoxFit.cover,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                    SizedBox(height: 2), // Espace entre le bouton et le texte
-                    Text(
-                      "Smart Payroll",
-                      style: GoogleFonts.roboto(
-                          fontSize: 9,
-                          color: Colors.white,
-                          fontWeight: FontWeight.w900),
-                    ),
-                  ],
-                ),
-              ),
-              Positioned(
-                  right: 115,
-                  bottom: 50,
-                  child: Column(
-                    children: [
-                      Material(
-                        color: Colors.transparent,
-                        child: Ink(
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              colors: [
-                                Color.fromRGBO(145, 85, 253, 0.5),
-                                Color.fromRGBO(197, 165, 254, 0.5)
-                              ],
-                            ),
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          child: InkWell(
-                            borderRadius: BorderRadius.circular(10),
-                            onTap: () {},
-                            child: Container(
-                              width: 60,
-                              height: 60,
-                              padding: EdgeInsets.all(2),
-                              child: Image.asset(
-                                "assets/leave.png",
-                                width: 70,
-                                height: 70,
-                                fit: BoxFit.cover,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                      SizedBox(height: 2), // Espace entre le bouton et le texte
-                      Text(
-                        "Smart Leave",
-                        style: GoogleFonts.roboto(
-                            fontSize: 9,
-                            color: Colors.white,
-                            fontWeight: FontWeight.w900),
-                      ),
-                    ],
-                  )),
-              Positioned(
-                right: 25,
-                bottom: 50,
-                child: Column(
-                  children: [
-                    Material(
-                      color: Colors.transparent,
-                      child: Ink(
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            colors: [
-                              Color.fromRGBO(145, 85, 253, 0.5),
-                              Color.fromRGBO(197, 165, 254, 0.5)
-                            ],
-                          ),
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: InkWell(
-                          borderRadius: BorderRadius.circular(10),
-                          onTap: () {
-                            // Add the navigation to MailHomePage here
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => Chat(),
-                              ),
-                            );
-                          },
-                          child: Container(
-                            width: 60,
-                            height: 60,
-                            padding: EdgeInsets.all(2),
-                            child: Image.asset(
-                              "assets/all.png",
-                              width: 70,
-                              height: 70,
-                              fit: BoxFit.cover,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                    SizedBox(height: 2), // Espace entre le bouton et le texte
-                    Text(
-                      "Chat",
-                      style: GoogleFonts.roboto(
-                          fontSize: 9,
-                          color: Colors.white,
-                          fontWeight: FontWeight.w900),
-                    ),
-                  ],
+                  ),
                 ),
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget appRow(BuildContext context, String title, IconData iconData,
+      VoidCallback onTap) {
+    return InkWell(
+      onTap: onTap,
+      child: Container(
+        padding: EdgeInsets.symmetric(
+            vertical: 8,
+            horizontal:
+                100), // Vertical padding added, horizontal padding adjusted
+        decoration: BoxDecoration(
+          color: Color(0xff9155FD), // Set the background color of the container
+          borderRadius: BorderRadius.circular(10.0),
+        ),
+        child: Row(
+          children: [
+            Icon(
+              iconData, // Use the IconData passed to the function
+              size: 30, // Set a larger size for the icon
+              color: Colors.white,
+            ),
+            Expanded(
+              // Ensure the text does not overflow
+              child: Text(
+                title,
+                textAlign: TextAlign.center, // Center the text
+                style: TextStyle(
+                  fontWeight: FontWeight.w400,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget appTile(BuildContext context, String title, String assetName,
+      {required VoidCallback onTap}) {
+    return InkWell(
+      onTap: onTap,
+      child: Container(
+        width: double.infinity, // Take the full width of the container
+        padding:
+            EdgeInsets.symmetric(vertical: 10.0), // Adjust padding as needed
+        decoration: BoxDecoration(
+          color: Color(0xff9155FD),
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: Column(
+          mainAxisAlignment:
+              MainAxisAlignment.center, // Center the children vertically
+          children: [
+            Image.asset(
+              assetName,
+              width: 80, // Increase the width for a larger icon
+              height: 80, // Increase the height for a larger icon
+              fit: BoxFit.contain,
+            ),
+            Text(
+              title,
+              style: GoogleFonts.roboto(
+                fontSize: 20,
+                color: Colors.white,
+                fontWeight: FontWeight.w900,
+              ),
+            ),
+          ],
         ),
       ),
     );
