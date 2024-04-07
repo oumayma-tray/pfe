@@ -169,7 +169,7 @@ class _HomePageState extends State<HomePage> {
               ),
               Positioned(
                 left: 20,
-                bottom: 150,
+                bottom: 140,
                 child: Text(
                   "Apps & Pages",
                   style: GoogleFonts.roboto(
