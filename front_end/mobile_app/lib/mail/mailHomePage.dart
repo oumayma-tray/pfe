@@ -1,6 +1,4 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:mobile_app/mail/CompanyMail.dart';
 import 'package:mobile_app/mail/Draft.dart';
 import 'package:mobile_app/mail/PersonalMail.dart';
@@ -13,24 +11,57 @@ import 'package:mobile_app/mail/inbox.dart';
 import 'package:mobile_app/mail/sent.dart';
 import 'package:mobile_app/mail/spam.dart';
 
+class CircleButtonInfo {
+  final String label;
+  final Color color;
+  final Widget destinationPage;
+
+  CircleButtonInfo({
+    required this.label,
+    required this.color,
+    required this.destinationPage,
+  });
+}
+
 class MailHomePage extends StatefulWidget {
   @override
   _MailHomePageState createState() => _MailHomePageState();
 }
 
 class _MailHomePageState extends State<MailHomePage> {
+  List<CircleButtonInfo> circleButtonList = [
+    CircleButtonInfo(
+        label: 'Personal',
+        color: Colors.green,
+        destinationPage: PersonalMailPage()),
+    CircleButtonInfo(
+        label: 'Company',
+        color: Colors.blue,
+        destinationPage: CompanyMailPage()),
+    CircleButtonInfo(
+        label: 'inportant',
+        color: Colors.yellow,
+        destinationPage: CompanyMailPage()),
+    CircleButtonInfo(
+        label: 'private',
+        color: Colors.red,
+        destinationPage: PrivateMailPage()),
+    CircleButtonInfo(
+        label: 'Trash', color: Colors.grey, destinationPage: TrashMailPage()),
+
+    // Add other buttons as needed
+  ];
+
   final TextEditingController searchController = TextEditingController();
   @override
   Widget build(BuildContext context) {
     // Define the screen width for positioning the circles on the image.
     double screenWidth = MediaQuery.of(context).size.width;
     // Assuming the image asset takes the full width of the screen.
-    double imageWidth = screenWidth;
-    // Calculate the ratio of the dot's position to the image width (replace with actual value).
+
     double dotSize = 25;
     // Calculate the scale factor if your design is based on a different width than your current screen width.
-    double scaleFactor = screenWidth /
-        355; // designWidth is the width of your image in your design tool.
+
     return Scaffold(
       backgroundColor: const Color(0xFF28243D), // The dark background color
       appBar: AppBar(
@@ -38,240 +69,180 @@ class _MailHomePageState extends State<MailHomePage> {
             const Color(0xFF28243D), // Adjust the color to match your design
         elevation: 0, // No shadow for the AppBar
         centerTitle: true, // Centers the title widget
-        title: Image.asset('assets/smartovate.png',
-            height: 40), // Logo as the title widget
+        title: Image.asset(
+          'assets/smartovate.png',
+          height: 70,
+          width: 250,
+        ), // Logo as the title widget
       ),
-      body: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.symmetric(
-                horizontal: 16.0,
-                vertical:
-                    0), // Adjust the padding to control the search bar's size on the screen
-            child: TextField(
-              controller: searchController,
-              style: TextStyle(color: Colors.white),
-              decoration: InputDecoration(
-                contentPadding: EdgeInsets.symmetric(
-                    vertical:
-                        10.0), // Reduced padding inside the search field for a smaller bar
-                hintText: 'Search (Ctrl+/)',
-                hintStyle: TextStyle(color: Colors.white.withOpacity(0.5)),
-                prefixIcon: Icon(Icons.search,
-                    color: Colors.white,
-                    size: 20), // You can adjust the size of the icon as needed
-                filled: true,
-                fillColor: Color(0xFF312D4B),
-                enabledBorder: OutlineInputBorder(
-                  // Normal state border
-                  borderRadius: BorderRadius.circular(30),
-                  borderSide: BorderSide(
-                      color: Colors.white), // White border as described
-                ),
-                focusedBorder: OutlineInputBorder(
-                  // Border when TextField is selected
-                  borderRadius: BorderRadius.circular(10),
-                  borderSide: BorderSide(color: Colors.white),
-                ),
-              ),
-            ),
+      body: SingleChildScrollView(
+        child: ConstrainedBox(
+          constraints: BoxConstraints(
+            minHeight: MediaQuery.of(context).size.height,
           ),
-
-          Expanded(
-            child: Stack(
-              alignment: Alignment.topCenter,
-              children: <Widget>[
-                Image.asset('assets/mail_box.png'), // Background image
-                // Personal button
-                _buildPositionedCircleButton(
-                  top: scaleFactor * 108,
-                  left: imageWidth * .063 - dotSize / 2,
-                  color: Colors.green,
-                  label: 'Personal',
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => PersonalMailPage()),
-                    );
-                  },
-                ),
-                // Company button
-                _buildPositionedCircleButton(
-                  top: scaleFactor * 63,
-                  left: imageWidth * .107 - dotSize / 2,
-                  color: Colors.blue,
-                  label: 'Company',
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => CompanyMailPage()),
-                    );
-                  },
-                ),
-                // Important button
-                _buildPositionedCircleButton(
-                  top: 44, // Adjust these values as needed
-                  left: screenWidth * .245 - dotSize / 2,
-                  color: Colors.yellow,
-                  label: 'Important',
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => ImportantMailPage()),
-                    );
-                  },
-                ),
-                // Private button
-                _buildPositionedCircleButton(
-                  top: 66, // Adjust these values as needed
-                  left: screenWidth * .395 - dotSize / 2,
-                  color: Colors.red,
-                  label: 'Private',
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => PrivateMailPage()),
-                    );
-                  },
-                ),
-                // Trash button
-                Positioned(
-                  top: 105, // Adjust this value as needed to match your layout
-                  left: screenWidth * .49 -
-                      dotSize, // Adjust based on the icon's width for centering
-                  child: GestureDetector(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => TrashMailPage()),
-                      );
-                    },
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          'Trash', // Label text for the icon
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 12, // Adjust the font size as needed
-                          ),
-                        ),
-                        SizedBox(height: 4), // Space between text and the icon
-                        Image.asset('assets/trash.png',
-                            width: dotSize), // Assuming the image is square
-                      ],
-                    ),
-                  ),
-                ),
-                // ... Add other labeled buttons if needed
+          child: IntrinsicHeight(
+            child: Column(
+              mainAxisSize: MainAxisSize.max,
+              children: [
+                _searchBar(),
+                _mailBoxWithButtons(),
+                _folderButtons(),
+                _composeButton(),
               ],
             ),
           ),
+        ),
+      ),
+    );
+  }
 
-          // Email folder buttons using images
-          Column(
-            children: <Widget>[
-              _buildEmailFolderButton(context, 'assets/inbox.png', 'Inbox', 3,
-                  Colors.blue, InboxPage()),
-              _buildEmailFolderButton(context, 'assets/send.png', 'Sent', 0,
-                  Colors.orange, sentPage()),
-              _buildEmailFolderButton(context, 'assets/draft.png', 'Draft', 4,
-                  Colors.blue, DraftPage()),
-              _buildEmailFolderButton(context, 'assets/starred.png', 'Starred',
-                  0, Colors.blue, StarredPage()),
-              _buildEmailFolderButton(context, 'assets/spam.png', 'Spam', 2,
-                  Colors.blue, spamPage()),
-              // Add more buttons as needed
-            ],
+  Widget _searchBar() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 0),
+      child: TextField(
+        controller: searchController,
+        style: TextStyle(color: Colors.white),
+        decoration: InputDecoration(
+          contentPadding: EdgeInsets.symmetric(vertical: 10.0),
+          hintText: 'Search (Ctrl+/)',
+          hintStyle: TextStyle(color: Colors.white.withOpacity(0.5)),
+          prefixIcon: Icon(Icons.search, color: Colors.white, size: 20),
+          filled: true,
+          fillColor: Color(0xFF312D4B),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(30),
+            borderSide: BorderSide(color: Colors.white),
           ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10),
+            borderSide: BorderSide(color: Colors.white),
+          ),
+        ),
+      ),
+    );
+  }
 
-          Positioned(
-            child: Container(
-              width: 120,
-              padding: EdgeInsets.all(5), // Padding around the button
-              child: ElevatedButton(
-                onPressed: () {
-                  Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => ComposeMailScreen()));
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Color(0xFF312D4B), // Button background color
-                  foregroundColor: Colors.white, // Text color
-                  shadowColor: Colors.transparent, // No shadow
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10), // Rounded corners
-                  ),
-                  padding: EdgeInsets.symmetric(
-                      vertical: 16), // Vertical padding for a taller button
-                ),
-                child: Text('Compose'),
-              ),
-            ),
+  Widget _folderButtons() {
+    return Column(
+      children: <Widget>[
+        _buildEmailFolderButton(
+            context, Icons.inbox, 'Inbox', 3, Colors.white, InboxPage()),
+        _buildEmailFolderButton(
+            context, Icons.send, 'Sent', 0, Colors.white, sentPage()),
+        _buildEmailFolderButton(
+            context, Icons.drafts, 'Draft', 4, Colors.white, DraftPage()),
+        _buildEmailFolderButton(
+            context, Icons.star, 'Starred', 0, Colors.white, StarredPage()),
+        _buildEmailFolderButton(context, Icons.assignment_late_sharp, 'Spam', 2,
+            Colors.white, spamPage()),
+        // Add more buttons as needed
+      ],
+    );
+  }
+
+  Widget _composeButton() {
+    return Container(
+      width: double.infinity, // Set the width to match the parent container
+      padding: EdgeInsets.all(16), // Add some padding
+      child: ElevatedButton(
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => ComposeMailScreen()),
+          );
+        },
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Color(0xFF312D4B), // Button color
+          shadowColor: Colors.white, // Text color
+          padding: EdgeInsets.symmetric(vertical: 16), // Vertical padding
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10), // Rounded corners
           ),
+        ),
+        child: Text('Compose'),
+      ),
+    );
+  }
+
+  Widget _mailBoxWithButtons() {
+    double screenWidth = MediaQuery.of(context).size.width;
+
+    return Stack(
+      alignment: Alignment.center,
+      children: <Widget>[
+        Image.asset('assets/mail_box.png', width: screenWidth),
+        Positioned(
+          top: 245,
+          left: 60,
+          child: _buildCircleButton(circleButtonList[0]),
+        ),
+        Positioned(
+          top: 165,
+          left: 85,
+          child: _buildCircleButton(circleButtonList[1]),
+        ),
+        Positioned(
+          top: 120,
+          left: 175,
+          child: _buildCircleButton(circleButtonList[2]),
+        ),
+        Positioned(
+          top: 155,
+          left: 265,
+          child: _buildCircleButton(circleButtonList[3]),
+        ),
+        Positioned(
+          top: 220,
+          left: 300,
+          child: _buildCircleButton(circleButtonList[4]),
+        ),
+        // Add other Positioned widgets for each circular button
+      ],
+    );
+  }
+
+  Widget _buildCircleButton(CircleButtonInfo buttonInfo) {
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => buttonInfo.destinationPage),
+        );
+      },
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: <Widget>[
+          CircleAvatar(backgroundColor: buttonInfo.color),
+          SizedBox(height: 4),
+          Text(buttonInfo.label, style: TextStyle(color: Colors.white)),
         ],
       ),
     );
   }
 
-  Widget _buildPositionedCircleButton({
-    required double top,
-    required double left,
-    required Color color,
-    required String label,
-    required VoidCallback onTap,
-  }) {
-    return Positioned(
-      top: top,
-      left: left,
-      child: InkWell(
-        onTap: onTap,
-        child: Column(
-          mainAxisSize:
-              MainAxisSize.min, // To keep the Column as big as its children
-          children: [
-            Text(
-              label,
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 12, // Adjust the font size as needed
-              ),
-            ),
-            SizedBox(height: 4), // Space between text and the circle
-            CircleAvatar(
-              backgroundColor: color,
-              radius: 9.5, // Adjust the size as needed
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildEmailFolderButton(BuildContext context, String imagePath,
+  Widget _buildEmailFolderButton(BuildContext context, IconData icon,
       String title, int count, Color iconColor, Widget destinationPage) {
+    double screenWidth = MediaQuery.of(context).size.width;
     return Container(
-      height: 47,
-      margin: EdgeInsets.only(top: 5), // Adjust margins as necessary
+      width: screenWidth * 0.95, // Use a percentage of the screen width
+      height: 56, // Fixed height for accessibility
+      margin: EdgeInsets.symmetric(
+          horizontal: screenWidth * 0.05,
+          vertical: 5), // Responsive horizontal margin
       decoration: BoxDecoration(
-        color: Color(0xFF9155FD), // Button background color
-        borderRadius:
-            BorderRadius.circular(10.0), // Adjust border radius as necessary
+        color: Color(0xFF9155FD),
+        borderRadius: BorderRadius.circular(10),
       ),
       child: ListTile(
-        leading: Image.asset(
-          imagePath,
-          width: 24,
-          color: iconColor,
+        leading: Icon(icon, color: iconColor),
+        title: Text(
+          title,
+          style: TextStyle(
+              color: Colors.white,
+              fontSize: screenWidth * 0.045), // Responsive font size
         ),
-        title: Text(title, style: TextStyle(color: Colors.white)),
-        trailing: _buildCounter(count, iconColor),
+        trailing:
+            _buildCounter(count, screenWidth * 0.03), // Responsive counter size
         onTap: () {
           Navigator.push(context,
               MaterialPageRoute(builder: (context) => destinationPage));
@@ -280,21 +251,20 @@ class _MailHomePageState extends State<MailHomePage> {
     );
   }
 
-  Widget _buildCounter(int count, Color color) {
+  Widget _buildCounter(int count, double size) {
     return count > 0
         ? Container(
-            padding: EdgeInsets.all(8),
+            padding: EdgeInsets.all(size), // Use size passed as parameter
             decoration: BoxDecoration(
-              color: color, // Notification color matches the type of mail
+              color: Colors.red,
               borderRadius: BorderRadius.circular(20),
             ),
             child: Text(
               '$count',
-              style: TextStyle(color: Colors.white),
+              style: TextStyle(
+                  color: Colors.white, fontSize: size), // Responsive font size
             ),
           )
-        : SizedBox(); // Returns an empty box if count is 0
+        : SizedBox.shrink();
   }
 }
-
-void main() => runApp(MaterialApp(home: MailHomePage()));
