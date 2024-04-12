@@ -1,12 +1,13 @@
 // inbox.dart
 import 'package:flutter/material.dart';
+import 'package:mobile_app/mail/Starred.dart';
 
 enum EmailType { important, personal, company, private }
 
 class Email {
   final String sender;
   final String subject;
-  final bool isStarred;
+  bool isStarred;
   final String senderImagePath;
   final EmailType type;
 
@@ -44,6 +45,7 @@ class _InboxPageState extends State<InboxPage> {
     searchController.dispose();
     super.dispose();
   }
+// Define a callback
 
   void fetchEmails() async {
     // Simulate a network call to fetch emails
@@ -119,29 +121,100 @@ class _InboxPageState extends State<InboxPage> {
     });
   }
 
+  void deleteSelectedEmails() {
+    setState(() {
+      // Remove emails from the end of the list to avoid index shifting issues
+      var indicesList = selectedEmailIndices.toList()
+        ..sort((a, b) => b.compareTo(a));
+      for (var index in indicesList) {
+        inboxEmails.removeAt(index);
+      }
+      // After deletion, reset the selectedEmailIndices and update filteredEmails
+      selectedEmailIndices.clear();
+      filteredEmails = List.from(inboxEmails);
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor:
           Color(0xFF28243D), // Set the background color for the entire page
       appBar: AppBar(
-        title: Row(
-          children: [
-            Image.asset('assets/inbox.png', height: 24), // Your inbox icon
-            SizedBox(width: 8),
-            Text('Inbox'),
-          ],
-        ),
-        backgroundColor: Color(0xFF9155FD), // AppBar background color
-        actions: [
-          IconButton(
-            icon: Image.asset('assets/3p.png'), // Your settings icon
-            onPressed: () {
-              // TODO: Implement settings navigation
-            },
+          title: Row(
+            children: [
+              Image.asset('assets/inbox.png', height: 24), // Your inbox icon
+              SizedBox(width: 8),
+              Text('Inbox'),
+            ],
           ),
-        ],
-      ),
+          backgroundColor: Color(0xFF9155FD), // AppBar background color
+          actions: [
+            // ... (Any other actions)
+            PopupMenuButton<String>(
+              onSelected: (String value) {
+                switch (value) {
+                  case 'Select All':
+                    setState(() {
+                      selectedEmailIndices.addAll(
+                        List.generate(filteredEmails.length, (index) => index),
+                      );
+                    });
+                    break;
+                  case 'Delete':
+                    showDialog(
+                      context: context,
+                      builder: (BuildContext context) {
+                        // Return a dialog for confirmation
+                        return AlertDialog(
+                          title: Text('Confirm Delete'),
+                          content: Text(
+                              'Are you sure you want to delete the selected emails?'),
+                          actions: <Widget>[
+                            TextButton(
+                              child: Text('Cancel'),
+                              onPressed: () {
+                                Navigator.of(context)
+                                    .pop(); // Dismiss the dialog
+                              },
+                            ),
+                            TextButton(
+                              child: Text('Delete'),
+                              onPressed: () {
+                                setState(() {
+                                  selectedEmailIndices
+                                      .toList()
+                                      .reversed
+                                      .forEach((index) {
+                                    inboxEmails.removeAt(index);
+                                  });
+                                  selectedEmailIndices.clear();
+                                  filteredEmails = List.from(inboxEmails);
+                                });
+                                Navigator.of(context)
+                                    .pop(); // Dismiss the dialog
+                              },
+                            ),
+                          ],
+                        );
+                      },
+                    );
+                    break;
+                }
+              },
+              itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
+                const PopupMenuItem<String>(
+                  value: 'Select All',
+                  child: Text('Select All'),
+                ),
+                const PopupMenuItem<String>(
+                  value: 'Delete',
+                  child: Text('Delete'),
+                ),
+              ],
+              icon: Icon(Icons.more_vert), // Icon for the button
+            ),
+          ]),
       body: Column(
         children: <Widget>[
           _buildSearchBar(),
@@ -151,7 +224,8 @@ class _InboxPageState extends State<InboxPage> {
     );
   }
 
-  Widget _buildEmailItem(Email email, bool isSelected, VoidCallback onTap) {
+  Widget _buildEmailItem(
+      Email email, int index, bool isSelected, VoidCallback onTap) {
     Color getTypeColor(EmailType type) {
       switch (type) {
         case EmailType.important:
@@ -167,6 +241,15 @@ class _InboxPageState extends State<InboxPage> {
       }
     }
 
+    void toggleStarred() {
+      // Update the isStarred property of the email
+      // This assumes you have a way to modify the state of the email
+      // For example, you could use a setState call if the emails are stored in the state of your widget
+      setState(() {
+        inboxEmails[index].isStarred = !inboxEmails[index].isStarred;
+      });
+    }
+
     return Card(
       color: isSelected ? Color(0xFF9155FD) : Colors.transparent,
       shape: RoundedRectangleBorder(
@@ -177,9 +260,17 @@ class _InboxPageState extends State<InboxPage> {
         leading: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(
-              email.isStarred ? Icons.star : Icons.star_border, // Starred icon
-              color: email.isStarred ? Colors.yellow : Colors.grey,
+            IconButton(
+              icon: Icon(
+                email.isStarred ? Icons.star : Icons.star_border,
+                color: email.isStarred ? Colors.yellow : Colors.grey,
+              ),
+              onPressed: () {
+                setState(() {
+                  // Toggle the isStarred property
+                  email.isStarred = !email.isStarred;
+                });
+              },
             ),
             SizedBox(width: 8),
             CircleAvatar(
@@ -239,8 +330,8 @@ class _InboxPageState extends State<InboxPage> {
           bool isSelected =
               selectedEmailIndices.contains(index); // Check selection status
 
-          // Call the updated _buildEmailItem method
-          return _buildEmailItem(email, isSelected, () {
+          // Pass the index to the _buildEmailItem method
+          return _buildEmailItem(email, index, isSelected, () {
             setState(() {
               // Toggle selection status
               if (isSelected) {

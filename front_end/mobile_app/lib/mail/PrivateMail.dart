@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 class Email {
   final String sender;
   final String subject;
-  final bool isStarred;
+  bool isStarred;
   final String senderImagePath; // Field for the sender's image
 
   Email({
@@ -24,6 +24,8 @@ class _PrivateMailPageState extends State<PrivateMailPage> {
   List<Email> PrivateEmails = [];
 
   List<Email> filteredEmails = [];
+  Set<int> selectedEmailIndices =
+      {}; // Using a Set to allow multiple selections
 
   @override
   void initState() {
@@ -83,17 +85,74 @@ class _PrivateMailPageState extends State<PrivateMailPage> {
     return Scaffold(
       backgroundColor: Color(0xFF28243D),
       appBar: AppBar(
-        title: Text('Private'),
-        backgroundColor: Color(0xFF9155FD),
-        actions: [
-          IconButton(
-            icon: Image.asset('assets/3p.png'),
-            onPressed: () {
-              // Settings action
-            },
-          ),
-        ],
-      ),
+          title: Text('Private'),
+          backgroundColor: Color(0xFF9155FD),
+          actions: [
+            // ... (Any other actions)
+            PopupMenuButton<String>(
+              onSelected: (String value) {
+                switch (value) {
+                  case 'Select All':
+                    setState(() {
+                      selectedEmailIndices.addAll(
+                        List.generate(filteredEmails.length, (index) => index),
+                      );
+                    });
+                    break;
+                  case 'Delete':
+                    showDialog(
+                      context: context,
+                      builder: (BuildContext context) {
+                        // Return a dialog for confirmation
+                        return AlertDialog(
+                          title: Text('Confirm Delete'),
+                          content: Text(
+                              'Are you sure you want to delete the selected emails?'),
+                          actions: <Widget>[
+                            TextButton(
+                              child: Text('Cancel'),
+                              onPressed: () {
+                                Navigator.of(context)
+                                    .pop(); // Dismiss the dialog
+                              },
+                            ),
+                            TextButton(
+                              child: Text('Delete'),
+                              onPressed: () {
+                                setState(() {
+                                  selectedEmailIndices
+                                      .toList()
+                                      .reversed
+                                      .forEach((index) {
+                                    PrivateEmails.removeAt(index);
+                                  });
+                                  selectedEmailIndices.clear();
+                                  filteredEmails = List.from(PrivateEmails);
+                                });
+                                Navigator.of(context)
+                                    .pop(); // Dismiss the dialog
+                              },
+                            ),
+                          ],
+                        );
+                      },
+                    );
+                    break;
+                }
+              },
+              itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
+                const PopupMenuItem<String>(
+                  value: 'Select All',
+                  child: Text('Select All'),
+                ),
+                const PopupMenuItem<String>(
+                  value: 'Delete',
+                  child: Text('Delete'),
+                ),
+              ],
+              icon: Icon(Icons.more_vert), // Icon for the button
+            ),
+          ]),
       body: Column(
         children: <Widget>[
           Padding(
@@ -118,19 +177,25 @@ class _PrivateMailPageState extends State<PrivateMailPage> {
           ),
           Expanded(
             child: ListView.builder(
-              itemCount: PrivateEmails.length,
+              itemCount: filteredEmails.length,
               itemBuilder: (context, index) {
-                if (index >= filteredEmails.length) {
-                  return Container(); // Return an empty container in case of index out of range
-                }
                 final email = filteredEmails[index];
+                bool isSelected = selectedEmailIndices.contains(index);
+
                 return ListTile(
                   leading: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(
-                        email.isStarred ? Icons.star : Icons.star_border,
-                        color: email.isStarred ? Colors.yellow : Colors.white,
+                      IconButton(
+                        icon: Icon(
+                          email.isStarred ? Icons.star : Icons.star_border,
+                          color: email.isStarred ? Colors.yellow : Colors.grey,
+                        ),
+                        onPressed: () {
+                          setState(() {
+                            email.isStarred = !email.isStarred;
+                          });
+                        },
                       ),
                       SizedBox(width: 8),
                       CircleAvatar(
@@ -146,14 +211,21 @@ class _PrivateMailPageState extends State<PrivateMailPage> {
                     height: 12,
                     width: 12,
                     decoration: BoxDecoration(
-                      color: Colors.red, // Red to represent 'Private' email
+                      color: Colors.orange,
                       shape: BoxShape.circle,
                       border: Border.all(color: Color(0xFF28243D), width: 2),
                     ),
                   ),
                   onTap: () {
-                    // Open email details
+                    setState(() {
+                      if (isSelected) {
+                        selectedEmailIndices.remove(index);
+                      } else {
+                        selectedEmailIndices.add(index);
+                      }
+                    });
                   },
+                  tileColor: isSelected ? Colors.grey[200] : null,
                 );
               },
             ),

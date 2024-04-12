@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 class Email {
   final String sender;
   final String subject;
-  final bool isStarred;
+  bool isStarred;
   final String senderImagePath; // Field for the sender's image
 
   Email({
@@ -23,6 +23,7 @@ class _ImportantMailPageState extends State<ImportantMailPage> {
   TextEditingController searchController = TextEditingController();
   List<Email> ImportantEmails = [];
   List<Email> filteredEmails = [];
+  Set<int> selectedEmailIndices = {};
 
   @override
   void initState() {
@@ -84,17 +85,74 @@ class _ImportantMailPageState extends State<ImportantMailPage> {
     return Scaffold(
       backgroundColor: Color(0xFF28243D),
       appBar: AppBar(
-        title: Text('Important'),
-        backgroundColor: Color(0xFF9155FD),
-        actions: [
-          IconButton(
-            icon: Image.asset('assets/3p.png'),
-            onPressed: () {
-              // Settings action
-            },
-          ),
-        ],
-      ),
+          title: Text('Important'),
+          backgroundColor: Color(0xFF9155FD),
+          actions: [
+            // ... (Any other actions)
+            PopupMenuButton<String>(
+              onSelected: (String value) {
+                switch (value) {
+                  case 'Select All':
+                    setState(() {
+                      selectedEmailIndices.addAll(
+                        List.generate(filteredEmails.length, (index) => index),
+                      );
+                    });
+                    break;
+                  case 'Delete':
+                    showDialog(
+                      context: context,
+                      builder: (BuildContext context) {
+                        // Return a dialog for confirmation
+                        return AlertDialog(
+                          title: Text('Confirm Delete'),
+                          content: Text(
+                              'Are you sure you want to delete the selected emails?'),
+                          actions: <Widget>[
+                            TextButton(
+                              child: Text('Cancel'),
+                              onPressed: () {
+                                Navigator.of(context)
+                                    .pop(); // Dismiss the dialog
+                              },
+                            ),
+                            TextButton(
+                              child: Text('Delete'),
+                              onPressed: () {
+                                setState(() {
+                                  selectedEmailIndices
+                                      .toList()
+                                      .reversed
+                                      .forEach((index) {
+                                    ImportantEmails.removeAt(index);
+                                  });
+                                  selectedEmailIndices.clear();
+                                  filteredEmails = List.from(ImportantEmails);
+                                });
+                                Navigator.of(context)
+                                    .pop(); // Dismiss the dialog
+                              },
+                            ),
+                          ],
+                        );
+                      },
+                    );
+                    break;
+                }
+              },
+              itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
+                const PopupMenuItem<String>(
+                  value: 'Select All',
+                  child: Text('Select All'),
+                ),
+                const PopupMenuItem<String>(
+                  value: 'Delete',
+                  child: Text('Delete'),
+                ),
+              ],
+              icon: Icon(Icons.more_vert), // Icon for the button
+            ),
+          ]),
       body: Column(
         children: <Widget>[
           Padding(
@@ -129,9 +187,17 @@ class _ImportantMailPageState extends State<ImportantMailPage> {
                   leading: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(
-                        email.isStarred ? Icons.star : Icons.star_border,
-                        color: email.isStarred ? Colors.yellow : Colors.white,
+                      IconButton(
+                        icon: Icon(
+                          email.isStarred ? Icons.star : Icons.star_border,
+                          color: email.isStarred ? Colors.yellow : Colors.grey,
+                        ),
+                        onPressed: () {
+                          setState(() {
+                            // Toggle the isStarred property
+                            email.isStarred = !email.isStarred;
+                          });
+                        },
                       ),
                       SizedBox(width: 8),
                       CircleAvatar(
@@ -154,8 +220,17 @@ class _ImportantMailPageState extends State<ImportantMailPage> {
                     ),
                   ),
                   onTap: () {
-                    // Open email details
+                    setState(() {
+                      if (selectedEmailIndices.contains(index)) {
+                        selectedEmailIndices.remove(index);
+                      } else {
+                        selectedEmailIndices.add(index);
+                      }
+                    });
                   },
+                  tileColor: selectedEmailIndices.contains(index)
+                      ? Colors.grey[200]
+                      : null, // Optional: Change color if selected
                 );
               },
             ),

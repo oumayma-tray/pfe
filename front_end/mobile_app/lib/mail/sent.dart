@@ -6,7 +6,7 @@ enum EmailType { important, personal, company, private }
 class Email {
   final String sender;
   final String subject;
-  final bool isStarred;
+  bool isStarred;
   final String senderImagePath;
   final EmailType type;
 
@@ -29,19 +29,19 @@ class _sentPageState extends State<sentPage> {
   List<Email> sentEmails = [];
   List<Email> filteredEmails = [];
 
-  int?
-      selectedEmailIndex; // Stocke l'indice de l'e-mail sélectionné// Using a Set to allow multiple selections
+  Set<int> selectedEmailIndices = {};
 
   @override
   void initState() {
     super.initState();
     fetchEmails();
-    searchController.addListener(_onSearchChanged);
+    searchController.addListener(() {
+      filterEmails();
+    });
   }
 
   @override
   void dispose() {
-    searchController.removeListener(_onSearchChanged);
     searchController.dispose();
     super.dispose();
   }
@@ -107,15 +107,18 @@ class _sentPageState extends State<sentPage> {
     });
   }
 
-  void _onSearchChanged() {
+  void filterEmails() {
+    String searchTerm = searchController.text.toLowerCase();
     setState(() {
-      filteredEmails = searchController.text.isEmpty
-          ? sentEmails
-          : sentEmails
-              .where((email) => email.sender
-                  .toLowerCase()
-                  .contains(searchController.text.toLowerCase()))
-              .toList();
+      if (searchTerm.isEmpty) {
+        filteredEmails = sentEmails; // If search term is empty, show all emails
+      } else {
+        filteredEmails = sentEmails.where((email) {
+          // Filter emails based on the search term
+          return email.sender.toLowerCase().contains(searchTerm) ||
+              email.subject.toLowerCase().contains(searchTerm);
+        }).toList();
+      }
     });
   }
 
@@ -125,23 +128,80 @@ class _sentPageState extends State<sentPage> {
       backgroundColor:
           Color(0xFF28243D), // Set the background color for the entire page
       appBar: AppBar(
-        title: Row(
-          children: [
-            Image.asset('assets/send.png', height: 24), // Your sent icon
-            SizedBox(width: 8),
-            Text('sent'),
-          ],
-        ),
-        backgroundColor: Color(0xFF9155FD), // AppBar background color
-        actions: [
-          IconButton(
-            icon: Image.asset('assets/3p.png'), // Your settings icon
-            onPressed: () {
-              // TODO: Implement settings navigation
-            },
+          title: Row(
+            children: [
+              Image.asset('assets/send.png', height: 24), // Your sent icon
+              SizedBox(width: 8),
+              Text('sent'),
+            ],
           ),
-        ],
-      ),
+          backgroundColor: Color(0xFF9155FD), // AppBar background color
+          actions: [
+            // ... (Any other actions)
+            PopupMenuButton<String>(
+              onSelected: (String value) {
+                switch (value) {
+                  case 'Select All':
+                    setState(() {
+                      selectedEmailIndices.addAll(
+                        List.generate(filteredEmails.length, (index) => index),
+                      );
+                    });
+                    break;
+                  case 'Delete':
+                    showDialog(
+                      context: context,
+                      builder: (BuildContext context) {
+                        // Return a dialog for confirmation
+                        return AlertDialog(
+                          title: Text('Confirm Delete'),
+                          content: Text(
+                              'Are you sure you want to delete the selected emails?'),
+                          actions: <Widget>[
+                            TextButton(
+                              child: Text('Cancel'),
+                              onPressed: () {
+                                Navigator.of(context)
+                                    .pop(); // Dismiss the dialog
+                              },
+                            ),
+                            TextButton(
+                              child: Text('Delete'),
+                              onPressed: () {
+                                setState(() {
+                                  selectedEmailIndices
+                                      .toList()
+                                      .reversed
+                                      .forEach((index) {
+                                    sentEmails.removeAt(index);
+                                  });
+                                  selectedEmailIndices.clear();
+                                  filteredEmails = List.from(sentEmails);
+                                });
+                                Navigator.of(context)
+                                    .pop(); // Dismiss the dialog
+                              },
+                            ),
+                          ],
+                        );
+                      },
+                    );
+                    break;
+                }
+              },
+              itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
+                const PopupMenuItem<String>(
+                  value: 'Select All',
+                  child: Text('Select All'),
+                ),
+                const PopupMenuItem<String>(
+                  value: 'Delete',
+                  child: Text('Delete'),
+                ),
+              ],
+              icon: Icon(Icons.more_vert), // Icon for the button
+            ),
+          ]),
       body: Column(
         children: <Widget>[
           _buildSearchBar(),
@@ -177,9 +237,17 @@ class _sentPageState extends State<sentPage> {
         leading: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(
-              email.isStarred ? Icons.star : Icons.star_border, // Starred icon
-              color: email.isStarred ? Colors.yellow : Colors.grey,
+            IconButton(
+              icon: Icon(
+                email.isStarred ? Icons.star : Icons.star_border,
+                color: email.isStarred ? Colors.yellow : Colors.grey,
+              ),
+              onPressed: () {
+                setState(() {
+                  // Toggle the isStarred property
+                  email.isStarred = !email.isStarred;
+                });
+              },
             ),
             SizedBox(width: 8),
             CircleAvatar(
@@ -221,10 +289,6 @@ class _sentPageState extends State<sentPage> {
             borderSide: BorderSide.none,
           ),
         ),
-        onChanged: (value) {
-          // Call the search filter function
-          _onSearchChanged();
-        },
       ),
     );
   }
@@ -235,18 +299,52 @@ class _sentPageState extends State<sentPage> {
         itemCount: filteredEmails.length,
         itemBuilder: (context, index) {
           final email = filteredEmails[index];
-          bool isSelected = selectedEmailIndex == index;
+          bool isSelected = selectedEmailIndices.contains(index);
 
-          return _buildEmailItem(email, isSelected, () {
-            setState(() {
-              // Change la sélection
-              if (isSelected) {
-                selectedEmailIndex = null; // Désélectionner si déjà sélectionné
-              } else {
-                selectedEmailIndex = index; // Sélectionner le nouvel e-mail
-              }
-            });
-          });
+          return ListTile(
+            leading: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                IconButton(
+                  icon: Icon(
+                    email.isStarred ? Icons.star : Icons.star_border,
+                    color: email.isStarred ? Colors.yellow : Colors.grey,
+                  ),
+                  onPressed: () {
+                    setState(() {
+                      email.isStarred = !email.isStarred;
+                    });
+                  },
+                ),
+                SizedBox(width: 8),
+                CircleAvatar(
+                  backgroundImage: AssetImage(email.senderImagePath),
+                ),
+              ],
+            ),
+            title: Text(email.sender, style: TextStyle(color: Colors.white)),
+            subtitle: Text(email.subject,
+                style: TextStyle(color: Colors.white.withOpacity(0.5))),
+            trailing: Container(
+              height: 12,
+              width: 12,
+              decoration: BoxDecoration(
+                color: Colors.orange,
+                shape: BoxShape.circle,
+                border: Border.all(color: Color(0xFF28243D), width: 2),
+              ),
+            ),
+            onTap: () {
+              setState(() {
+                if (isSelected) {
+                  selectedEmailIndices.remove(index);
+                } else {
+                  selectedEmailIndices.add(index);
+                }
+              });
+            },
+            tileColor: isSelected ? Colors.grey[200] : null,
+          );
         },
       ),
     );

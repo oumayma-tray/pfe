@@ -5,7 +5,7 @@ enum EmailType { important, personal, company, private }
 class Email {
   final String sender;
   final String subject;
-  final bool isStarred;
+  bool isStarred;
   final String senderImagePath;
   final EmailType type;
 
@@ -30,6 +30,8 @@ class _TrashMailPageState extends State<TrashMailPage> {
   List<Email> trashEmails = [];
   List<Email> filteredEmails = [];
   int? selectedEmailIndex;
+  Set<int> selectedEmailIndices =
+      {}; // Using a Set to allow multiple selections
   @override
   void initState() {
     super.initState();
@@ -124,17 +126,74 @@ class _TrashMailPageState extends State<TrashMailPage> {
     return Scaffold(
       backgroundColor: Color(0xFF28243D),
       appBar: AppBar(
-        title: Text('Trash'),
-        backgroundColor: Color(0xFF9155FD),
-        actions: [
-          IconButton(
-            icon: Image.asset('assets/3p.png'),
-            onPressed: () {
-              // Settings action
-            },
-          ),
-        ],
-      ),
+          title: Text('Trash'),
+          backgroundColor: Color(0xFF9155FD),
+          actions: [
+            // ... (Any other actions)
+            PopupMenuButton<String>(
+              onSelected: (String value) {
+                switch (value) {
+                  case 'Select All':
+                    setState(() {
+                      selectedEmailIndices.addAll(
+                        List.generate(filteredEmails.length, (index) => index),
+                      );
+                    });
+                    break;
+                  case 'Delete':
+                    showDialog(
+                      context: context,
+                      builder: (BuildContext context) {
+                        // Return a dialog for confirmation
+                        return AlertDialog(
+                          title: Text('Confirm Delete'),
+                          content: Text(
+                              'Are you sure you want to delete the selected emails?'),
+                          actions: <Widget>[
+                            TextButton(
+                              child: Text('Cancel'),
+                              onPressed: () {
+                                Navigator.of(context)
+                                    .pop(); // Dismiss the dialog
+                              },
+                            ),
+                            TextButton(
+                              child: Text('Delete'),
+                              onPressed: () {
+                                setState(() {
+                                  selectedEmailIndices
+                                      .toList()
+                                      .reversed
+                                      .forEach((index) {
+                                    trashEmails.removeAt(index);
+                                  });
+                                  selectedEmailIndices.clear();
+                                  filteredEmails = List.from(trashEmails);
+                                });
+                                Navigator.of(context)
+                                    .pop(); // Dismiss the dialog
+                              },
+                            ),
+                          ],
+                        );
+                      },
+                    );
+                    break;
+                }
+              },
+              itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
+                const PopupMenuItem<String>(
+                  value: 'Select All',
+                  child: Text('Select All'),
+                ),
+                const PopupMenuItem<String>(
+                  value: 'Delete',
+                  child: Text('Delete'),
+                ),
+              ],
+              icon: Icon(Icons.more_vert), // Icon for the button
+            ),
+          ]),
       body: Column(
         children: <Widget>[
           Padding(
@@ -159,23 +218,56 @@ class _TrashMailPageState extends State<TrashMailPage> {
           ),
           Expanded(
             child: ListView.builder(
-              itemCount:
-                  filteredEmails.length, // Use the length of filteredEmails
+              itemCount: filteredEmails.length,
               itemBuilder: (context, index) {
-                final email =
-                    filteredEmails[index]; // Access the filteredEmails
+                final email = filteredEmails[index];
+                bool isSelected = selectedEmailIndices.contains(index);
 
-                bool isSelected = selectedEmailIndex == index;
-                return _buildEmailItem(email, isSelected, () {
-                  setState(() {
-                    if (selectedEmailIndex == index) {
-                      selectedEmailIndex =
-                          null; // Deselect if the same email is tapped again
-                    } else {
-                      selectedEmailIndex = index; // Select the tapped email
-                    }
-                  });
-                });
+                return ListTile(
+                  leading: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      IconButton(
+                        icon: Icon(
+                          email.isStarred ? Icons.star : Icons.star_border,
+                          color: email.isStarred ? Colors.yellow : Colors.grey,
+                        ),
+                        onPressed: () {
+                          setState(() {
+                            email.isStarred = !email.isStarred;
+                          });
+                        },
+                      ),
+                      SizedBox(width: 8),
+                      CircleAvatar(
+                        backgroundImage: AssetImage(email.senderImagePath),
+                      ),
+                    ],
+                  ),
+                  title:
+                      Text(email.sender, style: TextStyle(color: Colors.white)),
+                  subtitle: Text(email.subject,
+                      style: TextStyle(color: Colors.white.withOpacity(0.5))),
+                  trailing: Container(
+                    height: 12,
+                    width: 12,
+                    decoration: BoxDecoration(
+                      color: Colors.orange,
+                      shape: BoxShape.circle,
+                      border: Border.all(color: Color(0xFF28243D), width: 2),
+                    ),
+                  ),
+                  onTap: () {
+                    setState(() {
+                      if (isSelected) {
+                        selectedEmailIndices.remove(index);
+                      } else {
+                        selectedEmailIndices.add(index);
+                      }
+                    });
+                  },
+                  tileColor: isSelected ? Colors.grey[200] : null,
+                );
               },
             ),
           ),

@@ -1,7 +1,7 @@
 class Email {
   final String sender;
   final String subject;
-  final bool isStarred;
+  bool isStarred;
   final String senderImagePath;
   final String message;
 

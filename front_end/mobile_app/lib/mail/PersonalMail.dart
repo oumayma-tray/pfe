@@ -13,6 +13,7 @@ class _PersonalMailPageState extends State<PersonalMailPage> {
   // This list would actually come from your backend
   List<Email> emails = [];
   List<Email> filteredEmails = [];
+  Set<int> selectedEmailIndices = {};
 
   @override
   void initState() {
@@ -66,18 +67,75 @@ class _PersonalMailPageState extends State<PersonalMailPage> {
     return Scaffold(
         backgroundColor: Color(0xFF28243D), // The background color for the page
         appBar: AppBar(
-          title: Text('Personal'),
-          backgroundColor: Color(0xFF9155FD), // The header color in the image
-          actions: [
-            IconButton(
-              icon: Image.asset(
-                  'assets/3p.png'), // Use your own asset for the button
-              onPressed: () {
-                // Define what happens when this button is tapped
-              },
-            ),
-          ],
-        ),
+            title: Text('Personal'),
+            backgroundColor: Color(0xFF9155FD), // The header color in the image
+            actions: [
+              // ... (Any other actions)
+              PopupMenuButton<String>(
+                onSelected: (String value) {
+                  switch (value) {
+                    case 'Select All':
+                      setState(() {
+                        selectedEmailIndices.addAll(
+                          List.generate(
+                              filteredEmails.length, (index) => index),
+                        );
+                      });
+                      break;
+                    case 'Delete':
+                      showDialog(
+                        context: context,
+                        builder: (BuildContext context) {
+                          // Return a dialog for confirmation
+                          return AlertDialog(
+                            title: Text('Confirm Delete'),
+                            content: Text(
+                                'Are you sure you want to delete the selected emails?'),
+                            actions: <Widget>[
+                              TextButton(
+                                child: Text('Cancel'),
+                                onPressed: () {
+                                  Navigator.of(context)
+                                      .pop(); // Dismiss the dialog
+                                },
+                              ),
+                              TextButton(
+                                child: Text('Delete'),
+                                onPressed: () {
+                                  setState(() {
+                                    selectedEmailIndices
+                                        .toList()
+                                        .reversed
+                                        .forEach((index) {
+                                      emails.removeAt(index);
+                                    });
+                                    selectedEmailIndices.clear();
+                                    filteredEmails = List.from(emails);
+                                  });
+                                  Navigator.of(context)
+                                      .pop(); // Dismiss the dialog
+                                },
+                              ),
+                            ],
+                          );
+                        },
+                      );
+                      break;
+                  }
+                },
+                itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
+                  const PopupMenuItem<String>(
+                    value: 'Select All',
+                    child: Text('Select All'),
+                  ),
+                  const PopupMenuItem<String>(
+                    value: 'Delete',
+                    child: Text('Delete'),
+                  ),
+                ],
+                icon: Icon(Icons.more_vert), // Icon for the button
+              ),
+            ]),
         body: Column(children: <Widget>[
           Padding(
             padding:
@@ -103,24 +161,27 @@ class _PersonalMailPageState extends State<PersonalMailPage> {
             child: ListView.builder(
               itemCount: filteredEmails.length,
               itemBuilder: (context, index) {
-                if (index >= filteredEmails.length) {
-                  return Container(); // Return an empty container in case of index out of range
-                }
                 final email = filteredEmails[index];
+                bool isSelected = selectedEmailIndices.contains(index);
+
                 return ListTile(
                   leading: Row(
-                    mainAxisSize: MainAxisSize
-                        .min, // Important to prevent the Row from taking up all the available space
+                    mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(
-                        email.isStarred ? Icons.star : Icons.star_border,
-                        color: email.isStarred ? Colors.yellow : Colors.white,
-                      ), // Star icon
-                      SizedBox(
-                          width: 8), // Spacing between the star and the avatar
+                      IconButton(
+                        icon: Icon(
+                          email.isStarred ? Icons.star : Icons.star_border,
+                          color: email.isStarred ? Colors.yellow : Colors.grey,
+                        ),
+                        onPressed: () {
+                          setState(() {
+                            email.isStarred = !email.isStarred;
+                          });
+                        },
+                      ),
+                      SizedBox(width: 8),
                       CircleAvatar(
-                        backgroundImage:
-                            AssetImage(email.senderImagePath), // Sender's image
+                        backgroundImage: AssetImage(email.senderImagePath),
                       ),
                     ],
                   ),
@@ -132,19 +193,21 @@ class _PersonalMailPageState extends State<PersonalMailPage> {
                     height: 12,
                     width: 12,
                     decoration: BoxDecoration(
-                      color: Colors.green,
+                      color: Colors.orange,
                       shape: BoxShape.circle,
                       border: Border.all(color: Color(0xFF28243D), width: 2),
                     ),
-                  ), // The green dot
+                  ),
                   onTap: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (context) =>
-                            ConversationMailPage(email: email),
-                      ),
-                    );
+                    setState(() {
+                      if (isSelected) {
+                        selectedEmailIndices.remove(index);
+                      } else {
+                        selectedEmailIndices.add(index);
+                      }
+                    });
                   },
+                  tileColor: isSelected ? Colors.grey[200] : null,
                 );
               },
             ),

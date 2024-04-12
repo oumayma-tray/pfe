@@ -41,7 +41,7 @@ class _MailHomePageState extends State<MailHomePage> {
     CircleButtonInfo(
         label: 'inportant',
         color: Colors.yellow,
-        destinationPage: CompanyMailPage()),
+        destinationPage: ImportantMailPage()),
     CircleButtonInfo(
         label: 'private',
         color: Colors.red,

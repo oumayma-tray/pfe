@@ -6,11 +6,12 @@ class ComposeMailScreen extends StatefulWidget {
 }
 
 class _ComposeMailScreenState extends State<ComposeMailScreen> {
+  final TextEditingController messageController = TextEditingController();
+  TextStyle currentStyle = TextStyle(color: Colors.white);
   final TextEditingController toController = TextEditingController();
   final TextEditingController ccController = TextEditingController();
   final TextEditingController bccController = TextEditingController();
   final TextEditingController subjectController = TextEditingController();
-  final TextEditingController messageController = TextEditingController();
 
   // Placeholder function to mimic sending an email
   void sendEmail() {
@@ -18,10 +19,62 @@ class _ComposeMailScreenState extends State<ComposeMailScreen> {
     print('Send email logic would go here');
   }
 
+  String selectedFormatAction = '';
+
   void onFormatButtonPressed(String formatAction) {
-    // This is just a placeholder function
-    // You would implement the actual formatting logic here
-    print('Format action: $formatAction');
+    setState(() {
+      // Toggle the current style with the new action
+      if (selectedFormatAction != formatAction) {
+        selectedFormatAction = formatAction;
+      } else {
+        selectedFormatAction = '';
+      }
+
+      // Start with a white text color for the current style
+      currentStyle = TextStyle(color: Colors.white);
+
+      if (selectedFormatAction == 'bold') {
+        currentStyle = currentStyle.copyWith(fontWeight: FontWeight.bold);
+      } else if (selectedFormatAction == 'italic') {
+        currentStyle = currentStyle.copyWith(fontStyle: FontStyle.italic);
+      } else if (selectedFormatAction == 'underline') {
+        currentStyle =
+            currentStyle.copyWith(decoration: TextDecoration.underline);
+      } else if (selectedFormatAction == 'strikethrough') {
+        currentStyle =
+            currentStyle.copyWith(decoration: TextDecoration.lineThrough);
+      }
+
+      // Apply the current style along with the white text color to the messageController
+      messageController.value = messageController.value.copyWith(
+        text: messageController.text,
+        selection: messageController.selection,
+        composing: TextRange.empty,
+      );
+    });
+  }
+
+  Widget formatButton(IconData icon, String formatAction) {
+    bool isSelected = selectedFormatAction == formatAction;
+    Color backgroundColor = isSelected ? Color(0xFFC5A5FE) : Colors.transparent;
+
+    return IconButton(
+      icon: Icon(icon, color: isSelected ? Colors.white : Colors.grey),
+      onPressed: () => onFormatButtonPressed(formatAction),
+      // Apply a color filter if the button is selected
+      color: isSelected ? Color(0xFFC5A5FE) : Colors.grey,
+    );
+  }
+
+  @override
+  void dispose() {
+    // Dispose controllers when the widget is removed from the widget tree
+    toController.dispose();
+    ccController.dispose();
+    bccController.dispose();
+    subjectController.dispose();
+    messageController.dispose();
+    super.dispose();
   }
 
   @override
@@ -113,9 +166,9 @@ class _ComposeMailScreenState extends State<ComposeMailScreen> {
               controller: messageController,
               labelText: 'Message',
               hint: 'Enter your message here',
-              maxLines: 10, // Adjust maxLines for the message field
+              maxLines: 10, // Allows for multiline input
               labelStyle: TextStyle(color: Colors.white),
-              hintStyle: TextStyle(color: Colors.black),
+              hintStyle: TextStyle(color: Colors.grey),
             ),
           ],
         ),
@@ -133,6 +186,7 @@ class _ComposeMailScreenState extends State<ComposeMailScreen> {
   }) {
     return TextFormField(
       controller: controller,
+      style: currentStyle,
       maxLines: maxLines,
       decoration: InputDecoration(
         labelText: labelText,
@@ -144,28 +198,3 @@ class _ComposeMailScreenState extends State<ComposeMailScreen> {
     );
   }
 }
-
-Widget formatButton(IconData icon, String formatAction) {
-  return Padding(
-    padding: const EdgeInsets.all(4.0),
-    child: Ink(
-      decoration: BoxDecoration(
-        color: Color(0xFF28243D), // Background color
-        borderRadius:
-            BorderRadius.circular(4), // Adjust border radius if needed
-      ),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(4), // Match the border radius
-        onTap: () => onFormatButtonPressed(formatAction),
-        child: Padding(
-          padding: EdgeInsets.all(8.0), // Padding inside the button
-          child: Icon(icon, color: Colors.white), // Icon color
-        ),
-      ),
-    ),
-  );
-}
-
-onFormatButtonPressed(String formatAction) {}
-
-void main() => runApp(MaterialApp(home: ComposeMailScreen()));
