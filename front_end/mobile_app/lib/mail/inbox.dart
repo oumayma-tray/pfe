@@ -1,24 +1,7 @@
 // inbox.dart
 import 'package:flutter/material.dart';
-import 'package:mobile_app/mail/Starred.dart';
-
-enum EmailType { important, personal, company, private }
-
-class Email {
-  final String sender;
-  final String subject;
-  bool isStarred;
-  final String senderImagePath;
-  final EmailType type;
-
-  Email({
-    required this.sender,
-    required this.subject,
-    required this.isStarred,
-    required this.senderImagePath,
-    required this.type,
-  });
-}
+import 'package:mobile_app/mail/chat-mail.dart';
+import 'package:mobile_app/mail/email.dart';
 
 class InboxPage extends StatefulWidget {
   @override
@@ -58,50 +41,70 @@ class _InboxPageState extends State<InboxPage> {
           isStarred: true,
           senderImagePath:
               'assets/Ellipse 10.png', // Ensure this is the correct path for the avatar image
-          type: EmailType
-              .private, // The type should match the email category, here it is 'trash'
+          type: EmailType.private,
+          cc: '',
+          recipient: '',
+          date: '',
+          message:
+              '', // The type should match the email category, here it is 'trash'
         ),
         Email(
-          sender: 'Felecia Rower',
-          subject: 'lorem ipsum lorem ipsum lorem ipsum',
-          isStarred: false,
-          senderImagePath:
-              'assets/Ellipse 11.png', // Correct path for avatar image
-          type: EmailType.private, // Email type is 'trash'
-        ),
+            sender: 'Felecia Rower',
+            subject: 'lorem ipsum lorem ipsum lorem ipsum',
+            isStarred: false,
+            senderImagePath:
+                'assets/Ellipse 11.png', // Correct path for avatar image
+            type: EmailType.private,
+            cc: '',
+            recipient: '',
+            date: '',
+            message: '' // Email type is 'trash'
+            ),
         // Add more Email objects with their corresponding images and types
         Email(
-          sender: 'Sal Piggee',
-          subject: 'lorem ipsum lorem ipsum lorem ipsum',
-          isStarred: false,
-          senderImagePath:
-              'assets/Ellipse 12.png', // Update the asset path as needed
-          type: EmailType.company,
-        ),
+            sender: 'Sal Piggee',
+            subject: 'lorem ipsum lorem ipsum lorem ipsum',
+            isStarred: false,
+            senderImagePath:
+                'assets/Ellipse 12.png', // Update the asset path as needed
+            type: EmailType.company,
+            cc: '',
+            recipient: '',
+            date: '',
+            message: ''),
         Email(
-          sender: 'Verla Morgano',
-          subject: 'lorem ipsum lorem ipsum lorem ipsum',
-          isStarred: true,
-          senderImagePath:
-              'assets/Ellipse 13.png', // Update the asset path as needed
-          type: EmailType.personal,
-        ),
+            sender: 'Verla Morgano',
+            subject: 'lorem ipsum lorem ipsum lorem ipsum',
+            isStarred: true,
+            senderImagePath:
+                'assets/Ellipse 13.png', // Update the asset path as needed
+            type: EmailType.personal,
+            cc: '',
+            recipient: '',
+            date: '',
+            message: ''),
         Email(
-          sender: 'Mauro Elenbaas',
-          subject: 'lorem ipsum lorem ipsum lorem ipsum',
-          isStarred: false,
-          senderImagePath:
-              'assets/Ellipse 14.png', // Update the asset path as needed
-          type: EmailType.personal,
-        ),
+            sender: 'Mauro Elenbaas',
+            subject: 'lorem ipsum lorem ipsum lorem ipsum',
+            isStarred: false,
+            senderImagePath:
+                'assets/Ellipse 14.png', // Update the asset path as needed
+            type: EmailType.personal,
+            cc: '',
+            recipient: '',
+            date: '',
+            message: ''),
         Email(
-          sender: 'Miguel Guelff',
-          subject: 'lorem ipsum lorem ipsum lorem ipsum',
-          isStarred: true,
-          senderImagePath:
-              'assets/Ellipse 15.png', // Update the asset path as needed
-          type: EmailType.important,
-        ),
+            sender: 'Miguel Guelff',
+            subject: 'lorem ipsum lorem ipsum lorem ipsum',
+            isStarred: true,
+            senderImagePath:
+                'assets/Ellipse 15.png', // Update the asset path as needed
+            type: EmailType.important,
+            cc: '',
+            recipient: '',
+            date: '',
+            message: ''),
       ];
       // Initialize inboxEmails with your data
       filteredEmails =
@@ -224,8 +227,7 @@ class _InboxPageState extends State<InboxPage> {
     );
   }
 
-  Widget _buildEmailItem(
-      Email email, int index, bool isSelected, VoidCallback onTap) {
+  Widget _buildEmailItem(Email email, bool isSelected) {
     Color getTypeColor(EmailType type) {
       switch (type) {
         case EmailType.important:
@@ -241,56 +243,44 @@ class _InboxPageState extends State<InboxPage> {
       }
     }
 
-    void toggleStarred() {
-      // Update the isStarred property of the email
-      // This assumes you have a way to modify the state of the email
-      // For example, you could use a setState call if the emails are stored in the state of your widget
-      setState(() {
-        inboxEmails[index].isStarred = !inboxEmails[index].isStarred;
-      });
-    }
-
-    return Card(
-      color: isSelected ? Color(0xFF9155FD) : Colors.transparent,
-      shape: RoundedRectangleBorder(
-        borderRadius:
-            BorderRadius.circular(10), // This sets the rounded corners
-      ),
-      child: ListTile(
-        leading: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            IconButton(
-              icon: Icon(
-                email.isStarred ? Icons.star : Icons.star_border,
-                color: email.isStarred ? Colors.yellow : Colors.grey,
-              ),
-              onPressed: () {
-                setState(() {
-                  // Toggle the isStarred property
-                  email.isStarred = !email.isStarred;
-                });
-              },
-            ),
-            SizedBox(width: 8),
-            CircleAvatar(
-              backgroundImage: AssetImage(email.senderImagePath),
-            ),
-          ],
-        ),
-        title: Text(email.sender, style: TextStyle(color: Colors.white)),
-        subtitle: Text(email.subject,
-            style: TextStyle(color: Colors.white.withOpacity(0.5))),
-        trailing: Container(
-          width: 12,
-          height: 12,
-          decoration: BoxDecoration(
-            color: getTypeColor(email.type),
-            shape: BoxShape.circle,
+    return ListTile(
+      tileColor: isSelected ? Color(0xFF9155FD) : Colors.transparent,
+      leading: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          IconButton(
+            icon: Icon(email.isStarred ? Icons.star : Icons.star_border,
+                color: email.isStarred ? Colors.yellow : Colors.grey),
+            onPressed: () {
+              setState(() {
+                email.isStarred = !email.isStarred;
+              });
+            },
           ),
-        ),
-        onTap: onTap,
+          SizedBox(width: 8),
+          CircleAvatar(
+            backgroundImage: AssetImage(email.senderImagePath),
+          ),
+        ],
       ),
+      title: Text(email.sender, style: TextStyle(color: Colors.white)),
+      subtitle: Text(email.subject,
+          style: TextStyle(color: Colors.white.withOpacity(0.5))),
+      trailing: Container(
+        width: 12,
+        height: 12,
+        decoration: BoxDecoration(
+          color: getTypeColor(email.type as EmailType),
+          shape: BoxShape.circle,
+        ),
+      ),
+      onTap: () {
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (context) => EmailViewScreen(email: email),
+          ),
+        );
+      },
     );
   }
 
@@ -323,24 +313,11 @@ class _InboxPageState extends State<InboxPage> {
   Widget _buildEmailList() {
     return Expanded(
       child: ListView.builder(
-        itemCount:
-            filteredEmails.length, // Use the length of your filtered emails
+        itemCount: filteredEmails.length,
         itemBuilder: (context, index) {
           final email = filteredEmails[index];
-          bool isSelected =
-              selectedEmailIndices.contains(index); // Check selection status
-
-          // Pass the index to the _buildEmailItem method
-          return _buildEmailItem(email, index, isSelected, () {
-            setState(() {
-              // Toggle selection status
-              if (isSelected) {
-                selectedEmailIndices.remove(index);
-              } else {
-                selectedEmailIndices.add(index);
-              }
-            });
-          });
+          bool isSelected = selectedEmailIndices.contains(index);
+          return _buildEmailItem(email, isSelected);
         },
       ),
     );
@@ -406,7 +383,7 @@ Widget _buildEmailItem(Email email, bool isSelected, VoidCallback onTap) {
           height: 12,
           margin: EdgeInsets.only(right: 16),
           decoration: BoxDecoration(
-            color: getTypeColor(email.type),
+            color: getTypeColor(email.type as EmailType),
             shape: BoxShape.circle,
           ),
         ),

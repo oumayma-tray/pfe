@@ -1,18 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:mobile_app/mail/Draft.dart';
+import 'package:mobile_app/mail/chat-mail.dart';
 
-class Email {
-  final String sender;
-  final String subject;
-  bool isStarred;
-  final String senderImagePath; // Field for the sender's image
-
-  Email({
-    required this.sender,
-    required this.subject,
-    required this.isStarred,
-    required this.senderImagePath, // Initialize the sender's image
-  });
-}
+import 'package:mobile_app/mail/email.dart';
 
 class ImportantMailPage extends StatefulWidget {
   @override
@@ -48,16 +38,24 @@ class _ImportantMailPageState extends State<ImportantMailPage> {
           sender: 'Sal Piggee',
           subject: 'lorem ipsum lorem ipsum lorem ipsum',
           isStarred: true,
-          senderImagePath:
-              'assets/Ellipse 12.png', // Replace with actual image path
+          senderImagePath: 'assets/Ellipse 12.png',
+          cc: '',
+          recipient: '',
+          date: '',
+          message: '',
+          type: EmailType.important, // Replace with actual image path
         ),
         Email(
-          sender: 'Miguel Guelff',
-          subject: 'lorem ipsum lorem ipsum lorem ipsum',
-          isStarred: false,
-          senderImagePath:
-              'assets/Ellipse 15.png', // Replace with actual image path
-        ),
+            sender: 'Miguel Guelff',
+            subject: 'lorem ipsum lorem ipsum lorem ipsum',
+            isStarred: false,
+            senderImagePath: 'assets/Ellipse 15.png',
+            cc: '',
+            recipient: '',
+            date: '',
+            message: '',
+            type: EmailType.important // Replace with actual image path
+            ),
         // Add more Email objects...
       ];
       filteredEmails = ImportantEmails;
@@ -177,11 +175,8 @@ class _ImportantMailPageState extends State<ImportantMailPage> {
           ),
           Expanded(
             child: ListView.builder(
-              itemCount: ImportantEmails.length,
+              itemCount: filteredEmails.length,
               itemBuilder: (context, index) {
-                if (index >= filteredEmails.length) {
-                  return Container(); // Return an empty container in case of index out of range
-                }
                 final email = filteredEmails[index];
                 return ListTile(
                   leading: Row(
@@ -194,7 +189,6 @@ class _ImportantMailPageState extends State<ImportantMailPage> {
                         ),
                         onPressed: () {
                           setState(() {
-                            // Toggle the isStarred property
                             email.isStarred = !email.isStarred;
                           });
                         },
@@ -214,23 +208,21 @@ class _ImportantMailPageState extends State<ImportantMailPage> {
                     width: 12,
                     decoration: BoxDecoration(
                       color: Colors
-                          .orange, // Orange to represent 'Important' email
+                          .orange, // Orange color indicates 'Important' email
                       shape: BoxShape.circle,
                       border: Border.all(color: Color(0xFF28243D), width: 2),
                     ),
                   ),
                   onTap: () {
-                    setState(() {
-                      if (selectedEmailIndices.contains(index)) {
-                        selectedEmailIndices.remove(index);
-                      } else {
-                        selectedEmailIndices.add(index);
-                      }
-                    });
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) => EmailViewScreen(email: email),
+                      ),
+                    );
                   },
                   tileColor: selectedEmailIndices.contains(index)
                       ? Colors.grey[200]
-                      : null, // Optional: Change color if selected
+                      : null,
                 );
               },
             ),

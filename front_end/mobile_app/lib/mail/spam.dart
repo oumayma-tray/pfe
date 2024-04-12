@@ -1,23 +1,8 @@
 // spam.dart
 import 'package:flutter/material.dart';
+import 'package:mobile_app/mail/chat-mail.dart';
 
-enum EmailType { important, personal, company, private }
-
-class Email {
-  final String sender;
-  final String subject;
-  bool isStarred;
-  final String senderImagePath;
-  final EmailType type;
-
-  Email({
-    required this.sender,
-    required this.subject,
-    required this.isStarred,
-    required this.senderImagePath,
-    required this.type,
-  });
-}
+import 'package:mobile_app/mail/email.dart';
 
 class spamPage extends StatefulWidget {
   @override
@@ -50,14 +35,19 @@ class _spamPageState extends State<spamPage> {
     await Future.delayed(Duration(seconds: 2));
     setState(() {
       spamEmails = [
+        // Add more Email objects with their corresponding images and types
         Email(
           sender: 'Joaquina Weisenborn',
           subject: 'lorem ipsum lorem ipsum lorem ipsum',
           isStarred: true,
           senderImagePath:
               'assets/Ellipse 10.png', // Ensure this is the correct path for the avatar image
-          type: EmailType
-              .private, // The type should match the email category, here it is 'trash'
+          type: EmailType.private,
+          cc: '',
+          recipient: '',
+          date: '',
+          message:
+              '', // The type should match the email category, here it is 'trash'
         ),
         Email(
           sender: 'Felecia Rower',
@@ -65,7 +55,8 @@ class _spamPageState extends State<spamPage> {
           isStarred: false,
           senderImagePath:
               'assets/Ellipse 11.png', // Correct path for avatar image
-          type: EmailType.private, // Email type is 'trash'
+          type: EmailType.private,
+          cc: '', recipient: '', date: '', message: '', // Email type is 'trash'
         ),
         // Add more Email objects with their corresponding images and types
         Email(
@@ -75,6 +66,7 @@ class _spamPageState extends State<spamPage> {
           senderImagePath:
               'assets/Ellipse 12.png', // Update the asset path as needed
           type: EmailType.company,
+          cc: '', recipient: '', date: '', message: '',
         ),
         Email(
           sender: 'Verla Morgano',
@@ -83,6 +75,7 @@ class _spamPageState extends State<spamPage> {
           senderImagePath:
               'assets/Ellipse 13.png', // Update the asset path as needed
           type: EmailType.personal,
+          cc: '', recipient: '', date: '', message: '',
         ),
         Email(
           sender: 'Mauro Elenbaas',
@@ -91,6 +84,7 @@ class _spamPageState extends State<spamPage> {
           senderImagePath:
               'assets/Ellipse 14.png', // Update the asset path as needed
           type: EmailType.personal,
+          cc: '', recipient: '', date: '', message: '',
         ),
         Email(
           sender: 'Miguel Guelff',
@@ -99,8 +93,10 @@ class _spamPageState extends State<spamPage> {
           senderImagePath:
               'assets/Ellipse 15.png', // Update the asset path as needed
           type: EmailType.important,
+          cc: '', recipient: '', date: '', message: '',
         ),
       ];
+
       // Initialize spamEmails with your data
       filteredEmails = List.from(spamEmails); // Initially, all emails are shown
     });
@@ -262,7 +258,13 @@ class _spamPageState extends State<spamPage> {
             shape: BoxShape.circle,
           ),
         ),
-        onTap: onTap,
+        onTap: () {
+          Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => EmailViewScreen(email: email),
+              ));
+        },
       ),
     );
   }
@@ -296,98 +298,24 @@ class _spamPageState extends State<spamPage> {
   Widget _buildEmailList() {
     return Expanded(
       child: ListView.builder(
-        itemCount:
-            filteredEmails.length, // Use the length of your filtered emails
+        itemCount: filteredEmails.length,
         itemBuilder: (context, index) {
           final email = filteredEmails[index];
-          bool isSelected =
-              selectedEmailIndices.contains(index); // Check selection status
+          bool isSelected = selectedEmailIndices.contains(index);
 
-          // Call the updated _buildEmailItem method
-          return _buildEmailItem(email, isSelected, () {
-            setState(() {
-              // Toggle selection status
-              if (isSelected) {
-                selectedEmailIndices.remove(index);
-              } else {
-                selectedEmailIndices.add(index);
-              }
-            });
-          });
+          // Define the onTap callback
+          VoidCallback onTap = () {
+            Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => EmailViewScreen(email: email),
+                ));
+          };
+
+          // Now pass all required parameters including the onTap callback
+          return _buildEmailItem(email, isSelected, onTap);
         },
       ),
     );
   }
-
-// Implement the _buildEmailItem method as shown in previous code examples
-
-  Color _getTypeColor(EmailType type) {
-    switch (type) {
-      case EmailType.important:
-        return Colors.red;
-      case EmailType.personal:
-        return Colors.green;
-      case EmailType.company:
-        return Colors.blue;
-      case EmailType.private:
-        return Colors.orange;
-      default:
-        return Colors.transparent;
-    }
-  }
-}
-
-Widget _buildEmailItem(Email email, bool isSelected, VoidCallback onTap) {
-  Color getTypeColor(EmailType type) {
-    switch (type) {
-      case EmailType.important:
-        return Colors.red;
-      case EmailType.personal:
-        return Colors.green;
-      case EmailType.company:
-        return Colors.blue;
-      case EmailType.private:
-        return Colors.orange;
-      default:
-        return Colors.transparent;
-    }
-  }
-
-  return ListTile(
-    tileColor: isSelected ? Color(0xFF9155FD) : Colors.transparent,
-    leading: Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Icon(
-          email.isStarred ? Icons.star : Icons.star_border, // Starred icon
-          color: email.isStarred ? Colors.yellow : Colors.grey,
-        ),
-        SizedBox(width: 8),
-        CircleAvatar(
-          backgroundImage: AssetImage(email.senderImagePath),
-        ),
-      ],
-    ),
-    title: Text(email.sender, style: TextStyle(color: Colors.white)),
-    subtitle: Text(email.subject,
-        style: TextStyle(color: Colors.white.withOpacity(0.5))),
-    trailing: Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Container(
-          width: 12,
-          height: 12,
-          margin: EdgeInsets.only(right: 16),
-          decoration: BoxDecoration(
-            color: getTypeColor(email.type),
-            shape: BoxShape.circle,
-          ),
-        ),
-        isSelected
-            ? Icon(Icons.check_circle, color: Colors.white) // Selected icon
-            : SizedBox.shrink(),
-      ],
-    ),
-    onTap: onTap,
-  );
 }

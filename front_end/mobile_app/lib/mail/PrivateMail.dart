@@ -1,18 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:mobile_app/mail/chat-mail.dart';
 
-class Email {
-  final String sender;
-  final String subject;
-  bool isStarred;
-  final String senderImagePath; // Field for the sender's image
-
-  Email({
-    required this.sender,
-    required this.subject,
-    required this.isStarred,
-    required this.senderImagePath, // Initialize the sender's image
-  });
-}
+import 'package:mobile_app/mail/email.dart';
 
 class PrivateMailPage extends StatefulWidget {
   @override
@@ -51,12 +40,22 @@ class _PrivateMailPageState extends State<PrivateMailPage> {
           subject: 'lorem ipsum lorem ipsum lorem ipsum',
           isStarred: true,
           senderImagePath: 'assets/Ellipse 10.png',
+          cc: '',
+          recipient: '',
+          date: '',
+          message: '',
+          type: EmailType.private,
         ),
         Email(
           sender: 'Felecia Rower',
           subject: 'lorem ipsum lorem ipsum lorem ipsum',
           isStarred: false,
           senderImagePath: 'assets/Ellipse 11.png',
+          cc: '',
+          recipient: '',
+          date: '',
+          message: '',
+          type: EmailType.private,
         ),
         // Add more Email objects...
       ];
@@ -211,19 +210,18 @@ class _PrivateMailPageState extends State<PrivateMailPage> {
                     height: 12,
                     width: 12,
                     decoration: BoxDecoration(
-                      color: Colors.orange,
+                      color: Colors
+                          .orange, // This might be updated based on your color coding for private emails
                       shape: BoxShape.circle,
                       border: Border.all(color: Color(0xFF28243D), width: 2),
                     ),
                   ),
                   onTap: () {
-                    setState(() {
-                      if (isSelected) {
-                        selectedEmailIndices.remove(index);
-                      } else {
-                        selectedEmailIndices.add(index);
-                      }
-                    });
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) => EmailViewScreen(email: email),
+                      ),
+                    );
                   },
                   tileColor: isSelected ? Colors.grey[200] : null,
                 );

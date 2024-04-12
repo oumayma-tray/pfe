@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:file_picker/file_picker.dart';
+import 'package:mobile_app/components/button.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class ComposeMailScreen extends StatefulWidget {
   @override
@@ -14,9 +17,65 @@ class _ComposeMailScreenState extends State<ComposeMailScreen> {
   final TextEditingController subjectController = TextEditingController();
 
   // Placeholder function to mimic sending an email
-  void sendEmail() {
-    // Here you could call your own API or another method to send the email
-    print('Send email logic would go here');
+
+  void pickFile() async {
+    FilePickerResult? result = await FilePicker.platform.pickFiles();
+
+    if (result != null) {
+      PlatformFile file = result.files.first;
+
+      // Check if the message already contains some text
+      String currentText = messageController.text;
+      if (currentText.isNotEmpty) {
+        currentText += '\n'; // Add a new line before the file name
+      }
+
+      // Append the file name or path to the message text
+      messageController.text =
+          '$currentText${file.name}'; // Use file.path for full file path
+
+      // Optionally, if you want to move the cursor to the end of the text
+      messageController.selection = TextSelection.fromPosition(
+        TextPosition(offset: messageController.text.length),
+      );
+    } else {
+      // User canceled the picker
+    }
+  }
+
+  void sendEmail() async {
+    final String to = toController.text.trim();
+    final String cc = ccController.text.trim();
+    final String bcc = bccController.text.trim();
+    final String subject = Uri.encodeComponent(subjectController.text.trim());
+    final String body = Uri.encodeComponent(messageController.text.trim());
+
+    // Constructing the mailto URI
+    final Uri emailLaunchUri = Uri(
+      scheme: 'mailto',
+      path: to.isNotEmpty ? to : null, // Only add to the path if it's not empty
+      query: to.isNotEmpty
+          ? {
+              if (cc.isNotEmpty) 'cc': cc,
+              if (bcc.isNotEmpty) 'bcc': bcc,
+              'subject': subject,
+              'body': body
+            }.entries.map((e) => '${e.key}=${e.value}').join('&')
+          : null,
+    );
+
+    final String emailLaunchUriString = emailLaunchUri.toString();
+
+    if (await canLaunch(emailLaunchUriString)) {
+      await launch(emailLaunchUriString);
+    } else {
+      // Display an alert or a Toast if the email client cannot be opened
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Could not launch email client.'),
+        ),
+      );
+    }
   }
 
   String selectedFormatAction = '';
@@ -98,16 +157,73 @@ class _ComposeMailScreenState extends State<ComposeMailScreen> {
             icon: Icon(Icons.send),
             onPressed: sendEmail,
           ),
-          IconButton(
-            icon: Icon(Icons.attach_file),
-            onPressed: () {
-              // File picker logic would go here
-            },
+          FloatingActionButton(
+            onPressed: pickFile,
+            tooltip: 'Attach File',
+            child: Icon(Icons.attach_file),
           ),
           IconButton(
             icon: Icon(Icons.more_vert),
             onPressed: () {
-              // More actions here
+              showDialog(
+                context: context,
+                builder: (BuildContext context) {
+                  return AlertDialog(
+                    title: Text("Confirm"),
+                    content: Text("Choose an action"),
+                    actions: <Widget>[
+                      TextButton(
+                        child: Text('Cancel'),
+                        onPressed: () {
+                          Navigator.of(context).pop(); // Close the dialog
+                          Navigator.of(context)
+                              .pop(); // Optional: go back to the previous screen
+                        },
+                      ),
+                      TextButton(
+                        child: Text('Continue Writing'),
+                        onPressed: () {
+                          Navigator.of(context).pop(); // Just close the dialog
+                        },
+                      ),
+                      TextButton(
+                        child: Text('Delete'),
+                        onPressed: () {
+                          Navigator.of(context).pop(); // Close the dialog
+                          showDialog(
+                            context: context,
+                            builder: (BuildContext context) {
+                              return AlertDialog(
+                                title: Text("Confirm Delete"),
+                                content: Text(
+                                    "Are you sure you want to delete this draft?"),
+                                actions: <Widget>[
+                                  TextButton(
+                                    child: Text('No'),
+                                    onPressed: () {
+                                      Navigator.of(context).pop();
+                                    },
+                                  ),
+                                  TextButton(
+                                    child: Text('Yes'),
+                                    onPressed: () {
+                                      // Add your delete logic here
+                                      Navigator.of(context)
+                                          .pop(); // Close the confirm dialog
+                                      Navigator.of(context)
+                                          .pop(); // Close the compose mail screen
+                                    },
+                                  ),
+                                ],
+                              );
+                            },
+                          );
+                        },
+                      ),
+                    ],
+                  );
+                },
+              );
             },
           ),
         ],

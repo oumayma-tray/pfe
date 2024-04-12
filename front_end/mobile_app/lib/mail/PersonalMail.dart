@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:mobile_app/mail/conversationMail.dart';
+import 'package:mobile_app/mail/Draft.dart';
+import 'package:mobile_app/mail/chat-mail.dart';
+import 'package:mobile_app/mail/reponse.dart';
 import 'package:mobile_app/mail/email.dart';
 // Define an Email data model
 
@@ -40,7 +42,9 @@ class _PersonalMailPageState extends State<PersonalMailPage> {
           subject: 'lorem ipsum lorem ipsum lorem ipsum',
           isStarred: false,
           senderImagePath: 'assets/Ellipse 13.png',
-          message: '', // Make sure this is the correct path
+          message: 'hello,.......', recipient: 'oumayma',
+          date: '21/03/2002', cc: '',
+          type: EmailType.important, // Make sure this is the correct path
         ),
         // Add more Email objects with their respective images here...
       ];
@@ -199,13 +203,21 @@ class _PersonalMailPageState extends State<PersonalMailPage> {
                     ),
                   ),
                   onTap: () {
-                    setState(() {
-                      if (isSelected) {
+                    if (isSelected) {
+                      setState(() {
                         selectedEmailIndices.remove(index);
-                      } else {
+                      });
+                    } else {
+                      setState(() {
                         selectedEmailIndices.add(index);
-                      }
-                    });
+                      });
+                      // Navigate to EmailViewScreen with the selected email details
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (context) => EmailViewScreen(email: email),
+                        ),
+                      );
+                    }
                   },
                   tileColor: isSelected ? Colors.grey[200] : null,
                 );

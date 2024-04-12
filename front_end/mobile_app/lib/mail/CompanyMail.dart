@@ -1,19 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:mobile_app/mail/Starred.dart';
-
-class Email {
-  final String sender;
-  final String subject;
-  bool isStarred; // Changed to mutable
-  final String senderImagePath;
-
-  Email({
-    required this.sender,
-    required this.subject,
-    required this.isStarred,
-    required this.senderImagePath,
-  });
-}
+import 'package:mobile_app/mail/Draft.dart';
+import 'package:mobile_app/mail/chat-mail.dart';
+import 'package:mobile_app/mail/email.dart';
+import 'package:mobile_app/mail/reponse.dart';
 
 class CompanyMailPage extends StatefulWidget {
   @override
@@ -32,13 +21,12 @@ class _CompanyMailPageState extends State<CompanyMailPage> {
   void initState() {
     super.initState();
     fetchEmails();
-    searchController.addListener(() {
-      filterEmails();
-    });
+    searchController.addListener(_onSearchChanged);
   }
 
   @override
   void dispose() {
+    searchController.removeListener(_onSearchChanged);
     searchController.dispose();
     super.dispose();
   }
@@ -53,8 +41,12 @@ class _CompanyMailPageState extends State<CompanyMailPage> {
           sender: 'Mauro Elenbaas',
           subject: 'lorem ipsum lorem ipsum lorem ipsum',
           isStarred: true,
-          senderImagePath:
-              'assets/Ellipse 14.png', // Make sure this is the correct path
+          senderImagePath: 'assets/Ellipse 14.png',
+          message: 'hello ,',
+          date: '21/03/2002',
+          recipient: '',
+          cc: '', type: EmailType.company,
+          // Make sure this is the correct path
         ),
         // Add more Email objects with their respective images here...
       ];
@@ -93,14 +85,17 @@ class _CompanyMailPageState extends State<CompanyMailPage> {
   }
 
   void _onSearchChanged() {
+    String searchTerm = searchController.text.toLowerCase();
     setState(() {
-      filteredEmails = searchController.text.isEmpty
-          ? companyEmails
-          : companyEmails
-              .where((email) => email.sender
-                  .toLowerCase()
-                  .contains(searchController.text.toLowerCase()))
-              .toList();
+      if (searchTerm.isEmpty) {
+        filteredEmails =
+            companyEmails; // If search term is empty, show all emails
+      } else {
+        filteredEmails = companyEmails.where((email) {
+          // Filter emails based on the search term
+          return email.sender.toLowerCase().contains(searchTerm);
+        }).toList();
+      }
     });
   }
 
@@ -215,14 +210,13 @@ class _CompanyMailPageState extends State<CompanyMailPage> {
 
                 return GestureDetector(
                     onTap: () {
-                      setState(() {
-                        // Toggle selection status on tap
-                        if (isSelected) {
-                          selectedEmailIndices.remove(index);
-                        } else {
-                          selectedEmailIndices.add(index);
-                        }
-                      });
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (context) => EmailViewScreen(
+                            email: email,
+                          ),
+                        ),
+                      );
                     },
                     child: Container(
                       color: isSelected
@@ -236,22 +230,12 @@ class _CompanyMailPageState extends State<CompanyMailPage> {
                           IconButton(
                             icon: Icon(
                               email.isStarred ? Icons.star : Icons.star_border,
-                              color: email.isStarred
-                                  ? Colors.yellow
-                                  : Colors.white,
+                              color:
+                                  email.isStarred ? Colors.yellow : Colors.grey,
                             ),
                             onPressed: () {
                               setState(() {
-                                // Toggle the isStarred status of the email
                                 email.isStarred = !email.isStarred;
-
-                                // If email gets starred and we are in the StarredPage, add it to selectedEmailIndices
-                                if (email.isStarred &&
-                                    this.widget is StarredPage) {
-                                  selectedEmailIndices.add(index);
-                                } else {
-                                  selectedEmailIndices.remove(index);
-                                }
                               });
                             },
                           ),
