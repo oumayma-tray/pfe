@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:mobile_app/chat/Speaker.dart';
+import 'package:mobile_app/chat/vedio.dart';
 
 class CallPage extends StatefulWidget {
   final String name;
@@ -21,28 +21,38 @@ class _CallPageState extends State<CallPage> {
   double iconSize = 48; // Adjust based on your design
 
   // Example functions for button actions. You will need to implement these.
+  bool isMuted = false; // Add this variable to track the mute state
+
   void onMutePressed() {
+    setState(() {
+      // Toggle the mute state
+      isMuted = !isMuted;
+    });
+  }
+
+  bool isVoiceEnabled = true; // Add this variable to track the voice state
+
+  void onKeyboardPressed() {
+    setState(() {
+      // Toggle the voice state
+      isVoiceEnabled = !isVoiceEnabled;
+    });
+  }
+
+  void onVideoPressed() {
     Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (context) => SpeakerPage(
+        builder: (context) => VideoPage(
           name: widget.name,
           title: widget.title,
           imageAsset: widget.imageAsset,
-        ), // Replace with your actual SpeakerPage class
+        ),
       ),
     );
   }
 
-  void onKeyboardPressed() {
-    // Keyboard logic here
-  }
-
-  void onVideoPressed() {
-    // Video logic here
-  }
-
   void onHangupPressed() {
-    // Hang up logic here
+    Navigator.of(context).pop();
   }
 
   @override
@@ -95,12 +105,22 @@ class _CallPageState extends State<CallPage> {
                   .spaceAround, // Align buttons with equal spacing
               children: <Widget>[
                 IconButton(
-                  icon: Image.asset('assets/mute.png'),
+                  icon: isMuted
+                      ? Image.asset(
+                          'assets/haut_parleur.png') // Speaker icon when muted
+                      : Image.asset(
+                          'assets/mute.png'), // Mute icon when not muted
                   iconSize: iconSize,
                   onPressed: onMutePressed,
                 ),
                 IconButton(
-                  icon: Image.asset('assets/vocal.png'),
+                  icon: isVoiceEnabled
+                      ? Icon(
+                          Icons.mic_none_outlined,
+                          color: Colors.white,
+                        ) // Voice enabled icon
+                      : Icon(Icons.mic_off,
+                          color: Colors.white), // Voice disabled icon
                   iconSize: iconSize,
                   onPressed: onKeyboardPressed,
                 ),

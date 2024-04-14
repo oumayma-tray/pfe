@@ -17,7 +17,7 @@ class _AudioPlayerWidgetState extends State<AudioPlayerWidget> {
   late AudioPlayer _audioPlayer;
   Duration _duration = Duration.zero;
   Duration _position = Duration.zero;
-  bool _isPlaying = false;
+  bool isRecording = false;
 
   @override
   void initState() {
@@ -43,13 +43,13 @@ class _AudioPlayerWidgetState extends State<AudioPlayerWidget> {
     _audioPlayer.onPlayerComplete.listen((event) {
       setState(() {
         _position = Duration.zero;
-        _isPlaying = false;
+        isRecording = false;
       });
     });
   }
 
   void _togglePlay() async {
-    if (_isPlaying) {
+    if (isRecording) {
       await _audioPlayer.pause();
     } else {
       // Check if the audio file exists
@@ -64,7 +64,7 @@ class _AudioPlayerWidgetState extends State<AudioPlayerWidget> {
       }
     }
     setState(() {
-      _isPlaying = !_isPlaying;
+      isRecording = !isRecording;
     });
   }
 
@@ -105,7 +105,7 @@ class _AudioPlayerWidgetState extends State<AudioPlayerWidget> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               IconButton(
-                icon: Icon(_isPlaying ? Icons.pause : Icons.play_arrow),
+                icon: Icon(isRecording ? Icons.pause : Icons.play_arrow),
                 iconSize: buttonHeight,
                 onPressed: _togglePlay,
               ),

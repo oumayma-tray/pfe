@@ -70,7 +70,7 @@ class _ConversationPageState extends State<ConversationPage> {
   final FlutterSoundRecorder _audioRecorder = FlutterSoundRecorder();
   File? _selectedImageFile;
   File? _pickedImage;
-
+  bool isRecording = false;
   @override
   void initState() {
     super.initState();
@@ -147,25 +147,28 @@ class _ConversationPageState extends State<ConversationPage> {
   Future<void> startRecording() async {
     try {
       await _audioRecorder.startRecorder(toFile: 'audio_message.aac');
+      // Update the UI to show recording status
+      setState(() {
+        isRecording = true;
+      });
     } catch (e) {
       print("Failed to start recording: $e");
-      // Optionally, try to re-initialize the recorder if it fails to start
-      await initRecorder();
-      try {
-        await _audioRecorder.startRecorder(toFile: 'audio_message.aac');
-      } catch (e) {
-        print("Second attempt to start recording failed: $e");
-        // Handle further errors or notify the user as necessary
-      }
+      setState(() {
+        isRecording = false;
+      });
+      // Optionally, show a Snackbar or dialog here to inform the user
     }
   }
 
   Future<void> stopRecordingAndSend() async {
     final String? path = await _audioRecorder.stopRecorder();
+    setState(() {
+      isRecording = false; // Ensure UI is updated when recording stops
+    });
     if (path != null) {
-      sendMessageWithAudio(path); // Only call this if path is not null
+      sendMessageWithAudio(path);
     } else {
-      // Optionally handle the situation where no recording was captured
+      // Optionally, inform the user that recording failed
       print("Recording failed or was cancelled.");
     }
   }
@@ -417,11 +420,33 @@ class _ConversationPageState extends State<ConversationPage> {
             onPressed: _handlePhotoButtonPressed,
           ),
           GestureDetector(
-            onLongPressStart: (_) => startRecording(),
-            onLongPressEnd: (_) => stopRecordingAndSend(),
+            onLongPressStart: (_) {
+              setState(() {
+                isRecording =
+                    true; // Set isRecording to true when recording starts
+              });
+              startRecording().catchError((error) {
+                // If an error occurs starting the recording, handle it
+                setState(() {
+                  isRecording = false; // Reset isRecording on error
+                });
+                print("Error starting recording: $error");
+              });
+            },
+            onLongPressEnd: (_) {
+              stopRecordingAndSend().catchError((error) {
+                print("Error stopping recording: $error");
+              }).whenComplete(() {
+                setState(() {
+                  isRecording =
+                      false; // Ensure isRecording is reset when recording stops
+                });
+              });
+            },
             child: IconButton(
               iconSize: iconSize,
-              icon: Image.asset('assets/vocal.png'),
+              icon: Image.asset(
+                  isRecording ? 'assets/vocal_active.png' : 'assets/vocal.png'),
               onPressed: null, // Disable the default press functionality
             ),
           ),
