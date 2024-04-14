@@ -30,19 +30,20 @@ class _VideoPageState extends State<VideoPage> {
     _initCamera(selectedCameraIndex);
   }
 
-  void _initCamera(int cameraIndex) async {
+  Future<void> _initCamera(int cameraIndex) async {
     cameras = await availableCameras();
-    _controller = CameraController(
-      cameras[cameraIndex], // Select camera from list
-      ResolutionPreset.medium,
-    );
-
-    _initializeControllerFuture = _controller?.initialize().then((_) {
-      if (!mounted) {
-        return;
-      }
-      setState(() {});
-    });
+    if (cameras.isNotEmpty) {
+      _controller = CameraController(
+        cameras[cameraIndex],
+        ResolutionPreset.medium,
+      );
+      _initializeControllerFuture = _controller?.initialize().then((_) {
+        if (!mounted) {
+          return;
+        }
+        setState(() {});
+      });
+    }
   }
 
   @override
@@ -51,8 +52,8 @@ class _VideoPageState extends State<VideoPage> {
     super.dispose();
   }
 
-  void toggleCamera() {
-    selectedCameraIndex = selectedCameraIndex == 0 ? 1 : 0; // Toggle index
+  void _toggleCamera() {
+    selectedCameraIndex = selectedCameraIndex == 0 ? 1 : 0;
     _controller?.dispose();
     _initCamera(selectedCameraIndex);
   }
@@ -97,39 +98,30 @@ class _VideoPageState extends State<VideoPage> {
       body: Stack(
         fit: StackFit.expand, // Ensure Stack fills the screen
         children: <Widget>[
-          FutureBuilder<void>(
-            future: _initializeControllerFuture,
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.done) {
-                return CameraPreview(_controller!); // Displays the camera feed
-              } else {
-                return Center(
-                    child: CircularProgressIndicator()); // Loading spinner
-              }
-            },
-          ),
+          Image.asset(widget.imageAsset,
+              fit: BoxFit.cover), // Background image of the person being called
           Positioned(
-            top: 16.0, // Distance from the top of the screen
-            right: 16.0, // Distance from the right of the screen
+            right: 16.0,
+            bottom: 100.0,
             child: Container(
-              width: 156.0, // Width of the name tag
-              height: 29.0, // Height of the name tag
-              padding: const EdgeInsets.symmetric(horizontal: 8.0),
+              width: 120.0,
+              height: 160.0,
               decoration: BoxDecoration(
-                image: DecorationImage(
-                  image: AssetImage(
-                      "assets/R_nom.png"), // Your name tag background image
-                  fit: BoxFit.cover,
-                ),
-                borderRadius:
-                    BorderRadius.circular(4), // Adjust for rounded corners
+                border: Border.all(color: Colors.white, width: 2),
+                borderRadius: BorderRadius.circular(8),
               ),
-              alignment: Alignment.center,
-              child: Text(
-                widget.name,
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 14, // Adjust font size as needed
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: FutureBuilder<void>(
+                  future: _initializeControllerFuture,
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.done) {
+                      return CameraPreview(
+                          _controller!); // Display the camera feed
+                    } else {
+                      return Center(child: CircularProgressIndicator());
+                    }
+                  },
                 ),
               ),
             ),
@@ -137,18 +129,12 @@ class _VideoPageState extends State<VideoPage> {
           Align(
             alignment: Alignment.bottomCenter,
             child: Container(
-              width: 321.0, // Width of the bottom bar
-              height: 62.0, // Height of the bottom bar
-              margin: const EdgeInsets.only(
-                  bottom:
-                      12.0), // Adjust the distance from the bottom as needed
+              width: 321.0,
+              height: 62.0,
+              margin: const EdgeInsets.only(bottom: 12.0),
               decoration: BoxDecoration(
-                image: DecorationImage(
-                  image: AssetImage("assets/Rectangle 7.png"),
-                  fit: BoxFit.cover,
-                ),
-                borderRadius:
-                    BorderRadius.circular(12), // Optional, for rounded corners
+                borderRadius: BorderRadius.circular(12),
+                color: Colors.black.withOpacity(0.3),
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment
@@ -175,7 +161,7 @@ class _VideoPageState extends State<VideoPage> {
                   IconButton(
                     icon: Icon(Icons.flip_camera_ios, color: Colors.white),
                     iconSize: iconSize,
-                    onPressed: toggleCamera, // Button to switch cameras
+                    onPressed: _toggleCamera, // Button to switch cameras
                   ),
                   IconButton(
                     icon: Icon(Icons.call, color: Colors.white),

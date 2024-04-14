@@ -57,7 +57,6 @@ class ConversationPage extends StatefulWidget {
 }
 
 class _ConversationPageState extends State<ConversationPage> {
-  bool _isEmojiPickerVisible = false;
   final FocusNode _textFieldFocusNode = FocusNode();
   String currentUserId = 'yourCurrentUserId';
   String senderAvatar = 'assets/Ellipse 11.png';
@@ -80,15 +79,16 @@ class _ConversationPageState extends State<ConversationPage> {
 
   Future<void> _handlePhotoButtonPressed() async {
     final ImagePicker _picker = ImagePicker();
-    final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
-
-    if (image != null) {
-      setState(() {
-        _selectedImageFile =
-            File(image.path); // Update the state with the selected image file
-        // Set the file path in the message controller if you want to display the file name
-        // _messageController.text = image.path.split('/').last;
-      });
+    try {
+      final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
+      if (image != null) {
+        setState(() {
+          _selectedImageFile = File(image.path);
+        });
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Failed to pick the image: $e")));
     }
   }
 
@@ -129,6 +129,10 @@ class _ConversationPageState extends State<ConversationPage> {
 
   Future<bool> checkPermissions() async {
     var status = await Permission.microphone.request();
+    if (status != PermissionStatus.granted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Microphone permission not granted")));
+    }
     return status == PermissionStatus.granted;
   }
 
@@ -145,31 +149,51 @@ class _ConversationPageState extends State<ConversationPage> {
   }
 
   Future<void> startRecording() async {
+    bool hasPermission = await checkPermissions();
+    if (!hasPermission) {
+      print("Microphone permission not granted");
+      ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Microphone permission not granted")));
+      return; // Exit if no permission
+    }
+
     try {
       await _audioRecorder.startRecorder(toFile: 'audio_message.aac');
-      // Update the UI to show recording status
       setState(() {
         isRecording = true;
       });
     } catch (e) {
       print("Failed to start recording: $e");
+      ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Failed to start recording: $e")));
       setState(() {
         isRecording = false;
       });
-      // Optionally, show a Snackbar or dialog here to inform the user
     }
   }
 
   Future<void> stopRecordingAndSend() async {
-    final String? path = await _audioRecorder.stopRecorder();
-    setState(() {
-      isRecording = false; // Ensure UI is updated when recording stops
-    });
-    if (path != null) {
-      sendMessageWithAudio(path);
-    } else {
-      // Optionally, inform the user that recording failed
-      print("Recording failed or was cancelled.");
+    try {
+      final String? path = await _audioRecorder.stopRecorder();
+      setState(() {
+        isRecording = false; // Ensure UI is updated when recording stops
+      });
+
+      if (path != null) {
+        sendMessageWithAudio(path);
+      } else {
+        // Inform the user that recording failed or was cancelled
+        ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text("Recording failed or was cancelled.")));
+      }
+    } catch (e) {
+      print("Error stopping recording: $e");
+      // Show an error message to the user
+      ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Failed to stop recording: $e")));
+      setState(() {
+        isRecording = false; // Reset recording state on error
+      });
     }
   }
 
@@ -420,36 +444,49 @@ class _ConversationPageState extends State<ConversationPage> {
             onPressed: _handlePhotoButtonPressed,
           ),
           GestureDetector(
-            onLongPressStart: (_) {
-              setState(() {
-                isRecording =
-                    true; // Set isRecording to true when recording starts
-              });
-              startRecording().catchError((error) {
-                // If an error occurs starting the recording, handle it
-                setState(() {
-                  isRecording = false; // Reset isRecording on error
-                });
-                print("Error starting recording: $error");
-              });
-            },
-            onLongPressEnd: (_) {
-              stopRecordingAndSend().catchError((error) {
-                print("Error stopping recording: $error");
-              }).whenComplete(() {
+              onLongPressStart: (_) {
                 setState(() {
                   isRecording =
-                      false; // Ensure isRecording is reset when recording stops
+                      true; // Set isRecording to true when recording starts
                 });
-              });
-            },
-            child: IconButton(
-              iconSize: iconSize,
-              icon: Image.asset(
-                  isRecording ? 'assets/vocal_active.png' : 'assets/vocal.png'),
-              onPressed: null, // Disable the default press functionality
-            ),
-          ),
+                startRecording().catchError((error) {
+                  // If an error occurs starting the recording, handle it
+                  setState(() {
+                    isRecording = false; // Reset isRecording on error
+                  });
+                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                      content: Text("Error starting recording: $error")));
+                });
+              },
+              onLongPressEnd: (_) {
+                stopRecordingAndSend().catchError((error) {
+                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                      content: Text("Error stopping recording: $error")));
+                }).whenComplete(() {
+                  setState(() {
+                    isRecording =
+                        false; // Ensure isRecording is reset when recording stops
+                  });
+                });
+              },
+              child: IconButton(
+                icon: Icon(
+                  Icons.mic,
+                  color: isRecording
+                      ? Colors.blue
+                      : Colors.white, // Change color based on isRecording
+                ),
+                onPressed: () {
+                  setState(() {
+                    isRecording = !isRecording; // Toggle recording state
+                  });
+                  if (isRecording) {
+                    // Start recording
+                  } else {
+                    // Stop recording
+                  }
+                },
+              )),
           IconButton(
             iconSize: iconSize,
             icon: Icon(
