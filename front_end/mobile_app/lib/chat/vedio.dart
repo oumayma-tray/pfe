@@ -21,23 +21,28 @@ class VideoPage extends StatefulWidget {
 class _VideoPageState extends State<VideoPage> {
   CameraController? _controller;
   Future<void>? _initializeControllerFuture;
+  List<CameraDescription> cameras = [];
+  int selectedCameraIndex = 0; // Default to first camera (usually rear)
 
   @override
   void initState() {
     super.initState();
-    _initCamera();
+    _initCamera(selectedCameraIndex);
   }
 
-  void _initCamera() async {
-    final cameras = await availableCameras();
-    final firstCamera = cameras.first;
-
+  void _initCamera(int cameraIndex) async {
+    cameras = await availableCameras();
     _controller = CameraController(
-      firstCamera,
+      cameras[cameraIndex], // Select camera from list
       ResolutionPreset.medium,
     );
 
-    _initializeControllerFuture = _controller?.initialize();
+    _initializeControllerFuture = _controller?.initialize().then((_) {
+      if (!mounted) {
+        return;
+      }
+      setState(() {});
+    });
   }
 
   @override
@@ -46,13 +51,18 @@ class _VideoPageState extends State<VideoPage> {
     super.dispose();
   }
 
+  void toggleCamera() {
+    selectedCameraIndex = selectedCameraIndex == 0 ? 1 : 0; // Toggle index
+    _controller?.dispose();
+    _initCamera(selectedCameraIndex);
+  }
+
   double iconSize = 48; // Adjust based on your design
 
   bool isMuted = false; // Add this variable to track the mute state
 
   void onMutePressed() {
     setState(() {
-      // Toggle the mute state
       isMuted = !isMuted;
     });
   }
@@ -61,7 +71,6 @@ class _VideoPageState extends State<VideoPage> {
 
   void onKeyboardPressed() {
     setState(() {
-      // Toggle the voice state
       isVoiceEnabled = !isVoiceEnabled;
     });
   }
@@ -162,6 +171,11 @@ class _VideoPageState extends State<VideoPage> {
                             color: Colors.white), // Voice disabled icon
                     iconSize: iconSize,
                     onPressed: onKeyboardPressed,
+                  ),
+                  IconButton(
+                    icon: Icon(Icons.flip_camera_ios, color: Colors.white),
+                    iconSize: iconSize,
+                    onPressed: toggleCamera, // Button to switch cameras
                   ),
                   IconButton(
                     icon: Icon(Icons.call, color: Colors.white),
