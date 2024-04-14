@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
+//import 'package:mobile_app/chat/PhotoPicker.dart';
 import 'package:mobile_app/chat/call.dart';
 import 'package:mobile_app/chat/vedio.dart';
 import 'package:intl/intl.dart'; // Ensure you have added the intl package for date formatting
@@ -8,11 +9,11 @@ import 'package:image_picker/image_picker.dart';
 import 'package:flutter_sound/flutter_sound.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'dart:io';
-import 'package:audioplayers/audioplayers.dart';
-import 'package:audioplayers/audioplayers.dart';
+import 'package:mobile_app/chat/AudioPlayer.dart';
+
 import 'package:file_picker/file_picker.dart';
 
-enum MessageType { text, audio, file }
+enum MessageType { text, audio, file, image }
 
 // Assuming you have a Message class like this:
 class Message {
@@ -23,6 +24,8 @@ class Message {
   String? audioPath;
   String? filePath;
   MessageType type;
+  String? imagePath; // Add this line for image path
+
   Message({
     required this.senderId,
     required this.text,
@@ -31,6 +34,7 @@ class Message {
     this.audioPath, // Add this line
     this.type = MessageType.text,
     this.filePath,
+    this.imagePath,
   });
 }
 
@@ -64,6 +68,8 @@ class _ConversationPageState extends State<ConversationPage> {
   final TextEditingController _messageController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
   final FlutterSoundRecorder _audioRecorder = FlutterSoundRecorder();
+  File? _selectedImageFile;
+  File? _pickedImage;
 
   @override
   void initState() {
@@ -71,7 +77,20 @@ class _ConversationPageState extends State<ConversationPage> {
     messages = [];
     initRecorder();
   }
-// Import required for file handling
+
+  Future<void> _handlePhotoButtonPressed() async {
+    final ImagePicker _picker = ImagePicker();
+    final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
+
+    if (image != null) {
+      setState(() {
+        _selectedImageFile =
+            File(image.path); // Update the state with the selected image file
+        // Set the file path in the message controller if you want to display the file name
+        // _messageController.text = image.path.split('/').last;
+      });
+    }
+  }
 
   void sendMessageWithAudio(String path) {
     File audioFile = File(path);
@@ -177,52 +196,83 @@ class _ConversationPageState extends State<ConversationPage> {
 
   Future<void> _pickMedia() async {
     try {
+      // Let the user select all types of files
       FilePickerResult? result = await FilePicker.platform.pickFiles(
-        type: FileType.image, // To pick only images, change as needed
+        type: FileType.any, // Allows all file types
+        // For allowing multiple types, you can use FileType.custom and provide file extensions
+        // allowedExtensions: ['jpg', 'pdf', 'doc', 'mp4'], // Example of specific file types
       );
 
-      if (result != null) {
-        setState(() {
-          _selectedFilePath = result.files.single.path;
-          _isFileSelected = true;
-          _messageController.text =
-              _selectedFilePath!.split('/').last; // Display file name in input
-        });
+      if (result != null && result.files.single.path != null) {
+        // If the result is not null and there's a path for the file
+        File selectedFile = File(result.files.single.path!);
+        // Do something with the selected file, like storing it in the state
+        // For example, to handle image preview
+        if (selectedFile.path.endsWith('.png') ||
+            selectedFile.path.endsWith('.jpg') ||
+            selectedFile.path.endsWith('.jpeg') ||
+            selectedFile.path.endsWith('.gif')) {
+          setState(() {
+            _selectedImageFile = selectedFile; // If it's an image, preview it
+          });
+        } else {
+          // For non-image files, you might want to do something else
+          // e.g., store the File object for sending as a message attachment
+        }
       } else {
         // User canceled the picker
-        setState(() {
-          _isFileSelected = false;
-        });
       }
     } catch (e) {
+      // Handle any exceptions
       print('Failed to pick file: $e');
     }
   }
 
   void _sendMessage() {
     String text = _messageController.text.trim();
-    if (text.isNotEmpty) {
-      setState(() {
-        messages.add(Message(
-          senderId:
-              currentUserId, // Assurez-vous que c'est l'identifiant actuel de l'utilisateur
-          text: text,
-          timestamp: DateTime.now(),
-          senderAvatar:
-              senderAvatar, // Ajoutez le chemin vers l'image de l'avatar de l'expéditeur ici
-        ));
-        // Après avoir ajouté un message, vérifiez si le grand avatar doit être masqué.
-      });
-      _messageController.clear();
 
-      // Si vous voulez défiler automatiquement vers le bas pour montrer le nouveau message :
-      if (_scrollController.hasClients) {
-        _scrollController.animateTo(
-          _scrollController.position.maxScrollExtent,
-          curve: Curves.easeOut,
-          duration: const Duration(milliseconds: 300),
-        );
-      }
+    if (_selectedImageFile != null) {
+      // If there's a selected image, send it
+      final imageMessage = Message(
+        senderId: currentUserId,
+        text: _messageController.text.trim(), // Any accompanying text
+        timestamp: DateTime.now(),
+        senderAvatar: senderAvatar,
+        type: MessageType.image,
+        imagePath: _selectedImageFile!.path, // Path to the selected image
+      );
+
+      setState(() {
+        messages.add(imageMessage);
+        _selectedImageFile = null;
+
+        /// Reset the image
+      });
+
+      _messageController.clear();
+    } else if (text.isNotEmpty) {
+      // If no image is selected, send text
+      Message textMessage = Message(
+        senderId: currentUserId,
+        text: text,
+        timestamp: DateTime.now(),
+        senderAvatar: senderAvatar,
+        type: MessageType.text,
+      );
+
+      setState(() {
+        messages.add(textMessage);
+        _messageController.clear(); // Clear the message input field
+      });
+    }
+
+    // Scroll to the new message
+    if (_scrollController.hasClients) {
+      _scrollController.animateTo(
+        _scrollController.position.maxScrollExtent,
+        curve: Curves.easeOut,
+        duration: const Duration(milliseconds: 300),
+      );
     }
   }
 
@@ -307,23 +357,6 @@ class _ConversationPageState extends State<ConversationPage> {
 // Assume you have a variable to hold the picked file path
   String? pickedFilePath;
 
-// A widget to display the picked file or image
-  Widget displayPickedFile() {
-    if (pickedFilePath == null) {
-      return Text('No file selected');
-    } else {
-      return pickedFilePath!.endsWith('.jpg') ||
-              pickedFilePath!.endsWith('.jpeg') ||
-              pickedFilePath!.endsWith('.png') ||
-              pickedFilePath!.endsWith('.gif')
-          ? Image.file(File(pickedFilePath!))
-          : ListTile(
-              leading: Icon(Icons.file_present),
-              title: Text(pickedFilePath!.split('/').last),
-            );
-    }
-  }
-
   Widget _buildInputSection() {
     final BorderRadius borderRadius = BorderRadius.circular(30.0);
     final double iconSize = 20.0; // Icon size for the emojis and other actions
@@ -344,6 +377,15 @@ class _ConversationPageState extends State<ConversationPage> {
       ),
       child: Row(
         children: <Widget>[
+          if (_selectedImageFile != null)
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Image.file(
+                _selectedImageFile!,
+                width: 100, // Example thumbnail width
+                height: 100, // Example thumbnail height
+              ),
+            ),
           Expanded(
               child: TextField(
             controller: _messageController,
@@ -368,7 +410,12 @@ class _ConversationPageState extends State<ConversationPage> {
               ),
             ),
           )),
-
+          IconButton(
+            iconSize: iconSize,
+            icon: Icon(Icons.photo_album),
+            color: Colors.white,
+            onPressed: _handlePhotoButtonPressed,
+          ),
           GestureDetector(
             onLongPressStart: (_) => startRecording(),
             onLongPressEnd: (_) => stopRecordingAndSend(),
@@ -386,9 +433,87 @@ class _ConversationPageState extends State<ConversationPage> {
             ),
             onPressed: _sendMessage, // Triggers sending a message
           ),
-
-          // Send button
+          if (_pickedImage != null)
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Stack(
+                alignment: Alignment.topRight,
+                children: [
+                  Image.file(
+                    _pickedImage!,
+                    width: 100, // or some other appropriate size
+                    height: 100,
+                  ),
+                  IconButton(
+                    icon: Icon(Icons.close),
+                    onPressed: () {
+                      setState(() {
+                        _pickedImage = null; // Remove the image
+                      });
+                    },
+                  ),
+                ],
+              ),
+            ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildFileMessage(Message message, bool isMe) {
+    IconData fileIcon = Icons.attach_file; // Default icon for files
+    String fileName = message.filePath?.split('/').last ?? 'Unknown file';
+    String fileExtension = fileName.split('.').last;
+
+    switch (fileExtension) {
+      case 'jpg':
+      case 'jpeg':
+      case 'png':
+      case 'gif':
+        fileIcon = Icons.image;
+        break;
+      case 'pdf':
+        fileIcon = Icons.picture_as_pdf;
+        break;
+      case 'mp3':
+        fileIcon = Icons.music_note;
+        break;
+      case 'mp4':
+        fileIcon = Icons.videocam;
+        break;
+      // Extend with more file types as needed
+    }
+
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
+      margin: EdgeInsets.symmetric(vertical: 4.0, horizontal: 8.0),
+      decoration: BoxDecoration(
+        color: isMe ? Colors.lightBlueAccent : Colors.grey[200],
+        borderRadius: BorderRadius.circular(20.0),
+      ),
+      child: InkWell(
+        onTap: () {
+          if (message.imagePath != null) {
+            Navigator.of(context).push(MaterialPageRoute(
+                builder: (_) => ImageScreen(imagePath: message.imagePath)));
+          }
+        },
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(fileIcon, color: Colors.white),
+            SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                fileName,
+                style: TextStyle(
+                  color: Colors.white,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -417,33 +542,19 @@ class _ConversationPageState extends State<ConversationPage> {
           ),
         );
         break;
-      case MessageType.file:
-        messageContent = Container(
-          padding: EdgeInsets.all(8.0),
-          constraints: BoxConstraints(maxWidth: maxWidth),
-          decoration: BoxDecoration(
-            color: isMe ? Colors.lightBlueAccent : Colors.grey[200],
-            borderRadius: BorderRadius.circular(20.0),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(Icons.attach_file), // Change the icon for non-audio files
-              Expanded(
-                child: Text(
-                  message.filePath?.split('/').last ?? 'Unknown file',
-                  softWrap: true,
-                  style: TextStyle(
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  maxLines: 1,
-                  // Allow for text to span up to 2 lines
-                ),
-              ),
-              // You may want to conditionally show the duration for audio files
-            ],
-          ),
+      case MessageType.image:
+        // Display the image message
+        messageContent = Image.file(
+          File(message.imagePath!),
+          width: 200, // Adjust the width as needed
+          height: 200, // Adjust the height as needed
+          fit: BoxFit.cover, // This scales the image to cover the box
         );
+        break;
+      case MessageType.file:
+        messageContent = _buildFileMessage(message, isMe);
+
+        break;
 
       case MessageType.text:
       default:
@@ -663,135 +774,20 @@ class _ConversationPageState extends State<ConversationPage> {
   }
 }
 
-class AudioPlayerWidget extends StatefulWidget {
-  final String? audioPath;
+class ImageScreen extends StatelessWidget {
+  final String? imagePath;
 
-  AudioPlayerWidget({Key? key, this.audioPath}) : super(key: key);
-
-  @override
-  _AudioPlayerWidgetState createState() => _AudioPlayerWidgetState();
-}
-
-class _AudioPlayerWidgetState extends State<AudioPlayerWidget> {
-  late AudioPlayer _audioPlayer;
-  Duration _duration = Duration.zero;
-  Duration _position = Duration.zero;
-  bool _isPlaying = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _audioPlayer = AudioPlayer();
-    _setupAudioPlayer();
-  }
-
-  void _setupAudioPlayer() {
-    _audioPlayer.onDurationChanged.listen((newDuration) {
-      setState(() {
-        _duration = newDuration;
-      });
-    });
-
-    // Updated to use the correct API for position updates
-    _audioPlayer.onPositionChanged.listen((newPosition) {
-      setState(() {
-        _position = newPosition;
-      });
-    });
-
-    _audioPlayer.onPlayerComplete.listen((event) {
-      setState(() {
-        _position = Duration.zero;
-        _isPlaying = false;
-      });
-    });
-  }
-
-  void _togglePlay() async {
-    if (_isPlaying) {
-      await _audioPlayer.pause();
-    } else {
-      // Check if the audio file exists
-      final file = File(widget.audioPath!);
-      if (await file.exists()) {
-        // File exists, play the audio
-        await _audioPlayer.play(DeviceFileSource(file.path));
-      } else {
-        // File does not exist, handle the error
-        print('Audio file does not exist at path: ${widget.audioPath}');
-        // You might want to show an alert or a message to the user
-      }
-    }
-    setState(() {
-      _isPlaying = !_isPlaying;
-    });
-  }
+  ImageScreen({this.imagePath});
 
   @override
   Widget build(BuildContext context) {
-    // Set the height of the play button and slider thumb to fit within the 50 pixels.
-    final double buttonHeight = 30.0;
-    final double sliderHeight =
-        20.0; // Adjust as needed to fit within 50px height
-
-    return Container(
-      height: 50.0, // Container height fixed at 50 pixels
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Expanded(
-            child: SliderTheme(
-              data: SliderTheme.of(context).copyWith(
-                trackHeight: 2.0, // Adjust track height to be smaller
-                thumbShape:
-                    RoundSliderThumbShape(enabledThumbRadius: sliderHeight / 2),
-              ),
-              child: Slider(
-                value: _position.inSeconds.toDouble(),
-                min: 0.0,
-                max: _duration.inSeconds.toDouble(),
-                onChanged: (value) {
-                  final newPosition = Duration(seconds: value.toInt());
-                  _audioPlayer.seek(newPosition);
-                  setState(() {
-                    _position = newPosition;
-                  });
-                },
-              ),
-            ),
-          ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              IconButton(
-                icon: Icon(_isPlaying ? Icons.pause : Icons.play_arrow),
-                iconSize: buttonHeight,
-                onPressed: _togglePlay,
-              ),
-              SizedBox(
-                  width: 8.0), // Provides spacing between the button and text
-              Text(formatDuration(_position)),
-              Text(' / '),
-              Text(formatDuration(_duration)),
-            ],
-          ),
-        ],
+    return Scaffold(
+      appBar: AppBar(title: Text("Image Preview")),
+      body: Center(
+        child: imagePath != null
+            ? Image.file(File(imagePath!))
+            : Text("No image found."),
       ),
     );
-  }
-
-  String formatDuration(Duration duration) {
-    String twoDigits(int n) => n.toString().padLeft(2, "0");
-    String twoDigitMinutes = twoDigits(duration.inMinutes.remainder(60));
-    String twoDigitSeconds = twoDigits(duration.inSeconds.remainder(60));
-    return "${twoDigits(duration.inHours)}:$twoDigitMinutes:$twoDigitSeconds";
-  }
-
-  @override
-  void dispose() {
-    _audioPlayer.stop();
-    _audioPlayer.release();
-    _audioPlayer.dispose();
-    super.dispose();
   }
 }
