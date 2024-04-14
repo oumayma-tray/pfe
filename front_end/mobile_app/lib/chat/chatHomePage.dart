@@ -58,6 +58,21 @@ class _ChatState extends State<Chat> {
     // Add more ChatEntry instances as needed
   ];
   List<ChatEntry> filteredChats = [];
+  void selectAllChats() {
+    setState(() {
+      for (var chat in chats) {
+        chat.isSelected = true; // Set all chats as selected
+      }
+    });
+  }
+
+  void deleteSelectedChats() {
+    setState(() {
+      chats.removeWhere((chat) => chat.isSelected); // Remove selected chats
+      // Reset selectedChatIndex if needed or handle its logic accordingly
+      selectedChatIndex = null;
+    });
+  }
 
   @override
   void initState() {
@@ -107,10 +122,25 @@ class _ChatState extends State<Chat> {
         actions: [
           Padding(
             padding: const EdgeInsets.all(10),
-            child: Image.asset(
-              'assets/Sans-titre-61 .png', // Assurez-vous que le chemin est correct
-              width: 22,
-              height: 22,
+            child: PopupMenuButton<int>(
+              icon: Image.asset('assets/3p.png'),
+              onSelected: (item) {
+                if (item == 1) {
+                  deleteSelectedChats(); // Handle delete
+                } else if (item == 2) {
+                  selectAllChats(); // Handle select all
+                }
+              },
+              itemBuilder: (BuildContext context) => <PopupMenuEntry<int>>[
+                PopupMenuItem<int>(
+                  value: 1,
+                  child: Text('Delete'),
+                ),
+                PopupMenuItem<int>(
+                  value: 2,
+                  child: Text('Select All'),
+                ),
+              ],
             ),
           ),
         ],
@@ -153,16 +183,16 @@ class _ChatState extends State<Chat> {
             child: ListView.builder(
               itemCount: filteredChats.length,
               itemBuilder: (context, index) {
+                final chat = filteredChats[index];
                 return Padding(
                   padding: const EdgeInsets.symmetric(vertical: 2),
-                  // Padding for each chat item
                   child: ChatItemWidget(
-                    chat: filteredChats[index],
-                    isSelected: selectedChatIndex == index,
+                    chat: chat,
+                    isSelected: chat.isSelected,
                     onSelect: () {
                       setState(() {
-                        selectedChatIndex =
-                            selectedChatIndex == index ? null : index;
+                        // Toggle the isSelected state for the chat at this index
+                        chat.isSelected = !chat.isSelected;
                       });
                     },
                   ),
@@ -189,9 +219,11 @@ class ChatEntry {
   String avatarPath;
   bool isOnline;
   MessageStatus messageStatus;
+  bool isSelected; // Added to track if the chat is selected
 
   ChatEntry(this.jobTitle, this.name, this.message, this.avatarPath,
-      this.isOnline, this.messageStatus);
+      this.isOnline, this.messageStatus,
+      {this.isSelected = false});
 }
 
 enum MessageStatus {
@@ -279,13 +311,19 @@ class ChatItemWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () => navigateToConversation(context, chat),
+      onTap:
+          onSelect, // This retains the selection toggle or another quick action
+      onLongPress: () {
+        // Trigger navigation to conversation page on long press
+        navigateToConversation(context, chat);
+      },
+
       child: Container(
         margin: EdgeInsets.symmetric(vertical: 4, horizontal: 4),
         decoration: BoxDecoration(
-          color: isSelected
-              ? Color(0xFF9155FD)
-              : Color(0xFF312D4B), // Color changes based on selection
+          color: chat.isSelected
+              ? Color(0xFF9155FD) // Selected color
+              : Color(0xFF312D4B), // Normal color
           borderRadius: BorderRadius.circular(10),
         ),
         child: ListTile(
@@ -306,8 +344,7 @@ class ChatItemWidget extends StatelessWidget {
           title: Text(chat.name, style: TextStyle(color: Colors.white)),
           subtitle: Text(chat.message,
               style: TextStyle(color: Colors.white.withOpacity(0.6))),
-          trailing: _buildMessageStatusIcon(context, chat.messageStatus), //
-          // The rest of your ListTile
+          trailing: _buildMessageStatusIcon(context, chat.messageStatus),
         ),
       ),
     );
