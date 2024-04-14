@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 //import 'package:mobile_app/chat/PhotoPicker.dart';
 import 'package:mobile_app/chat/call.dart';
+import 'package:mobile_app/chat/contact.dart';
 import 'package:mobile_app/chat/vedio.dart';
 import 'package:intl/intl.dart'; // Ensure you have added the intl package for date formatting
 import 'package:image_picker/image_picker.dart';
@@ -303,17 +304,29 @@ class _ConversationPageState extends State<ConversationPage> {
     }
   }
 
+  void closeMenu() {
+    if (_overlayEntry != null) {
+      _overlayEntry!.remove();
+      _overlayEntry = null; // Ensure to set to null after removing
+      isMenuOpen = false;
+    }
+  }
+
+  bool isMuted = false; // Initial state of notification muting
+
   bool isMenuOpen = false; // Suivi de l'état du menu
   OverlayEntry? _overlayEntry;
   void _showOptionsMenu() {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) {
-        // Vérifie si le widget est toujours monté
-        _overlayEntry = _createOverlayEntry();
-        Overlay.of(context)?.insert(_overlayEntry!);
-        isMenuOpen = true;
-      }
-    });
+    if (!isMenuOpen) {
+      // Check if the menu is already open
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          _overlayEntry = _createOverlayEntry();
+          Overlay.of(context)?.insert(_overlayEntry!);
+          isMenuOpen = true;
+        }
+      });
+    }
   }
 
   OverlayEntry _createOverlayEntry() {
@@ -325,27 +338,40 @@ class _ConversationPageState extends State<ConversationPage> {
         child: Material(
           elevation: 4.0,
           borderRadius: BorderRadius.circular(8),
-          child: Container(
-            padding: EdgeInsets.zero,
-            decoration: BoxDecoration(
-              color: Colors.black,
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: <Widget>[
-                _menuButton('View Contact'),
-                _menuButton('Mute Notifications'),
-                _menuButton('Clear Chat'),
-                _menuButton('Report'),
-              ],
-            ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              _menuButton(
+                'View Contact',
+                () => Navigator.push(context,
+                    MaterialPageRoute(builder: (context) => ContactPage())),
+                icon: Icons.contact_page, // Optional icon for "View Contact"
+              ),
+              _menuButton(
+                'Mute Notifications',
+                () {
+                  setState(() {
+                    isMuted = !isMuted; // Toggle mute state
+                    // Here you could also handle persistent state changes or server notifications
+                  });
+                },
+                icon: isMuted
+                    ? Icons.volume_off
+                    : Icons.volume_up, // Toggle icon based on mute state
+              ),
+              _menuButton(
+                'Clear Chat',
+                () {
+                  // Handle clearing the chat here
+                  // This might involve deleting data or resetting views
+                },
+                icon: Icons.delete_outline, // Optional icon for "Clear Chat"
+              ),
+            ],
           ),
         ),
       ),
     );
-
-    Overlay.of(context)?.insert(_overlayEntry!);
   }
 
   @override
@@ -660,23 +686,26 @@ class _ConversationPageState extends State<ConversationPage> {
     );
   }
 
-  Widget _menuButton(String text) {
+  Widget _menuButton(String text, VoidCallback onPressed, {IconData? icon}) {
     return TextButton(
       style: TextButton.styleFrom(
-        foregroundColor: Colors.white,
-        padding: EdgeInsets.all(16), // Padding for the button
-        alignment: Alignment.centerLeft, // Align text to the left
-        textStyle: TextStyle(fontSize: 16), // Text style
+        foregroundColor: Colors.black,
+        padding: EdgeInsets.all(16),
+        alignment: Alignment.centerLeft,
+        textStyle: TextStyle(fontSize: 16),
       ),
       onPressed: () {
-        print('$text pressed');
-        if (isMenuOpen) {
-          _overlayEntry?.remove();
-          _overlayEntry = null;
-          isMenuOpen = false; // Mettre à jour l'état du menu
-        }
+        onPressed(); // Perform the button-specific action
+        closeMenu(); // Then close the menu
       },
-      child: Text(text),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (icon != null) Icon(icon, color: Colors.black),
+          SizedBox(width: 10),
+          Text(text),
+        ],
+      ),
     );
   }
 
