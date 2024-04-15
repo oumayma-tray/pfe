@@ -793,6 +793,18 @@ class _ConversationPageState extends State<ConversationPage> {
                       ),
                     ),
                   ),
+                  Positioned(
+                    top: MediaQuery.of(context).padding.top,
+                    right: 20,
+                    child: Row(
+                      children: [
+                        if (isMuted) // Conditionally display mute icon
+                          Icon(Icons.volume_off,
+                              color: Colors.red, size: iconSize),
+                        // Other icons or elements...
+                      ],
+                    ),
+                  ),
                   // Icons for call, video, etc.
 
                   Row(

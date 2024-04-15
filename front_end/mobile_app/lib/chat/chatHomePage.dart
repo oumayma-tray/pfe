@@ -20,6 +20,7 @@ class _ChatState extends State<Chat> {
         'assets/Ellipse 10.png',
         true,
         MessageStatus.read),
+
     ChatEntry(
         "Frontend Developer",
         'Felecia Rower',
@@ -74,6 +75,14 @@ class _ChatState extends State<Chat> {
     });
   }
 
+  void toggleMuteStatus() {
+    setState(() {
+      if (selectedChatIndex != null) {
+        chats[selectedChatIndex!].isMuted = !chats[selectedChatIndex!].isMuted;
+      }
+    });
+  }
+
   @override
   void initState() {
     super.initState();
@@ -125,21 +134,23 @@ class _ChatState extends State<Chat> {
             child: PopupMenuButton<int>(
               icon: Image.asset('assets/3p.png'),
               onSelected: (item) {
-                if (item == 1) {
-                  deleteSelectedChats(); // Handle delete
-                } else if (item == 2) {
-                  selectAllChats(); // Handle select all
+                switch (item) {
+                  case 1:
+                    deleteSelectedChats();
+                    break;
+                  case 2:
+                    selectAllChats();
+                    break;
+                  case 3:
+                    toggleMuteStatus(); // Toggles mute status for the selected chat
+                    break;
                 }
               },
               itemBuilder: (BuildContext context) => <PopupMenuEntry<int>>[
-                PopupMenuItem<int>(
-                  value: 1,
-                  child: Text('Delete'),
-                ),
-                PopupMenuItem<int>(
-                  value: 2,
-                  child: Text('Select All'),
-                ),
+                const PopupMenuItem<int>(value: 1, child: Text('Delete')),
+                const PopupMenuItem<int>(value: 2, child: Text('Select All')),
+                const PopupMenuItem<int>(
+                    value: 3, child: Text('Mute Notifications')),
               ],
             ),
           ),
@@ -191,7 +202,8 @@ class _ChatState extends State<Chat> {
                     isSelected: chat.isSelected,
                     onSelect: () {
                       setState(() {
-                        // Toggle the isSelected state for the chat at this index
+                        selectedChatIndex =
+                            index; // Assuming 'index' is the list item index
                         chat.isSelected = !chat.isSelected;
                       });
                     },
@@ -219,11 +231,19 @@ class ChatEntry {
   String avatarPath;
   bool isOnline;
   MessageStatus messageStatus;
-  bool isSelected; // Added to track if the chat is selected
+  bool isSelected;
+  bool isMuted;
+  String email;
+  String phone;
+  String address;
 
   ChatEntry(this.jobTitle, this.name, this.message, this.avatarPath,
       this.isOnline, this.messageStatus,
-      {this.isSelected = false});
+      {this.isSelected = false,
+      this.isMuted = false,
+      this.email = '',
+      this.phone = '',
+      this.address = ''});
 }
 
 enum MessageStatus {
@@ -311,19 +331,12 @@ class ChatItemWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap:
-          onSelect, // This retains the selection toggle or another quick action
-      onLongPress: () {
-        // Trigger navigation to conversation page on long press
-        navigateToConversation(context, chat);
-      },
-
+      onTap: onSelect,
+      onLongPress: () => navigateToConversation(context, chat),
       child: Container(
         margin: EdgeInsets.symmetric(vertical: 4, horizontal: 4),
         decoration: BoxDecoration(
-          color: chat.isSelected
-              ? Color(0xFF9155FD) // Selected color
-              : Color(0xFF312D4B), // Normal color
+          color: isSelected ? Color(0xFF9155FD) : Color(0xFF312D4B),
           borderRadius: BorderRadius.circular(10),
         ),
         child: ListTile(
@@ -341,7 +354,15 @@ class ChatItemWidget extends StatelessWidget {
                 ),
             ],
           ),
-          title: Text(chat.name, style: TextStyle(color: Colors.white)),
+          title: Row(
+            children: [
+              Expanded(
+                  child:
+                      Text(chat.name, style: TextStyle(color: Colors.white))),
+              if (chat.isMuted) // Display the mute icon if the chat is muted
+                Icon(Icons.volume_off, color: Colors.red, size: 20),
+            ],
+          ),
           subtitle: Text(chat.message,
               style: TextStyle(color: Colors.white.withOpacity(0.6))),
           trailing: _buildMessageStatusIcon(context, chat.messageStatus),
