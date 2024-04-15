@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:mobile_app/Project%20Management/employee_tile.dart';
+import 'package:mobile_app/Security%20Privacy/SecurityPrivacyPage.dart';
 import 'package:mobile_app/calendar/calendarHome.dart';
 import 'package:mobile_app/chat/chatHomePage.dart';
 import 'package:mobile_app/mail/mailHomePage.dart';
@@ -19,6 +20,8 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  bool isSwitched = false;
+
   String employeeImageUrl = "assets/image 1.png";
   String name = 'tray oumayma';
   String address = 'Anywhere St., Any City123';
@@ -43,8 +46,8 @@ class _HomePageState extends State<HomePage> {
                 ),
               )),
               Positioned(
-                top: 140,
-                right: 100,
+                top: 110,
+                right: 90,
                 child: Center(
                   child: CircleAvatar(
                     radius: 110, // Adjust the size to fit your layout
@@ -58,7 +61,7 @@ class _HomePageState extends State<HomePage> {
                         ? Icon(
                             Icons.account_circle,
                             size:
-                                120, // Adjust the size to fit the circle avatar
+                                80, // Adjust the size to fit the circle avatar
                             color: Colors.grey,
                           )
                         : null,
@@ -66,7 +69,7 @@ class _HomePageState extends State<HomePage> {
                 ),
               ),
               Positioned(
-                top: 360,
+                top: 320,
                 right: 100,
                 child: Text('Hello, $name',
                     style: GoogleFonts.roboto(
@@ -75,7 +78,7 @@ class _HomePageState extends State<HomePage> {
                         fontWeight: FontWeight.w700)),
               ),
               Positioned(
-                bottom: 230,
+                bottom: 330,
                 right: 70,
                 child: Material(
                   color: Colors.transparent,
@@ -120,7 +123,7 @@ class _HomePageState extends State<HomePage> {
                 ),
               ),
               Positioned(
-                bottom: 180,
+                bottom: 290,
                 right: 150,
                 child: Material(
                   color: Colors.transparent,
@@ -166,8 +169,112 @@ class _HomePageState extends State<HomePage> {
                 ),
               ),
               Positioned(
+                bottom: 250,
+                right: 120,
+                child: Material(
+                  color: Colors.transparent,
+                  child: Ink(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          Color.fromRGBO(145, 85, 253, 1),
+                          Color.fromRGBO(197, 165, 254, 1)
+                        ],
+                      ),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(10),
+                      onTap: () {
+                        // Navigate to the Security & Privacy page
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => SecurityPrivacyPage()),
+                        );
+                      },
+                      child: Container(
+                        padding:
+                            EdgeInsets.symmetric(vertical: 2, horizontal: 8),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons
+                                .security), // Corrected to display the icon properly
+                            SizedBox(width: 6),
+                            Text(
+                              'Security and  Privacy', // Adjusted text content
+                              style: GoogleFonts.roboto(
+                                fontSize: 20,
+                                color: Colors.white,
+                                fontWeight: FontWeight.w400,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              Positioned(
+                bottom: 180, // Adjust as needed for your layout
+                right: 150, // Adjust as needed for your layout
+                child: Material(
+                  color: Colors.transparent,
+                  child: Ink(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          Color.fromRGBO(145, 85, 253, 1),
+                          Color.fromRGBO(197, 165, 254, 1)
+                        ],
+                      ), // Adjust the color to match your theme
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(10),
+                      onTap: () {
+                        // If you want the entire widget to be tappable, not just the switch
+                        setState(() {
+                          isSwitched = !isSwitched;
+                        });
+                      },
+                      child: Container(
+                        padding:
+                            EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              'Notification',
+                              style: TextStyle(
+                                fontSize: 20,
+                                color: Colors.white,
+                                fontWeight: FontWeight.w400,
+                              ),
+                            ),
+                            Switch(
+                              value: isSwitched,
+                              onChanged: (bool value) {
+                                setState(() {
+                                  isSwitched = value;
+                                });
+                              },
+                              activeColor: Colors.green,
+                              inactiveThumbColor: Colors.grey,
+                              inactiveTrackColor: Colors.grey[400],
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              Positioned(
                 left: 20,
-                bottom: 140,
+                bottom: 130,
                 child: Text(
                   "Apps & Pages",
                   style: GoogleFonts.roboto(
@@ -178,7 +285,7 @@ class _HomePageState extends State<HomePage> {
               ),
               Positioned(
                 top:
-                    520, // Adjust this value so it is below the "Apps & Pages" text
+                    600, // Adjust this value so it is below the "Apps & Pages" text
                 left: 0,
                 right: 0,
                 bottom: 0,

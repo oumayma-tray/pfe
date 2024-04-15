@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 //import 'package:mobile_app/chat/PhotoPicker.dart';
 import 'package:mobile_app/chat/call.dart';
+import 'package:mobile_app/chat/chatHomePage.dart';
 import 'package:mobile_app/chat/contact.dart';
 import 'package:mobile_app/chat/vedio.dart';
 import 'package:intl/intl.dart'; // Ensure you have added the intl package for date formatting
@@ -41,6 +42,7 @@ class Message {
 
 class ConversationPage extends StatefulWidget {
   final String jobTitle;
+  final ChatEntry chat;
   final String chatName;
   final String chatImageAsset;
   final bool isOnline;
@@ -48,6 +50,7 @@ class ConversationPage extends StatefulWidget {
   ConversationPage({
     Key? key,
     required this.jobTitle,
+    required this.chat, // Ensure chat is part of the constructor.
     required this.chatName,
     required this.chatImageAsset,
     required this.isOnline,
@@ -71,11 +74,30 @@ class _ConversationPageState extends State<ConversationPage> {
   File? _selectedImageFile;
   File? _pickedImage;
   bool isRecording = false;
+  late ChatEntry chat; // Declare chat in the state class
+
   @override
   void initState() {
     super.initState();
     messages = [];
+    chat = widget.chat;
     initRecorder();
+  }
+
+  void navigateToContact(BuildContext context) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => ContactPage(
+          name: chat.name,
+          jobTitle: chat.jobTitle,
+          email: chat.email,
+          phone: chat.phone,
+          address: chat.address,
+          avatarPath: chat.avatarPath,
+          isOnline: chat.isOnline,
+        ),
+      ),
+    );
   }
 
   Future<void> _handlePhotoButtonPressed() async {
@@ -380,8 +402,7 @@ class _ConversationPageState extends State<ConversationPage> {
             children: <Widget>[
               _menuButton(
                 'View Contact',
-                () => Navigator.push(context,
-                    MaterialPageRoute(builder: (context) => ContactPage())),
+                () => navigateToContact(context),
                 icon: Icons.contact_page, // Optional icon for "View Contact"
               ),
               _menuButton(

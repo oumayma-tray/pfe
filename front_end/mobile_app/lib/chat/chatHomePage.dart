@@ -259,8 +259,8 @@ void navigateToConversation(BuildContext context, ChatEntry chatEntry) {
         jobTitle: chatEntry.jobTitle,
         chatName: chatEntry.name,
         chatImageAsset: chatEntry.avatarPath,
-        isOnline:
-            chatEntry.isOnline, //// Pass the chatId to the conversation page
+        isOnline: chatEntry.isOnline,
+        chat: chatEntry, //// Pass the chatId to the conversation page
         // Add any other arguments you need for the ConversationPage constructor
       ),
     ),
