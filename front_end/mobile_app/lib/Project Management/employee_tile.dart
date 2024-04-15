@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:mobile_app/Project Management/Employees.dart';
 import 'package:mobile_app/Project%20Management/EmployeeDetails.dart';
-import 'package:mobile_app/Project%20Management/UpdateE.dart';
+import 'package:mobile_app/Project%20Management/addEmployee.dart';
+import 'package:mobile_app/Project%20Management/updateEmployee.dart';
 
 class EmployeeDirectoryPage extends StatefulWidget {
   @override
@@ -152,7 +153,7 @@ class _EmployeeDirectoryPageState extends State<EmployeeDirectoryPage> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                        builder: (context) => UpdateEmployeeScreen()),
+                        builder: (context) => addEmployeeScreen()),
                   );
                 },
                 //... ElevatedButton style
@@ -246,10 +247,41 @@ class EmployeeRow extends StatelessWidget {
         );
         break;
       case 'Edit':
-        // Implement edit action, perhaps show an edit form
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => UpdateEmployeePage(employee: employee),
+          ),
+        ).catchError((error) {
+          print('Navigation error: $error');
+        });
+
         break;
       case 'Delete':
-        // Implement delete action, perhaps show a confirmation dialog
+        // Handle delete operation here
+        showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: Text("Confirm Delete"),
+              content: Text("Are you sure you want to delete this employee?"),
+              actions: [
+                TextButton(
+                  child: Text("Cancel"),
+                  onPressed: () => Navigator.of(context).pop(),
+                ),
+                TextButton(
+                  child: Text("Delete"),
+                  onPressed: () {
+                    // Implement delete logic here
+                    Navigator.of(context).pop(); // Close the dialog
+                    Navigator.of(context).pop();
+                  },
+                ),
+              ],
+            );
+          },
+        );
         break;
       default:
         break;

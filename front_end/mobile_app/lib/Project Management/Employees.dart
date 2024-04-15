@@ -1,6 +1,7 @@
 // Employees.dart
 class Employee {
   final String name;
+  String? role;
   final String email;
   final String firstName;
   final String lastName;
@@ -11,6 +12,7 @@ class Employee {
   final String imagePath; // Add this line for the image path or URL
 
   Employee({
+    this.role,
     required this.firstName,
     required this.lastName,
     required this.language,
@@ -21,8 +23,15 @@ class Employee {
     required this.country,
     required this.imagePath, // Include the imagePath in the constructor
   });
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
 
-  // ...rest of your code
+    return other is Employee && other.name == name && other.email == email;
+  }
+
+  @override
+  int get hashCode => name.hashCode ^ email.hashCode;
 }
 
 // Example of a list of employees which you might fetch from a database or API

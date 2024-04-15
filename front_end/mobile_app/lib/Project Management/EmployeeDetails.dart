@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:mobile_app/Project Management/Employees.dart';
+import 'package:mobile_app/Project%20Management/updateEmployee.dart';
 
 class EmployeeDetailsPage extends StatelessWidget {
   final Employee employee;
@@ -74,7 +75,13 @@ class EmployeeDetailsPage extends StatelessWidget {
                   margin: EdgeInsets.only(top: 20),
                   child: ElevatedButton(
                     onPressed: () {
-                      // Implement the navigation to the edit screen
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) =>
+                              UpdateEmployeePage(employee: employee),
+                        ),
+                      );
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Color(0xFF28243D),
