@@ -166,34 +166,45 @@ class _MailHomePageState extends State<MailHomePage> {
 
   Widget _mailBoxWithButtons() {
     double screenWidth = MediaQuery.of(context).size.width;
-
+    double screenHeight = MediaQuery.of(context).size.height;
+    double buttonSize = screenWidth * 0.1;
+    double relativeTop1 = screenHeight * 0.29; // Example relative positions
+    double relativeLeft1 = screenWidth * 0.09;
+    double relativeTop2 = screenHeight * 0.185; // Example relative positions
+    double relativeLeft2 = screenWidth * 0.17;
+    double relativeTop3 = screenHeight * 0.125; // Example relative positions
+    double relativeLeft3 = screenWidth * 0.41;
+    double relativeTop4 = screenHeight * 0.17; // Example relative positions
+    double relativeLeft4 = screenWidth * 0.66;
+    double relativeTop5 = screenHeight * 0.26; // Example relative positions
+    double relativeLeft5 = screenWidth * 0.77;
     return Stack(
       alignment: Alignment.center,
       children: <Widget>[
         Image.asset('assets/mail_box.png', width: screenWidth),
         Positioned(
-          top: 245,
-          left: 60,
+          top: relativeTop1,
+          left: relativeLeft1,
           child: _buildCircleButton(circleButtonList[0]),
         ),
         Positioned(
-          top: 165,
-          left: 85,
+          top: relativeTop2, // Example relative positions
+          left: relativeLeft2,
           child: _buildCircleButton(circleButtonList[1]),
         ),
         Positioned(
-          top: 120,
-          left: 175,
+          top: relativeTop3, // Example relative positions
+          left: relativeLeft3,
           child: _buildCircleButton(circleButtonList[2]),
         ),
         Positioned(
-          top: 155,
-          left: 265,
+          top: relativeTop4, // Example relative positions
+          left: relativeLeft4,
           child: _buildCircleButton(circleButtonList[3]),
         ),
         Positioned(
-          top: 220,
-          left: 300,
+          top: relativeTop5, // Example relative positions
+          left: relativeLeft5,
           child: _buildCircleButton(circleButtonList[4]),
         ),
         // Add other Positioned widgets for each circular button

@@ -2,6 +2,7 @@ import 'package:mobile_app/mail/Draft.dart';
 
 class Email {
   final String sender;
+  final String Emailsender;
   final String subject;
   final String recipient;
   final String cc;
@@ -13,6 +14,7 @@ class Email {
 
   Email(
       {required this.sender,
+      required this.Emailsender,
       required this.cc,
       required this.subject,
       required this.isStarred,

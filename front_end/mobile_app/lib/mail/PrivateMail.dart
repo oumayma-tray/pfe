@@ -39,25 +39,64 @@ class _PrivateMailPageState extends State<PrivateMailPage> {
           sender: 'Joaquina Weisenborn',
           subject: 'lorem ipsum lorem ipsum lorem ipsum',
           isStarred: true,
-          senderImagePath: 'assets/Ellipse 10.png',
+          senderImagePath:
+              'assets/Ellipse 10.png', // Ensure this is the correct path for the avatar image
+          type: EmailType.private,
           cc: '',
           recipient: '',
           date: '',
           message: '',
-          type: EmailType.private,
+          Emailsender:
+              'JoaquinaWeisenborn@gmail.com', // The type should match the email category, here it is 'trash'
         ),
         Email(
           sender: 'Felecia Rower',
           subject: 'lorem ipsum lorem ipsum lorem ipsum',
           isStarred: false,
-          senderImagePath: 'assets/Ellipse 11.png',
-          cc: '',
-          recipient: '',
-          date: '',
-          message: '',
-          type: EmailType.private,
+          senderImagePath:
+              'assets/Ellipse 11.png', // Correct path for avatar image
+          type: EmailType.private, cc: '', recipient: '', date: '', message: '',
+          Emailsender: 'FeleciaRower@gmail.com',
+
+          /// Email type is 'trash'
         ),
-        // Add more Email objects...
+        // Add more Email objects with their corresponding images and types
+        Email(
+          sender: 'Sal Piggee',
+          subject: 'lorem ipsum lorem ipsum lorem ipsum',
+          isStarred: false,
+          senderImagePath:
+              'assets/Ellipse 12.png', // Update the asset path as needed
+          type: EmailType.company, cc: '', recipient: '', date: '', message: '',
+          Emailsender: 'SalPiggee]@cc.com',
+        ),
+        Email(
+          sender: 'Verla Morgano',
+          subject: 'lorem ipsum lorem ipsum lorem ipsum',
+          isStarred: true,
+          senderImagePath:
+              'assets/Ellipse 13.png', // Update the asset path as needed
+          type: EmailType.personal, cc: '', recipient: '', date: '',
+          message: '', Emailsender: 'VerlaMorgano@gmail.com',
+        ),
+        Email(
+          sender: 'Mauro Elenbaas',
+          subject: 'lorem ipsum lorem ipsum lorem ipsum',
+          isStarred: false,
+          senderImagePath:
+              'assets/Ellipse 14.png', // Update the asset path as needed
+          type: EmailType.personal, cc: '', recipient: '', date: '',
+          message: '', Emailsender: 'MauroElenbaas@gmail.com',
+        ),
+        Email(
+          sender: 'Miguel Guelff',
+          subject: 'lorem ipsum lorem ipsum lorem ipsum',
+          isStarred: true,
+          senderImagePath:
+              'assets/Ellipse 15.png', // Update the asset path as needed
+          type: EmailType.important, cc: '', recipient: '', date: '',
+          message: '', Emailsender: 'MiguelGuelff@gmail.com',
+        ),
       ];
       filteredEmails = PrivateEmails;
     });

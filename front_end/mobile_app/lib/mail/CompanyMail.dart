@@ -46,6 +46,7 @@ class _CompanyMailPageState extends State<CompanyMailPage> {
           date: '21/03/2002',
           recipient: '',
           cc: '', type: EmailType.company,
+          Emailsender: 'MauroElenbaas@gmail.com',
           // Make sure this is the correct path
         ),
         // Add more Email objects with their respective images here...

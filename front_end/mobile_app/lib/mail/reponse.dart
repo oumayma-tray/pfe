@@ -42,7 +42,7 @@ class _ReplyState extends State<Reply> {
         child: ListView(
           children: <Widget>[
             buildReadOnlyEmailField(
-                'From: ${widget.email.sender}', widget.email.message),
+                'From: ${widget.email.Emailsender}', widget.email.message),
             SizedBox(height: 16.0),
             buildTextField(
                 controller: toController, labelText: 'To', isEnabled: false),

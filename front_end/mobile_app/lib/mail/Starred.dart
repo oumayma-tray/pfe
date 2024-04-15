@@ -61,8 +61,9 @@ class _StarredPageState extends State<StarredPage> {
           cc: '',
           recipient: '',
           date: '',
-          message:
-              '', // The type should match the email category, here it is 'trash'
+          message: '',
+          Emailsender:
+              'JoaquinaWeisenborn@gmail.com', // The type should match the email category, here it is 'trash'
         ),
         Email(
           sender: 'Felecia Rower',
@@ -70,8 +71,10 @@ class _StarredPageState extends State<StarredPage> {
           isStarred: false,
           senderImagePath:
               'assets/Ellipse 11.png', // Correct path for avatar image
-          type: EmailType.private,
-          cc: '', recipient: '', date: '', message: '', // Email type is 'trash'
+          type: EmailType.private, cc: '', recipient: '', date: '', message: '',
+          Emailsender: 'FeleciaRower@gmail.com',
+
+          /// Email type is 'trash'
         ),
         // Add more Email objects with their corresponding images and types
         Email(
@@ -80,8 +83,8 @@ class _StarredPageState extends State<StarredPage> {
           isStarred: false,
           senderImagePath:
               'assets/Ellipse 12.png', // Update the asset path as needed
-          type: EmailType.company,
-          cc: '', recipient: '', date: '', message: '',
+          type: EmailType.company, cc: '', recipient: '', date: '', message: '',
+          Emailsender: 'SalPiggee]@cc.com',
         ),
         Email(
           sender: 'Verla Morgano',
@@ -89,8 +92,8 @@ class _StarredPageState extends State<StarredPage> {
           isStarred: true,
           senderImagePath:
               'assets/Ellipse 13.png', // Update the asset path as needed
-          type: EmailType.personal,
-          cc: '', recipient: '', date: '', message: '',
+          type: EmailType.personal, cc: '', recipient: '', date: '',
+          message: '', Emailsender: 'VerlaMorgano@gmail.com',
         ),
         Email(
           sender: 'Mauro Elenbaas',
@@ -98,8 +101,8 @@ class _StarredPageState extends State<StarredPage> {
           isStarred: false,
           senderImagePath:
               'assets/Ellipse 14.png', // Update the asset path as needed
-          type: EmailType.personal,
-          cc: '', recipient: '', date: '', message: '',
+          type: EmailType.personal, cc: '', recipient: '', date: '',
+          message: '', Emailsender: 'MauroElenbaas@gmail.com',
         ),
         Email(
           sender: 'Miguel Guelff',
@@ -107,8 +110,8 @@ class _StarredPageState extends State<StarredPage> {
           isStarred: true,
           senderImagePath:
               'assets/Ellipse 15.png', // Update the asset path as needed
-          type: EmailType.important,
-          cc: '', recipient: '', date: '', message: '',
+          type: EmailType.important, cc: '', recipient: '', date: '',
+          message: '', Emailsender: 'MiguelGuelff@gmail.com',
         ),
       ].where((email) => email.isStarred).toList(); // Filter for starred emails
       filteredEmails = List.from(StarredEmails);

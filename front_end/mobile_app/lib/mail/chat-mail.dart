@@ -142,7 +142,7 @@ class _EmailViewScreenState extends State<EmailViewScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Divider(color: Colors.grey), // Separators
-            _buildEmailRow('From:', widget.email.sender),
+            _buildEmailRow('From:', widget.email.Emailsender),
             Divider(color: Colors.grey), // Separators
             _buildEmailRow('To:', widget.email.recipient),
             Divider(color: Colors.grey), // Separators
