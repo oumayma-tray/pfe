@@ -329,6 +329,43 @@ class _ConversationPageState extends State<ConversationPage> {
     }
   }
 
+  void clearChat() {
+    setState(() {
+      messages.clear(); // Assuming messages is your chat message list
+      // Notify the user
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text("Chat cleared successfully")));
+    });
+  }
+
+  void confirmClearChat() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Confirm Clear Chat'),
+          content: Text(
+              'Are you sure you want to clear all messages? This action cannot be undone.'),
+          actions: <Widget>[
+            TextButton(
+              child: Text('Cancel'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            TextButton(
+              child: Text('Clear Chat'),
+              onPressed: () {
+                Navigator.of(context).pop();
+                clearChat();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   OverlayEntry _createOverlayEntry() {
     return OverlayEntry(
       builder: (BuildContext context) => Positioned(
@@ -362,8 +399,8 @@ class _ConversationPageState extends State<ConversationPage> {
               _menuButton(
                 'Clear Chat',
                 () {
-                  // Handle clearing the chat here
-                  // This might involve deleting data or resetting views
+                  clearChat(); // Call the function to clear chat
+                  closeMenu(); // Close the menu after action
                 },
                 icon: Icons.delete_outline, // Optional icon for "Clear Chat"
               ),
