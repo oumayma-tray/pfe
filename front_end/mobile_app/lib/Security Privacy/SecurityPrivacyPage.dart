@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:mobile_app/Security%20Privacy/ChangePasswordPage%20.dart';
 
 class SecurityPrivacyPage extends StatelessWidget {
   @override
@@ -38,6 +39,13 @@ class SecurityPrivacyPage extends StatelessWidget {
                   title: Text('Change Password'),
                   subtitle: Text('Last updated: 2 months 20 days ago'),
                   trailing: Icon(Icons.arrow_forward_ios),
+                  onTap: () {
+                    // Use Navigator to push ChangePasswordPage onto the stack
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                          builder: (context) => ChangePasswordPage()),
+                    );
+                  },
                 ),
                 ListTile(
                   leading: Icon(Icons.phonelink_lock),
