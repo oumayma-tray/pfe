@@ -12,10 +12,17 @@ class EmployeeDirectoryPage extends StatefulWidget {
 class _EmployeeDirectoryPageState extends State<EmployeeDirectoryPage> {
   final int itemsPerPage = 10;
   int currentPage = 1;
-  late List<Employee>
-      employees; // Consider initializing employees in the initState
+  List<Employee> employees =
+      getMockEmployees(); // Consider initializing employees in the initState
   late List<Employee> filteredEmployees; // Same for filteredEmployees
   late TextEditingController searchController;
+
+  void onDelete(Employee employee) {
+    setState(() {
+      // Directly modifying the list, not expecting a return value
+      employees.removeWhere((item) => item == employee);
+    });
+  }
 
   @override
   void initState() {
@@ -173,7 +180,9 @@ class _EmployeeDirectoryPageState extends State<EmployeeDirectoryPage> {
                       itemCount: paginatedFilteredEmployees.length,
                       itemBuilder: (context, index) {
                         return EmployeeRow(
-                            employee: paginatedFilteredEmployees[index]);
+                          employee: paginatedFilteredEmployees[index],
+                          onDelete: onDelete,
+                        );
                       },
                     ),
                     Row(
@@ -203,11 +212,17 @@ class _EmployeeDirectoryPageState extends State<EmployeeDirectoryPage> {
   }
 }
 
-class EmployeeRow extends StatelessWidget {
+class EmployeeRow extends StatefulWidget {
   final Employee employee;
+  final Function(Employee) onDelete;
 
-  EmployeeRow({required this.employee});
+  EmployeeRow({required this.employee, required this.onDelete});
 
+  @override
+  _EmployeeRowState createState() => _EmployeeRowState();
+}
+
+class _EmployeeRowState extends State<EmployeeRow> {
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -217,15 +232,14 @@ class EmployeeRow extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
           CircleAvatar(
-            backgroundImage: AssetImage(employee.imagePath), // Load the image
-            radius: 20.0, // You can adjust the radius as needed
+            backgroundImage: AssetImage(widget.employee.imagePath),
+            radius: 20.0,
           ),
-          // Create a method to build the detail box
-          _buildDetailBox(employee.name),
-          _buildDetailBox(employee.email),
-          _buildDetailBox(employee.jobTitle),
-          _buildDetailBox(employee.phoneNumber),
-          _buildDetailBox(employee.country),
+          _buildDetailBox(widget.employee.name),
+          _buildDetailBox(widget.employee.email),
+          _buildDetailBox(widget.employee.jobTitle),
+          _buildDetailBox(widget.employee.phoneNumber),
+          _buildDetailBox(widget.employee.country),
           CustomPopupMenuButton(
             onSelected: (value) {
               _handleMenuItemSelected(context, value);
@@ -236,13 +250,36 @@ class EmployeeRow extends StatelessWidget {
     );
   }
 
+  Widget _buildDetailBox(String text) {
+    return Expanded(
+      child: Container(
+        margin: EdgeInsets.all(2),
+        padding: EdgeInsets.symmetric(vertical: 10.0, horizontal: 4.0),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [Color(0xFF9155FD), Color(0xFFC5A5FE)],
+          ),
+          borderRadius: BorderRadius.circular(5),
+        ),
+        child: Text(
+          text,
+          style: TextStyle(color: Colors.white),
+          textAlign: TextAlign.center,
+        ),
+      ),
+    );
+  }
+
   void _handleMenuItemSelected(BuildContext context, String value) {
     switch (value) {
       case 'View':
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => EmployeeDetailsPage(employee: employee),
+            builder: (context) =>
+                EmployeeDetailsPage(employee: widget.employee),
           ),
         );
         break;
@@ -250,15 +287,13 @@ class EmployeeRow extends StatelessWidget {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => UpdateEmployeePage(employee: employee),
+            builder: (context) => UpdateEmployeePage(employee: widget.employee),
           ),
         ).catchError((error) {
           print('Navigation error: $error');
         });
-
         break;
       case 'Delete':
-        // Handle delete operation here
         showDialog(
           context: context,
           builder: (BuildContext context) {
@@ -273,8 +308,7 @@ class EmployeeRow extends StatelessWidget {
                 TextButton(
                   child: Text("Delete"),
                   onPressed: () {
-                    // Implement delete logic here
-                    Navigator.of(context).pop(); // Close the dialog
+                    widget.onDelete(widget.employee);
                     Navigator.of(context).pop();
                   },
                 ),
@@ -287,28 +321,28 @@ class EmployeeRow extends StatelessWidget {
         break;
     }
   }
+}
 
-  Widget _buildDetailBox(String text) {
-    return Expanded(
-      child: Container(
-        margin: EdgeInsets.all(2),
-        padding: EdgeInsets.symmetric(vertical: 10.0, horizontal: 4.0),
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [Color(0xFF9155FD), Color(0xFFC5A5FE)],
-          ),
-          borderRadius: BorderRadius.circular(5), // Rounded corners
+Widget _buildDetailBox(String text) {
+  return Expanded(
+    child: Container(
+      margin: EdgeInsets.all(2),
+      padding: EdgeInsets.symmetric(vertical: 10.0, horizontal: 4.0),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [Color(0xFF9155FD), Color(0xFFC5A5FE)],
         ),
-        child: Text(
-          text,
-          style: TextStyle(color: Colors.white),
-          textAlign: TextAlign.center,
-        ),
+        borderRadius: BorderRadius.circular(5), // Rounded corners
       ),
-    );
-  }
+      child: Text(
+        text,
+        style: TextStyle(color: Colors.white),
+        textAlign: TextAlign.center,
+      ),
+    ),
+  );
 }
 
 class EmployeeHeader extends StatelessWidget {

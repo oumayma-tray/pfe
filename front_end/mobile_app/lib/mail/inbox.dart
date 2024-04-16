@@ -31,7 +31,6 @@ class _InboxPageState extends State<InboxPage> {
 // Define a callback
 
   void fetchEmails() async {
-    // Simulate a network call to fetch emails
     await Future.delayed(Duration(seconds: 2));
     setState(() {
       inboxEmails = [

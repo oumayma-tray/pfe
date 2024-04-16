@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'package:video_player/video_player.dart';
 
 class TwoFactorAuthenticationPage extends StatefulWidget {
   @override
@@ -8,8 +10,36 @@ class TwoFactorAuthenticationPage extends StatefulWidget {
 
 class _TwoFactorAuthenticationPageState
     extends State<TwoFactorAuthenticationPage> {
+  late VideoPlayerController _controller;
   bool isTwoFactorEnabled = false;
   String verificationCode = '';
+  @override
+  void initState() {
+    super.initState();
+    _controller = VideoPlayerController.network(
+      'https://smartovate.io/fr',
+    )..initialize().then((_) {
+        setState(() {});
+      }).catchError((error) {
+        showSnackbar("Failed to load video", isError: true);
+        print("Video Player Error: $error");
+      });
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    _controller.dispose();
+  }
+
+  void showSnackbar(String message, {bool isError = false}) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: isError ? Colors.red : Colors.green,
+      ),
+    );
+  }
 
   void _toggleTwoFactorAuthentication(bool enabled) {
     setState(() {
@@ -132,8 +162,28 @@ class _TwoFactorAuthenticationPageState
                 'Need help?',
                 style: TextStyle(color: Colors.white),
               ),
-              onTap: () {
-                // Ideally, link to a support page or open support chat
+              onTap: () async {
+                final email = 'SmartovateHelp@gmail.com';
+                final subject = Uri.encodeComponent(
+                    'Need Help with Two-Factor Authentication');
+                final url = 'mailto:$email?subject=$subject';
+                try {
+                  if (await canLaunch(url)) {
+                    await launch(url);
+                  } else {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('No email apps available.'),
+                      ),
+                    );
+                  }
+                } catch (e) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Failed to send email: $e'),
+                    ),
+                  );
+                }
               },
             ),
             ListTile(
@@ -142,8 +192,18 @@ class _TwoFactorAuthenticationPageState
                 'Watch a setup tutorial',
                 style: TextStyle(color: Colors.white),
               ),
-              onTap: () {
-                // Link to a tutorial video or setup guide
+              onTap: () async {
+                const url =
+                    'https://www.yoursite.com/tutorial'; // URL of your tutorial video
+                if (await canLaunch(url)) {
+                  await launch(url);
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Could not launch the tutorial.'),
+                    ),
+                  );
+                }
               },
             ),
           ],

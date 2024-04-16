@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:mobile_app/mail/chat-mail.dart';
 import 'package:mobile_app/mail/email.dart';
@@ -13,7 +15,7 @@ class _DraftPageState extends State<DraftPage> {
   List<Email> filteredEmails = [];
   Set<int> selectedEmailIndices =
       {}; // Using a Set to allow multiple selections
-
+  Timer? _timer;
   @override
   void initState() {
     super.initState();
@@ -21,16 +23,30 @@ class _DraftPageState extends State<DraftPage> {
     searchController.addListener(_onSearchChanged);
   }
 
+  void startTimer() {
+    _timer = Timer.periodic(Duration(seconds: 1), (timer) {
+      if (mounted) {
+        setState(() {
+          // update logic here
+        });
+      } else {
+        _timer?.cancel(); // Cancel timer when not mounted
+      }
+    });
+  }
+
   @override
   void dispose() {
     searchController.removeListener(_onSearchChanged);
     searchController.dispose();
+    _timer?.cancel();
     super.dispose();
   }
 
   void fetchEmails() async {
     // Simulate a network call to fetch emails
     await Future.delayed(Duration(seconds: 2));
+    if (!mounted) return;
     setState(() {
       DraftEmails = [
         Email(

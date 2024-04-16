@@ -27,6 +27,14 @@ class _HomePageState extends State<HomePage> {
   String address = 'Anywhere St., Any City123';
   @override
   Widget build(BuildContext context) {
+    double screenWidth = MediaQuery.of(context).size.width;
+    double screenHeight = MediaQuery.of(context).size.height;
+    // Define padding dynamically
+    EdgeInsets screenPadding = EdgeInsets.only(
+      top: screenHeight * 0.02, // 2% of the screen height for top padding
+      right: screenWidth * 0.05,
+      // 5% of the screen width for right padding
+    );
     return SafeArea(
       child: Scaffold(
         backgroundColor: Color(0XFF28243D),
@@ -38,19 +46,18 @@ class _HomePageState extends State<HomePage> {
               Positioned(
                   child: Align(
                 alignment: Alignment.topCenter,
-                child: Image.asset(
-                  "assets/Group2.png",
-                  fit: BoxFit.cover,
-                  width: double.infinity,
-                  height: 300,
-                ),
+                child: Image.asset("assets/Group2.png",
+                    fit: BoxFit.cover,
+                    width: screenWidth,
+                    height: screenHeight * 0.5),
               )),
               Positioned(
-                top: 110,
-                right: 90,
+                top: screenHeight * 0.2,
+                right: 70,
                 child: Center(
                   child: CircleAvatar(
-                    radius: 110, // Adjust the size to fit your layout
+                    radius:
+                        screenWidth * 0.35, //Adjust the size to fit your layout
                     backgroundImage: AssetImage(employeeImageUrl),
                     backgroundColor: Colors.transparent,
                     onBackgroundImageError: (exception, stackTrace) {
@@ -69,201 +76,85 @@ class _HomePageState extends State<HomePage> {
                 ),
               ),
               Positioned(
-                top: 320,
-                right: 100,
+                top: screenHeight * 0.52, // 50% from the top
+                right: screenWidth * 0.1,
                 child: Text('Hello, $name',
                     style: GoogleFonts.roboto(
-                        fontSize: 20,
+                        fontSize: screenHeight * 0.03,
                         color: Colors.white,
                         fontWeight: FontWeight.w700)),
               ),
               Positioned(
-                bottom: 330,
-                right: 70,
+                bottom: screenHeight * 0.25, // Adjust the position as needed
+                right: 270, // Adjust for layout
                 child: Material(
                   color: Colors.transparent,
                   child: Ink(
                     decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [
-                          Color.fromRGBO(145, 85, 253, 1),
-                          Color.fromRGBO(197, 165, 254, 1)
-                        ],
-                      ),
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: InkWell(
                       borderRadius: BorderRadius.circular(10),
-                      onTap: () {},
                       child: Container(
-                        padding:
-                            EdgeInsets.symmetric(vertical: 2, horizontal: 0.8),
-                        child: Row(
+                        padding: EdgeInsets.all(16),
+                        child: Column(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Icon(
-                              Icons.location_on_sharp,
-                              color: Colors.white,
-                              size: 24,
-                            ),
-                            SizedBox(width: 6),
-                            Text(
-                              '$address',
-                              style: GoogleFonts.roboto(
-                                fontSize: 20,
-                                color: Colors.white,
-                                fontWeight: FontWeight.w400,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-              Positioned(
-                bottom: 290,
-                right: 150,
-                child: Material(
-                  color: Colors.transparent,
-                  child: Ink(
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [
-                          Color.fromRGBO(145, 85, 253, 1),
-                          Color.fromRGBO(197, 165, 254, 1)
-                        ],
-                      ),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: InkWell(
-                      borderRadius: BorderRadius.circular(10),
-                      onTap: () {
-                        // Assuming the login page is the previous one in the stack
-                        Navigator.pop(context);
-                      },
-                      child: Container(
-                        padding:
-                            EdgeInsets.symmetric(vertical: 2, horizontal: 8),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Image.asset(
-                              "assets/power.png",
-                            ),
-                            SizedBox(width: 6),
-                            Text(
-                              ' logout ',
-                              style: GoogleFonts.roboto(
-                                fontSize: 20,
-                                color: Colors.white,
-                                fontWeight: FontWeight.w400,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-              Positioned(
-                bottom: 250,
-                right: 120,
-                child: Material(
-                  color: Colors.transparent,
-                  child: Ink(
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [
-                          Color.fromRGBO(145, 85, 253, 1),
-                          Color.fromRGBO(197, 165, 254, 1)
-                        ],
-                      ),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: InkWell(
-                      borderRadius: BorderRadius.circular(10),
-                      onTap: () {
-                        // Navigate to the Security & Privacy page
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => SecurityPrivacyPage()),
-                        );
-                      },
-                      child: Container(
-                        padding:
-                            EdgeInsets.symmetric(vertical: 2, horizontal: 8),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(Icons
-                                .security), // Corrected to display the icon properly
-                            SizedBox(width: 6),
-                            Text(
-                              'Security and  Privacy', // Adjusted text content
-                              style: GoogleFonts.roboto(
-                                fontSize: 20,
-                                color: Colors.white,
-                                fontWeight: FontWeight.w400,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-              Positioned(
-                bottom: 180, // Adjust as needed for your layout
-                right: 150, // Adjust as needed for your layout
-                child: Material(
-                  color: Colors.transparent,
-                  child: Ink(
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [
-                          Color.fromRGBO(145, 85, 253, 1),
-                          Color.fromRGBO(197, 165, 254, 1)
-                        ],
-                      ), // Adjust the color to match your theme
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: InkWell(
-                      borderRadius: BorderRadius.circular(10),
-                      onTap: () {
-                        // If you want the entire widget to be tappable, not just the switch
-                        setState(() {
-                          isSwitched = !isSwitched;
-                        });
-                      },
-                      child: Container(
-                        padding:
-                            EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(
-                              'Notification',
-                              style: TextStyle(
-                                fontSize: 20,
-                                color: Colors.white,
-                                fontWeight: FontWeight.w400,
-                              ),
-                            ),
-                            Switch(
-                              value: isSwitched,
-                              onChanged: (bool value) {
-                                setState(() {
-                                  isSwitched = value;
-                                });
+                            // Logout Button
+                            InkWell(
+                              onTap: () {
+                                Navigator.pop(
+                                    context); // Assuming logout navigates back
                               },
-                              activeColor: Colors.green,
-                              inactiveThumbColor: Colors.grey,
-                              inactiveTrackColor: Colors.grey[400],
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Image.asset("assets/power.png",
+                                      width: 24, height: 24),
+                                  SizedBox(width: 10),
+                                ],
+                              ),
+                            ),
+                            SizedBox(
+                                height: 20), // Space between Logout and Switch
+                            // Notification Switch
+                            Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Switch(
+                                  value: isSwitched,
+                                  onChanged: (bool value) {
+                                    setState(() {
+                                      isSwitched = value;
+                                    });
+                                  },
+                                  activeColor: Colors.green,
+                                  inactiveThumbColor: Colors.grey,
+                                  inactiveTrackColor: Colors.grey[400],
+                                ),
+                              ],
+                            ),
+                            SizedBox(
+                                height:
+                                    20), // Space between Switch and Security
+                            // Security and Privacy Button
+                            InkWell(
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (context) =>
+                                          SecurityPrivacyPage()),
+                                );
+                              },
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(Icons.security,
+                                      color: Colors.white, size: 24),
+                                  SizedBox(width: 10),
+                                ],
+                              ),
                             ),
                           ],
                         ),
@@ -274,7 +165,7 @@ class _HomePageState extends State<HomePage> {
               ),
               Positioned(
                 left: 20,
-                bottom: 130,
+                bottom: screenHeight * 0.22,
                 child: Text(
                   "Apps & Pages",
                   style: GoogleFonts.roboto(
@@ -284,8 +175,8 @@ class _HomePageState extends State<HomePage> {
                 ),
               ),
               Positioned(
-                top:
-                    600, // Adjust this value so it is below the "Apps & Pages" text
+                top: screenHeight *
+                    0.75, // Adjust this value so it is below the "Apps & Pages" text
                 left: 0,
                 right: 0,
                 bottom: 0,
@@ -344,13 +235,15 @@ class _HomePageState extends State<HomePage> {
 
   Widget appRow(BuildContext context, String title, IconData iconData,
       VoidCallback onTap) {
+    double screenWidth = MediaQuery.of(context).size.width;
+    double screenHeight = MediaQuery.of(context).size.height;
     return InkWell(
       onTap: onTap,
       child: Container(
         padding: EdgeInsets.symmetric(
-            vertical: 8,
-            horizontal:
-                100), // Vertical padding added, horizontal padding adjusted
+          vertical: 8,
+          horizontal: screenWidth * 0.1,
+        ), // Vertical padding added, horizontal padding adjusted
         decoration: BoxDecoration(
           color: Color(0xff9155FD), // Set the background color of the container
           borderRadius: BorderRadius.circular(10.0),
@@ -359,8 +252,7 @@ class _HomePageState extends State<HomePage> {
           children: [
             Icon(
               iconData, // Use the IconData passed to the function
-              size: 30, // Set a larger size for the icon
-              color: Colors.white,
+              size: screenHeight * 0.04, color: Colors.white,
             ),
             Expanded(
               // Ensure the text does not overflow
@@ -368,9 +260,9 @@ class _HomePageState extends State<HomePage> {
                 title,
                 textAlign: TextAlign.center, // Center the text
                 style: TextStyle(
-                  fontWeight: FontWeight.w400,
-                  color: Colors.white,
-                ),
+                    fontWeight: FontWeight.w400,
+                    color: Colors.white,
+                    fontSize: screenHeight * 0.025),
               ),
             ),
           ],
