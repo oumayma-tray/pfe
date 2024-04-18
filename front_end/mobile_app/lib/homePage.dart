@@ -2,13 +2,14 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:mobile_app/Project%20Management/employee_tile.dart';
+import 'package:mobile_app/Employee%20Management/employee_tile.dart';
 import 'package:mobile_app/Security%20Privacy/SecurityPrivacyPage.dart';
 import 'package:mobile_app/calendar/calendarHome.dart';
 import 'package:mobile_app/chat/chatHomePage.dart';
 import 'package:mobile_app/mail/mailHomePage.dart';
-import 'package:mobile_app/Project Management/Employees.dart';
-import 'package:mobile_app/Project%20Management/EmployeeDetails.dart';
+import 'package:mobile_app/Employee%20Management/Employees.dart';
+import 'package:mobile_app/Employee%20Management/EmployeeDetails.dart';
+import 'package:mobile_app/project%20management/ProjectManagementHomePage.dart';
 
 List<Employee> employees = getMockEmployees();
 
@@ -76,8 +77,8 @@ class _HomePageState extends State<HomePage> {
                 ),
               ),
               Positioned(
-                top: screenHeight * 0.52, // 50% from the top
-                right: screenWidth * 0.1,
+                top: screenHeight * 0.54, // 50% from the top
+                right: screenWidth * 0.2,
                 child: Text('Hello, $name',
                     style: GoogleFonts.roboto(
                         fontSize: screenHeight * 0.03,
@@ -85,8 +86,78 @@ class _HomePageState extends State<HomePage> {
                         fontWeight: FontWeight.w700)),
               ),
               Positioned(
+                bottom: screenHeight *
+                    0.30, // Adjust this value based on your layout needs
+                right: 110, // Right alignment padding
+                child: Material(
+                  color: Colors.transparent,
+                  child: Ink(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          Color.fromRGBO(145, 85, 253, 1),
+                          Color.fromRGBO(197, 165, 254, 1)
+                        ],
+                      ), // Distinct color for logout
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(10),
+                      onTap: () {
+                        showDialog(
+                          context: context,
+                          builder: (BuildContext context) {
+                            return AlertDialog(
+                              title: Text('Confirm Logout'),
+                              content: Text('Are you sure you want to logout?'),
+                              actions: <Widget>[
+                                TextButton(
+                                  child: Text('Cancel'),
+                                  onPressed: () {
+                                    Navigator.of(context)
+                                        .pop(); // Dismiss the dialog
+                                  },
+                                ),
+                                TextButton(
+                                  child: Text('Logout'),
+                                  onPressed: () {
+                                    Navigator.of(context)
+                                        .pop(); // Dismiss the dialog
+                                    Navigator.pop(
+                                        context); // Navigate back or perform the logout operation
+                                  },
+                                ),
+                              ],
+                            );
+                          },
+                        );
+                      },
+                      child: Padding(
+                        padding:
+                            EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.power_settings_new, color: Colors.white),
+                            SizedBox(width: 10),
+                            Text(
+                              'Logout',
+                              style: GoogleFonts.roboto(
+                                fontSize: 20,
+                                color: Colors.white,
+                                fontWeight: FontWeight.w400,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              Positioned(
                 bottom: screenHeight * 0.25, // Adjust the position as needed
-                right: 270, // Adjust for layout
+                right: 0.1, // Adjust for layout
                 child: Material(
                   color: Colors.transparent,
                   child: Ink(
@@ -100,24 +171,6 @@ class _HomePageState extends State<HomePage> {
                         child: Column(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            // Logout Button
-                            InkWell(
-                              onTap: () {
-                                Navigator.pop(
-                                    context); // Assuming logout navigates back
-                              },
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Image.asset("assets/power.png",
-                                      width: 24, height: 24),
-                                  SizedBox(width: 10),
-                                ],
-                              ),
-                            ),
-                            SizedBox(
-                                height: 20), // Space between Logout and Switch
-                            // Notification Switch
                             Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
@@ -201,7 +254,7 @@ class _HomePageState extends State<HomePage> {
                         );
                       }),
                       SizedBox(height: 5),
-                      appRow(context, 'Project Management',
+                      appRow(context, 'Employee Management',
                           Icons.manage_accounts_outlined, () {
                         Navigator.push(
                           context,
@@ -210,9 +263,14 @@ class _HomePageState extends State<HomePage> {
                         );
                       }),
                       SizedBox(height: 5),
-                      appRow(context, 'Smart Recruitment',
+                      appRow(context, 'Smart Project management',
                           Icons.recent_actors_outlined, () {
-                        // Add navigation to Smart Recruitment page
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) =>
+                                  ProjectManagementHomePage()),
+                        );
                       }),
                       SizedBox(height: 5),
                       appRow(context, 'Chat', Icons.chat, () {

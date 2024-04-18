@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:mobile_app/Project Management/Employees.dart';
-import 'package:mobile_app/Project%20Management/EmployeeDetails.dart';
-import 'package:mobile_app/Project%20Management/addEmployee.dart';
-import 'package:mobile_app/Project%20Management/updateEmployee.dart';
+import 'package:mobile_app/Employee%20Management/Employees.dart';
+import 'package:mobile_app/Employee%20Management/EmployeeDetails.dart';
+import 'package:mobile_app/Employee%20Management/addEmployee.dart';
+import 'package:mobile_app/Employee%20Management/updateEmployee.dart';
 
 class EmployeeDirectoryPage extends StatefulWidget {
   @override

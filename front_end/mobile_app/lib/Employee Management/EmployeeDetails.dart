@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:mobile_app/Project Management/Employees.dart';
-import 'package:mobile_app/Project%20Management/updateEmployee.dart';
+import 'package:mobile_app/Employee%20Management/Employees.dart';
+import 'package:mobile_app/Employee%20Management/updateEmployee.dart';
 
 class EmployeeDetailsPage extends StatelessWidget {
   final Employee employee;
