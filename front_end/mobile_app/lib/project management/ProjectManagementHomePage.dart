@@ -9,7 +9,46 @@ class ProjectManagementHomePage extends StatefulWidget {
       _ProjectManagementHomePageState();
 }
 
-class _ProjectManagementHomePageState extends State<ProjectManagementHomePage> {
+class _ProjectManagementHomePageState extends State<ProjectManagementHomePage>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _animationController;
+  late Animation<double> _opacityAnimation;
+  late Animation<Offset> _slideAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _animationController = AnimationController(
+      duration: const Duration(milliseconds: 500),
+      vsync: this,
+    );
+
+    // Ensure you initialize the animations like this
+    _opacityAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _animationController,
+        curve: Curves.easeIn,
+      ),
+    );
+
+    _slideAnimation =
+        Tween<Offset>(begin: Offset(0.0, 0.1), end: Offset.zero).animate(
+      CurvedAnimation(
+        parent: _animationController,
+        curve: Curves.easeOut,
+      ),
+    );
+
+    // Start the animation
+    _animationController.forward();
+  }
+
+  @override
+  void dispose() {
+    _animationController.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     double screenWidth = MediaQuery.of(context).size.width;
@@ -18,19 +57,32 @@ class _ProjectManagementHomePageState extends State<ProjectManagementHomePage> {
     return Scaffold(
       backgroundColor: Color(0xFF28243D),
       body: SingleChildScrollView(
-          child: Center(
-        child: Column(
-          children: [
-            _buildTopBanner(screenWidth, screenHeight),
-            _buildFeatureSection(screenWidth, 'Gestion de Projet',
-                Icons.dashboard_customize, ProjectManagementDetails()),
-            _buildFeatureSection(screenWidth, 'Planification', Icons.schedule,
-                PlanningDetails()),
-            _buildStatisticsBanner(screenWidth),
-            _buildTestimonialCarousel(screenWidth, screenHeight),
-          ],
+        child: Center(
+          child: Column(
+            children: [
+              FadeTransition(
+                opacity: _opacityAnimation,
+                child: _buildTopBanner(screenWidth, screenHeight),
+              ),
+              SlideTransition(
+                position: _slideAnimation,
+                child: _buildFeatureSection(screenWidth, 'Gestion de Projet',
+                    Icons.dashboard_customize, ProjectManagementDetails()),
+              ),
+              SlideTransition(
+                position: _slideAnimation,
+                child: _buildFeatureSection(screenWidth, 'Planification',
+                    Icons.schedule, PlanningDetails()),
+              ),
+              FadeTransition(
+                opacity: _opacityAnimation,
+                child: _buildStatisticsBanner(screenWidth),
+              ),
+              _buildTestimonialCarousel(screenWidth, screenHeight),
+            ],
+          ),
         ),
-      )),
+      ),
     );
   }
 
@@ -83,56 +135,79 @@ class _ProjectManagementHomePageState extends State<ProjectManagementHomePage> {
 
   Widget _buildFeatureSection(
       double screenWidth, String title, IconData icon, Widget page) {
-    return Card(
-      margin: EdgeInsets.all(screenWidth * 0.05),
-      color: Color(0xFF6D42CE),
-      elevation: 5,
-      child: ListTile(
-        leading: Icon(icon, size: screenWidth * 0.1, color: Colors.white),
-        title: Text(title,
-            style: GoogleFonts.roboto(
-                fontSize: screenWidth * 0.05, color: Colors.white)),
-        onTap: () {
+    return Container(
+      width: screenWidth * 0.9,
+      margin: EdgeInsets.only(top: 20),
+      child: ElevatedButton(
+        onPressed: () {
           Navigator.push(
             context,
             MaterialPageRoute(builder: (context) => page),
           );
         },
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Color(0xFF6D42CE),
+          padding: EdgeInsets.symmetric(vertical: 20),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          elevation: 5,
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.start,
+          children: [
+            Icon(icon, size: screenWidth * 0.1, color: Colors.white),
+            SizedBox(width: screenWidth * 0.05),
+            Text(
+              title,
+              style: GoogleFonts.roboto(
+                  fontSize: screenWidth * 0.05, color: Colors.white),
+            ),
+          ],
+        ),
       ),
     );
   }
 
   Widget _buildStatisticsBanner(double screenWidth) {
-    // Assuming you want to set the font size to 6% of the screen width for the title
-    // and 5% of the screen width for the statistics values
     final titleFontSize = screenWidth * 0.06;
     final statsFontSize = screenWidth * 0.05;
 
-    return Container(
-      padding: EdgeInsets.all(screenWidth * 0.05),
-      color: Color(0xFF9155FD),
-      child: Column(
-        children: [
-          Text(
-            'Quick Stats',
-            style: GoogleFonts.roboto(
-                fontSize: titleFontSize, color: Colors.white),
-          ),
-          SizedBox(height: screenWidth * 0.05), // Space between title and stats
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              Expanded(
-                  child: _buildStatistic(
-                      '150+', 'Projects Managed', statsFontSize)),
-              Expanded(
-                  child: _buildStatistic('89%', 'Success Rate', statsFontSize)),
-              Expanded(
-                  child: _buildStatistic(
-                      '30+', 'Certified Trainers', statsFontSize)),
-            ],
-          ),
-        ],
+    // Add padding around the entire statistics banner
+    return Padding(
+      padding: EdgeInsets.only(
+        top: screenWidth * 0.1, // This adds space above the Quick Stats section
+        left: screenWidth * 0.05,
+        right: screenWidth * 0.05,
+        bottom: screenWidth * 0.05,
+      ),
+      child: Container(
+        color: Color(0xFF9155FD),
+        child: Column(
+          children: [
+            Text(
+              'Quick Stats',
+              style: GoogleFonts.roboto(
+                  fontSize: titleFontSize, color: Colors.white),
+            ),
+            SizedBox(
+                height: screenWidth * 0.05), // Space between title and stats
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                Expanded(
+                    child: _buildStatistic(
+                        '150+', 'Projects Managed', statsFontSize)),
+                Expanded(
+                    child:
+                        _buildStatistic('89%', 'Success Rate', statsFontSize)),
+                Expanded(
+                    child: _buildStatistic(
+                        '30+', 'Certified Trainers', statsFontSize)),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
