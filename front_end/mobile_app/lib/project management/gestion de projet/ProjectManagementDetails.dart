@@ -1,55 +1,176 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:mobile_app/Employee%20Management/Employees.dart';
+import 'package:mobile_app/project%20management/gestion%20de%20projet/listeProjet.dart';
+import 'package:mobile_app/project%20management/gestion%20de%20projet/project.dart';
 
-class ProjectManagementDetails extends StatelessWidget {
+class ProjectManagementDetails extends StatefulWidget {
+  @override
+  _ProjectManagementDetailsState createState() =>
+      _ProjectManagementDetailsState();
+}
+
+class _ProjectManagementDetailsState extends State<ProjectManagementDetails> {
+  bool isAdmin =
+      true; // This should ideally be determined by the current user's role
+  Employee? currentUser;
+  bool isLoading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _initUser();
+  }
+
+  Future<void> _initUser() async {
+    try {
+      var user =
+          await getCurrentUser(); // Make sure this method is implemented to fetch the current user
+      setState(() {
+        currentUser = user;
+        isAdmin = user.jobTitle.toLowerCase() == "admin";
+        isLoading = false;
+      });
+    } catch (e) {
+      setState(() => isLoading = false);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    if (isLoading) {
+      return Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+
     return Scaffold(
       appBar: AppBar(
-        title:
-            Text('Project Management', style: TextStyle(color: Colors.white)),
+        title: Text('Manage Projects', style: TextStyle(color: Colors.white)),
         backgroundColor: Color(0xFF6D42CE),
       ),
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            Image.asset('assets/project_management_detail.png',
-                fit: BoxFit.cover),
-            Padding(
-              padding: EdgeInsets.all(20.0),
-              child: Text(
-                'Explore advanced project management tools and techniques to effectively manage your projects. Learn about agile methodologies, scrum practices, and how to handle complex project challenges.',
-                style: GoogleFonts.roboto(fontSize: 16, color: Colors.white),
-              ),
+      body: currentUser == null
+          ? Center(child: Text("No user found"))
+          : ListView.builder(
+              itemCount: ListeProjet.projects.length,
+              itemBuilder: (context, index) {
+                final Project project = ListeProjet.projects[index];
+                return Card(
+                  margin: EdgeInsets.all(10),
+                  child: buildProjectListTile(project),
+                );
+              },
             ),
-            ListTile(
-              title: Text('Agile Project Management',
-                  style: GoogleFonts.roboto(fontSize: 18, color: Colors.white)),
-              subtitle: Text(
-                  'Understand the principles of agile management and how to apply them.',
-                  style: GoogleFonts.roboto(color: Colors.white70)),
-              leading:
-                  Icon(Icons.check_circle_outline, color: Colors.green[200]),
-            ),
-            ListTile(
-              title: Text('Risk Management',
-                  style: GoogleFonts.roboto(fontSize: 18, color: Colors.white)),
-              subtitle: Text(
-                  'Learn techniques to identify and mitigate risks in your projects.',
-                  style: GoogleFonts.roboto(color: Colors.white70)),
-              leading: Icon(Icons.abc, color: Colors.red[200]),
-            ),
-            ListTile(
-              title: Text('Resource Allocation',
-                  style: GoogleFonts.roboto(fontSize: 18, color: Colors.white)),
-              subtitle: Text(
-                  'Maximize efficiency by effectively allocating resources.',
-                  style: GoogleFonts.roboto(color: Colors.white70)),
-              leading: Icon(Icons.group_work, color: Colors.blue[200]),
-            ),
-          ],
-        ),
+    );
+  }
+
+  Widget buildProjectListTile(Project project) {
+    Employee? creator = getMockEmployees().firstWhere(
+      (emp) => emp.name == project.createdBy,
+      orElse: () => Employee(
+        firstName: 'Unknown',
+        lastName: '',
+        email: 'N/A',
+        jobTitle: 'N/A',
+        phoneNumber: 'N/A',
+        country: 'N/A',
+        language: 'N/A',
+        imagePath: 'assets/placeholder.png',
+        name: 'Unknown',
       ),
     );
+
+    return ListTile(
+      title: Text(project.title),
+      onTap: () {
+        Navigator.of(context).push(PageRouteBuilder(
+          pageBuilder: (context, animation, secondaryAnimation) =>
+              ProjectDetails(project: project),
+          transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            return SlideTransition(
+              position: Tween<Offset>(
+                begin: const Offset(1, 0), // Right to left
+                end: Offset.zero,
+              ).animate(animation),
+              child: child,
+            );
+          },
+        ));
+      },
+      subtitle: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          Text('Start Date: ${project.startDate}'),
+          Text('End Date: ${project.endDate}'),
+          Text('Created By: ${creator.name}'),
+          LinearProgressIndicator(value: project.progress / 100),
+        ],
+      ),
+      trailing: canModifyProject(project)
+          ? Container(width: 100, child: _buildActionButtons(project))
+          : null,
+    );
+  }
+
+  Widget _buildActionButtons(Project project) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        IconButton(
+          icon: Icon(Icons.edit, color: Colors.blue),
+          tooltip: 'Edit Project',
+          onPressed: () {
+            // Implement edit functionality
+          },
+        ),
+        IconButton(
+          icon: Icon(Icons.delete, color: Colors.red),
+          tooltip: 'Delete Project',
+          onPressed: () => _confirmDeletion(project),
+        ),
+      ],
+    );
+  }
+
+  void _confirmDeletion(Project project) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Confirm Deletion'),
+          content: Text(
+              'Are you sure you want to delete the project: ${project.title}?'),
+          actions: <Widget>[
+            TextButton(
+              child: Text('Cancel'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            TextButton(
+              child: Text('Delete'),
+              onPressed: () {
+                // Implement your deletion logic here
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  bool canModifyProject(Project project) {
+    if (currentUser == null) {
+      print("currentUser is null");
+      return false;
+    }
+    print(
+        "currentUser jobTitle: ${currentUser?.jobTitle}"); // Check what job title is being received
+    String jobTitleLower = currentUser!.jobTitle.toLowerCase();
+    bool canModify =
+        jobTitleLower == 'admin' || jobTitleLower == 'project management';
+    print("Can modify: $canModify"); // Check if this returns true when expected
+    return canModify;
   }
 }

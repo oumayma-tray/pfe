@@ -66,7 +66,7 @@ class _ProjectManagementHomePageState extends State<ProjectManagementHomePage>
               ),
               SlideTransition(
                 position: _slideAnimation,
-                child: _buildFeatureSection(screenWidth, 'Gestion de Projet',
+                child: _buildFeatureSection(screenWidth, 'project list',
                     Icons.dashboard_customize, ProjectManagementDetails()),
               ),
               SlideTransition(
@@ -196,14 +196,14 @@ class _ProjectManagementHomePageState extends State<ProjectManagementHomePage>
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
                 Expanded(
-                    child: _buildStatistic(
-                        '150+', 'Projects Managed', statsFontSize)),
-                Expanded(
-                    child:
-                        _buildStatistic('89%', 'Success Rate', statsFontSize)),
+                    child: _buildStatistic('150+', 'Projects Managed',
+                        statsFontSize, screenWidth)),
                 Expanded(
                     child: _buildStatistic(
-                        '30+', 'Certified Trainers', statsFontSize)),
+                        '89%', 'Success Rate', statsFontSize, screenWidth)),
+                Expanded(
+                    child: _buildStatistic('30+', 'Certified Trainers',
+                        statsFontSize, screenWidth)),
               ],
             ),
           ],
@@ -212,27 +212,48 @@ class _ProjectManagementHomePageState extends State<ProjectManagementHomePage>
     );
   }
 
-  Widget _buildStatistic(String number, String description, double fontSize) {
-    return Column(
-      children: <Widget>[
-        Text(
-          number,
-          style: GoogleFonts.roboto(
-            fontSize: fontSize,
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
+  Widget _buildStatistic(
+      String number, String description, double fontSize, double screenWidth) {
+    return Container(
+      margin: EdgeInsets.all(screenWidth * 0.02), // Add margin for spacing
+      decoration: BoxDecoration(
+        color: Color(0xFF6D42CE), // Or any other color you want
+        borderRadius: BorderRadius.circular(20), // Rounded corners
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            spreadRadius: 1,
+            blurRadius: 3,
+            offset: Offset(0, 2), // changes position of shadow
           ),
-        ),
-        Text(
-          description,
-          style: GoogleFonts.roboto(
-            fontSize: fontSize *
-                0.8, // 80% of the number font size for the description
-            color: Colors.white.withOpacity(0.7),
+        ],
+      ),
+      padding: EdgeInsets.all(
+          screenWidth * 0.03), // Add padding inside the container
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: <Widget>[
+          Text(
+            number,
+            style: GoogleFonts.roboto(
+              fontSize: fontSize,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+            ),
           ),
-          textAlign: TextAlign.center,
-        ),
-      ],
+          SizedBox(
+              height:
+                  screenWidth * 0.01), // Spacing between number and description
+          Text(
+            description,
+            style: GoogleFonts.roboto(
+              fontSize: fontSize * 0.8, // A bit smaller than the number
+              color: Colors.white.withOpacity(0.7),
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
     );
   }
 

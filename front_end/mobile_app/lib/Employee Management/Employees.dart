@@ -33,6 +33,10 @@ class Employee {
   int get hashCode => name.hashCode ^ email.hashCode;
 }
 
+Future<Employee> getCurrentUser() async {
+  return getMockEmployees().first;
+}
+
 // Example of a list of employees which you might fetch from a database or API
 List<Employee> getMockEmployees() {
   return [
