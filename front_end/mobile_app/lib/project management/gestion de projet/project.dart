@@ -16,6 +16,8 @@ class ProjectDetails extends StatefulWidget {
 class _ProjectDetailsState extends State<ProjectDetails> {
   List<Task> _userTasks = [];
   bool _showUserTasks = false;
+
+  get currentUserRole => "employee";
   @override
   void initState() {
     super.initState();
@@ -75,34 +77,27 @@ class _ProjectDetailsState extends State<ProjectDetails> {
   }
 
   void _onMenuSelected(String value) {
-    switch (value) {
-      case 'Edit':
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-              builder: (context) => EditProjectScreen(project: widget.project)),
-        ).then((updatedProject) {
-          if (updatedProject != null) {
-            setState(() {
-              // Update the project details with the returned updated project
-              widget.project = updatedProject as Project;
-            });
-          }
-        });
-        break;
-      case 'Delete':
-        _showDeleteConfirmation();
-        break;
-      case 'My Tasks':
-        setState(() {
-          _showUserTasks =
-              !_showUserTasks; // Toggle the flag to show or hide user tasks
-          if (_showUserTasks) {
-            // If the flag is true, filter tasks for the current user
-            _filterUserTasks();
-          }
-        });
-        break;
+    if ((currentUserRole == 'admin' ||
+            currentUserRole == 'project management') &&
+        (value == 'Edit' || value == 'Delete')) {
+      switch (value) {
+        case 'Edit':
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+                builder: (context) =>
+                    EditProjectScreen(project: widget.project)),
+          );
+          break;
+        case 'Delete':
+          _showDeleteConfirmation();
+          break;
+      }
+    } else if (value == 'My Tasks') {
+      setState(() {
+        _showUserTasks = true;
+        _filterUserTasks();
+      });
     }
   }
 
@@ -136,25 +131,26 @@ class _ProjectDetailsState extends State<ProjectDetails> {
                   fontSize: 22, fontWeight: FontWeight.bold)),
           backgroundColor: Color(0xff9155FD),
           actions: <Widget>[
-            // ... other actions if any ...
             PopupMenuButton<String>(
               onSelected: _onMenuSelected,
-              itemBuilder: (BuildContext context) {
-                return [
+              itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
+                if (currentUserRole == 'admin' ||
+                    currentUserRole == 'project management')
                   PopupMenuItem<String>(
                     value: 'Edit',
                     child: Text('Edit'),
                   ),
+                if (currentUserRole == 'admin' ||
+                    currentUserRole == 'project management')
                   PopupMenuItem<String>(
                     value: 'Delete',
                     child: Text('Delete'),
                   ),
-                  PopupMenuItem<String>(
-                    value: 'My Tasks',
-                    child: Text('My Tasks'),
-                  ),
-                ];
-              },
+                PopupMenuItem<String>(
+                  value: 'My Tasks',
+                  child: Text('My Tasks'),
+                ),
+              ],
             ),
           ],
         ),
