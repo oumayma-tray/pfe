@@ -49,17 +49,39 @@ class Project {
   }
 }
 
+class Subtask {
+  String name;
+  bool isCompleted;
+
+  Subtask({required this.name, this.isCompleted = false});
+}
+
 class Task with ChangeNotifier {
   String name;
   String dueDate;
   bool isCompleted;
   String assignedTo;
+  List<Subtask> subtasks;
 
-  Task(
-      {required this.name,
-      required this.dueDate,
-      this.isCompleted = false,
-      required this.assignedTo});
+  Task({
+    required this.name,
+    required this.dueDate,
+    this.isCompleted = false,
+    required this.assignedTo,
+    this.subtasks = const [],
+  });
+
+  int get completedSubtasksCount =>
+      subtasks.where((subtask) => subtask.isCompleted).length;
+  // Convert a Task instance into a Map. Useful for sending data to a database.
+  Map<String, dynamic> toJson() {
+    return {
+      'name': name,
+      'dueDate': dueDate,
+      'isCompleted': isCompleted,
+      'assignedTo': assignedTo,
+    };
+  }
 
   void toggleCompleted() {
     isCompleted = !isCompleted;
@@ -76,16 +98,24 @@ class ListeProjet {
       createdBy: 'John Doe',
       tasks: [
         Task(
-          name: 'Design Database Schema',
-          dueDate: '30/10/2023',
-          isCompleted: true,
-          assignedTo: 'oumayma',
-        ),
+            name: 'Design Database Schema',
+            dueDate: '30/10/2023',
+            isCompleted: true,
+            assignedTo: 'oumayma',
+            subtasks: [
+              Subtask(name: 'Create ER Diagram', isCompleted: true),
+              Subtask(name: 'Define Relations', isCompleted: true),
+            ]),
         Task(
           name: 'Implement Authentication',
           dueDate: '15/11/2023',
           isCompleted: false,
           assignedTo: 'haroun',
+          subtasks: [
+            Subtask(name: 'Create ER Diagram', isCompleted: true),
+            Subtask(name: 'Define Relations', isCompleted: true),
+            // ... Other subtasks ...
+          ],
         ),
         // Add more tasks as needed
       ],
@@ -101,12 +131,22 @@ class ListeProjet {
           dueDate: '25/10/2026',
           isCompleted: false,
           assignedTo: 'aya',
+          subtasks: [
+            Subtask(name: 'Create ER Diagram', isCompleted: true),
+            Subtask(name: 'Define Relations', isCompleted: true),
+            // ... Other subtasks ...
+          ],
         ),
         Task(
           name: 'Define Project Milestones',
           dueDate: '05/11/2026',
           isCompleted: false,
           assignedTo: 'oumayma',
+          subtasks: [
+            Subtask(name: 'Create ER Diagram', isCompleted: true),
+            Subtask(name: 'Define Relations', isCompleted: true),
+            // ... Other subtasks ...
+          ],
         ),
         // Add more tasks as needed
       ],

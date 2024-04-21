@@ -17,7 +17,7 @@ class _ProjectDetailsState extends State<ProjectDetails> {
   List<Task> _userTasks = [];
   bool _showUserTasks = false;
 
-  get currentUserRole => "employee";
+  get currentUserRole => "admin";
   @override
   void initState() {
     super.initState();
@@ -371,20 +371,66 @@ class _EditProjectScreenState extends State<EditProjectScreen> {
 
   void _saveProject() {
     if (_formKey.currentState!.validate()) {
-      // Assume you update the project's properties here
       widget.project.title = _titleController.text;
       widget.project.startDate = _startDateController.text;
       widget.project.endDate = _endDateController.text;
 
-      // Pass back the updated project when popping the screen
-      Navigator.pop(context, widget.project);
+      Navigator.pop(context, widget.project); // Return the updated project
     }
+  }
+
+  void _editTask(BuildContext context, Task task) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        TextEditingController nameController =
+            TextEditingController(text: task.name);
+        TextEditingController dueDateController =
+            TextEditingController(text: task.dueDate);
+
+        return AlertDialog(
+          title: Text('Edit Task'),
+          content: Form(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextFormField(
+                  controller: nameController,
+                  decoration: InputDecoration(labelText: 'Task Name'),
+                ),
+                TextFormField(
+                  controller: dueDateController,
+                  decoration: InputDecoration(labelText: 'Due Date'),
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                task.name = nameController.text;
+                task.dueDate = dueDateController.text;
+                Navigator.of(context).pop();
+                setState(() {}); // Refresh the UI with the updated task info
+              },
+              child: Text('Save'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text('Cancel'),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Color(0xffC5A5FE),
       appBar: AppBar(
+        backgroundColor: Color(0xffC5A5FE),
         title: Text('Edit Project'),
         actions: [
           IconButton(
@@ -397,40 +443,95 @@ class _EditProjectScreenState extends State<EditProjectScreen> {
         key: _formKey,
         child: ListView(
           padding: EdgeInsets.all(16),
-          children: <Widget>[
+          children: [
             TextFormField(
               controller: _titleController,
               decoration: InputDecoration(labelText: 'Project Title'),
               validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return 'Please enter some text';
-                }
+                if (value?.isEmpty ?? true) return 'Please enter some text';
                 return null;
               },
             ),
             TextFormField(
               controller: _startDateController,
               decoration: InputDecoration(labelText: 'Start Date'),
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return 'Please enter start date';
-                }
-                return null;
-              },
             ),
             TextFormField(
               controller: _endDateController,
               decoration: InputDecoration(labelText: 'End Date'),
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return 'Please enter end date';
-                }
-                return null;
-              },
+            ),
+            SizedBox(height: 20),
+            Text('Project Tasks', style: Theme.of(context).textTheme.headline6),
+            ...widget.project.tasks.map((task) => ListTile(
+                  title: Text(task.name),
+                  subtitle: Text('Due by ${task.dueDate}'),
+                  trailing: IconButton(
+                    icon: Icon(Icons.edit),
+                    onPressed: () => _editTask(context, task),
+                  ),
+                )),
+            ElevatedButton(
+              onPressed: () => _addNewTask(context),
+              child: Text('Add Task'),
             ),
           ],
         ),
       ),
+    );
+  }
+
+  void _addNewTask(BuildContext context) {
+    TextEditingController nameController = TextEditingController();
+    TextEditingController dueDateController = TextEditingController();
+    TextEditingController _assignedToController = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text('Add New Task'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              TextFormField(
+                controller: nameController,
+                decoration: InputDecoration(labelText: 'Task Name'),
+              ),
+              TextFormField(
+                controller: dueDateController,
+                decoration: InputDecoration(labelText: 'Due Date'),
+              ),
+            ],
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: Text('Cancel'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            TextButton(
+              child: Text('Add'),
+              onPressed: () {
+                // Only add the task if fields are not empty
+                if (nameController.text.isNotEmpty &&
+                    dueDateController.text.isNotEmpty) {
+                  Task newTask = Task(
+                    name: nameController.text,
+                    dueDate: dueDateController.text,
+                    isCompleted: false,
+                    assignedTo: _assignedToController.text,
+                  );
+                  setState(() {
+                    widget.project.tasks.add(newTask);
+                  });
+                  Navigator.of(context).pop();
+                }
+              },
+            ),
+          ],
+        );
+      },
     );
   }
 }

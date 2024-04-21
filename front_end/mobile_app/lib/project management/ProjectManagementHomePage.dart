@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:mobile_app/project%20management/gestion%20de%20projet/ProjectManagementDetails.dart';
-import 'package:mobile_app/project%20management/planing/PlanningDetails.dart';
+import 'package:mobile_app/project%20management/planning/PlanningDetails.dart';
 
 class ProjectManagementHomePage extends StatefulWidget {
   @override
@@ -71,8 +71,13 @@ class _ProjectManagementHomePageState extends State<ProjectManagementHomePage>
               ),
               SlideTransition(
                 position: _slideAnimation,
-                child: _buildFeatureSection(screenWidth, 'Planification',
-                    Icons.schedule, PlanningDetails()),
+                child: _buildFeatureSection(
+                    screenWidth,
+                    'Planification',
+                    Icons.schedule,
+                    PlanningDetails(
+                      currentUserID: 'oumayma',
+                    )),
               ),
               FadeTransition(
                 opacity: _opacityAnimation,
