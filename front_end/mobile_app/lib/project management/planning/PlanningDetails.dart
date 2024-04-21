@@ -28,14 +28,25 @@ class _PlanningDetailsState extends State<PlanningDetails> {
 
   List<Task> _getInProgressTasks() {
     return _getAllTasks()
-        .where((task) => task.subtasks.any((subtask) => !subtask.isCompleted))
+        .where(
+            (task) => !task.isCompleted) // Check if the task is not completed.
         .toList();
   }
 
   List<Task> _getCompletedTasks() {
-    return _getAllTasks()
-        .where((task) => task.subtasks.every((subtask) => subtask.isCompleted))
-        .toList();
+    // Retrieve all tasks that are assigned to the current user and that meet the completion criteria.
+    var completedTasks = _getAllTasks().where((task) {
+      // Check if the task is marked as completed and all its subtasks are also completed.
+      bool allSubtasksCompleted =
+          task.subtasks.every((subtask) => subtask.isCompleted);
+      return task.isCompleted && allSubtasksCompleted;
+    }).toList();
+
+    // Debug output to verify the functionality.
+    print("Completed tasks count: ${completedTasks.length}");
+    completedTasks.forEach((task) => print("Completed Task: ${task.name}"));
+
+    return completedTasks;
   }
 
   List<Widget> buildTasksList(BuildContext context) {
