@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:mobile_app/Employee%20Management/Employees.dart';
+import 'package:mobile_app/project%20management/gestion%20de%20projet/addproject.dart';
 import 'package:mobile_app/project%20management/gestion%20de%20projet/listeProjet.dart';
 import 'package:mobile_app/project%20management/gestion%20de%20projet/project.dart';
 
@@ -48,6 +49,12 @@ class _ProjectManagementDetailsState extends State<ProjectManagementDetails> {
       appBar: AppBar(
         title: Text('Manage Projects', style: TextStyle(color: Colors.white)),
         backgroundColor: Color(0xFF6D42CE),
+        actions: <Widget>[
+          IconButton(
+            icon: Icon(Icons.add),
+            onPressed: () => _navigateToAddProject(context),
+          ),
+        ],
       ),
       body: currentUser == null
           ? Center(child: Text("No user found"))
@@ -173,4 +180,10 @@ class _ProjectManagementDetailsState extends State<ProjectManagementDetails> {
     print("Can modify: $canModify"); // Check if this returns true when expected
     return canModify;
   }
+}
+
+void _navigateToAddProject(BuildContext context) {
+  Navigator.of(context).push(
+    MaterialPageRoute(builder: (context) => AddProjectPage()),
+  );
 }

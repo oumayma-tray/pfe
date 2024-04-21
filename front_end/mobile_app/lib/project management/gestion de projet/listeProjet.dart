@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:mobile_app/Employee%20Management/Employees.dart';
 
 class Project {
   String title;
@@ -7,10 +8,12 @@ class Project {
   int _progress;
   String createdBy;
   List<Task> tasks;
+  List<Employee> employees;
 
   Project({
     required this.title,
     required this.startDate,
+    required this.employees,
     required this.endDate,
     int progress = 0, // Default to 0 for initial progress
     required this.createdBy,
@@ -119,6 +122,7 @@ class ListeProjet {
         ),
         // Add more tasks as needed
       ],
+      employees: [],
     ),
     Project(
       title: 'Project 2',
@@ -150,6 +154,7 @@ class ListeProjet {
         ),
         // Add more tasks as needed
       ],
+      employees: [],
     ),
     // ... Add more project instances with tasks as needed
   ];
