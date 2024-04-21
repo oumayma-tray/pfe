@@ -71,7 +71,7 @@ List<Employee> getMockEmployees() {
       jobTitle: 'Project Manager',
       phoneNumber: '555-0101',
       country: 'USA',
-      imagePath: 'assets/Ellipse 12.png',
+      imagePath: 'assets/Ellipse 11.png',
     ),
     Employee(
       name: 'haroun',

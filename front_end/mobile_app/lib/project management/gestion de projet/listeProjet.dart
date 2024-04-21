@@ -18,6 +18,7 @@ class Project {
     int progress = 0, // Default to 0 for initial progress
     required this.createdBy,
     required this.tasks,
+    required List<Employee> assignedEmployees,
   }) : _progress = progress {
     // When initializing the Project, calculate the initial progress
     _calculateProgress();
@@ -123,6 +124,7 @@ class ListeProjet {
         // Add more tasks as needed
       ],
       employees: [],
+      assignedEmployees: [],
     ),
     Project(
       title: 'Project 2',
@@ -155,7 +157,10 @@ class ListeProjet {
         // Add more tasks as needed
       ],
       employees: [],
+      assignedEmployees: [],
     ),
     // ... Add more project instances with tasks as needed
   ];
+
+  static void addProject(Project newProject) {}
 }
