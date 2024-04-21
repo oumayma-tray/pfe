@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
+
 import 'package:google_fonts/google_fonts.dart';
 import 'package:mobile_app/project%20management/gestion%20de%20projet/Project.dart';
 import 'package:mobile_app/project%20management/gestion%20de%20projet/listeProjet.dart'; // Ensure you have the correct import for Project
 
 class ProjectDetails extends StatefulWidget {
-  final Project project;
+  Project project;
 
   ProjectDetails({Key? key, required this.project}) : super(key: key);
 
@@ -19,6 +20,46 @@ class _ProjectDetailsState extends State<ProjectDetails> {
   void initState() {
     super.initState();
     _filterUserTasks();
+  }
+
+  void _showDeleteConfirmation() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Confirm Deletion'),
+          content: Text('Are you sure you want to delete this project?'),
+          actions: <Widget>[
+            TextButton(
+              child: Text('Cancel'),
+              onPressed: () {
+                Navigator.of(context)
+                    .pop(); // Dismiss the dialog but do nothing
+              },
+            ),
+            TextButton(
+              child: Text('Delete'),
+              onPressed: () {
+                Navigator.of(context)
+                    .pop(); // Dismiss the dialog and proceed with deletion
+                _deleteProject();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _deleteProject() {
+    // Logic to delete the project
+    // Assuming you have a method to remove the project from your data source, like a list or database
+
+    // Example: Let's say you're just removing from a local list for now
+    ListeProjet.projects.remove(widget.project);
+
+    // After deleting, you might want to navigate back or show a success message
+    Navigator.of(context).pop(); // Pop current project detail page
   }
 
   void _filterUserTasks() {
@@ -36,15 +77,30 @@ class _ProjectDetailsState extends State<ProjectDetails> {
   void _onMenuSelected(String value) {
     switch (value) {
       case 'Edit':
-        // Handle edit action
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+              builder: (context) => EditProjectScreen(project: widget.project)),
+        ).then((updatedProject) {
+          if (updatedProject != null) {
+            setState(() {
+              // Update the project details with the returned updated project
+              widget.project = updatedProject as Project;
+            });
+          }
+        });
         break;
       case 'Delete':
-        // Handle delete action
+        _showDeleteConfirmation();
         break;
       case 'My Tasks':
         setState(() {
-          _showUserTasks = true;
-          _filterUserTasks(); // Filter tasks when 'My Tasks' is selected
+          _showUserTasks =
+              !_showUserTasks; // Toggle the flag to show or hide user tasks
+          if (_showUserTasks) {
+            // If the flag is true, filter tasks for the current user
+            _filterUserTasks();
+          }
         });
         break;
     }
@@ -80,15 +136,24 @@ class _ProjectDetailsState extends State<ProjectDetails> {
                   fontSize: 22, fontWeight: FontWeight.bold)),
           backgroundColor: Color(0xff9155FD),
           actions: <Widget>[
+            // ... other actions if any ...
             PopupMenuButton<String>(
               onSelected: _onMenuSelected,
               itemBuilder: (BuildContext context) {
-                return {'Edit', 'Delete', 'My Tasks'}.map((String choice) {
-                  return PopupMenuItem<String>(
-                    value: choice,
-                    child: Text(choice),
-                  );
-                }).toList();
+                return [
+                  PopupMenuItem<String>(
+                    value: 'Edit',
+                    child: Text('Edit'),
+                  ),
+                  PopupMenuItem<String>(
+                    value: 'Delete',
+                    child: Text('Delete'),
+                  ),
+                  PopupMenuItem<String>(
+                    value: 'My Tasks',
+                    child: Text('My Tasks'),
+                  ),
+                ];
               },
             ),
           ],
@@ -125,7 +190,7 @@ class _ProjectDetailsState extends State<ProjectDetails> {
                   style: GoogleFonts.roboto(
                       fontSize: 18, fontWeight: FontWeight.w500),
                 ),
-                ...widget.project.tasks
+                ...tasksToShow
                     .map((task) => TaskItem(
                           task: task,
                           onTaskCompletionChanged:
@@ -270,6 +335,104 @@ class _TaskItemState extends State<TaskItem> {
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+}
+
+class EditProjectScreen extends StatefulWidget {
+  final Project project;
+
+  EditProjectScreen({Key? key, required this.project}) : super(key: key);
+
+  @override
+  _EditProjectScreenState createState() => _EditProjectScreenState();
+}
+
+class _EditProjectScreenState extends State<EditProjectScreen> {
+  final _formKey = GlobalKey<FormState>();
+  late TextEditingController _titleController;
+  late TextEditingController _startDateController;
+  late TextEditingController _endDateController;
+
+  @override
+  void initState() {
+    super.initState();
+    _titleController = TextEditingController(text: widget.project.title);
+    _startDateController =
+        TextEditingController(text: widget.project.startDate);
+    _endDateController = TextEditingController(text: widget.project.endDate);
+  }
+
+  @override
+  void dispose() {
+    _titleController.dispose();
+    _startDateController.dispose();
+    _endDateController.dispose();
+    super.dispose();
+  }
+
+  void _saveProject() {
+    if (_formKey.currentState!.validate()) {
+      // Assume you update the project's properties here
+      widget.project.title = _titleController.text;
+      widget.project.startDate = _startDateController.text;
+      widget.project.endDate = _endDateController.text;
+
+      // Pass back the updated project when popping the screen
+      Navigator.pop(context, widget.project);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Edit Project'),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.save),
+            onPressed: _saveProject,
+          ),
+        ],
+      ),
+      body: Form(
+        key: _formKey,
+        child: ListView(
+          padding: EdgeInsets.all(16),
+          children: <Widget>[
+            TextFormField(
+              controller: _titleController,
+              decoration: InputDecoration(labelText: 'Project Title'),
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'Please enter some text';
+                }
+                return null;
+              },
+            ),
+            TextFormField(
+              controller: _startDateController,
+              decoration: InputDecoration(labelText: 'Start Date'),
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'Please enter start date';
+                }
+                return null;
+              },
+            ),
+            TextFormField(
+              controller: _endDateController,
+              decoration: InputDecoration(labelText: 'End Date'),
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'Please enter end date';
+                }
+                return null;
+              },
+            ),
+          ],
         ),
       ),
     );

@@ -1,12 +1,12 @@
 import 'package:flutter/foundation.dart';
 
 class Project {
-  final String title;
-  final String startDate;
-  final String endDate;
+  String title;
+  String startDate;
+  String endDate;
   int _progress;
-  final String createdBy;
-  final List<Task> tasks;
+  String createdBy;
+  List<Task> tasks;
 
   Project({
     required this.title,
@@ -100,7 +100,7 @@ class ListeProjet {
           name: 'Initial Project Setup',
           dueDate: '25/10/2026',
           isCompleted: false,
-          assignedTo: 'oumayma',
+          assignedTo: 'aya',
         ),
         Task(
           name: 'Define Project Milestones',
