@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:mobile_app/Employee%20Management/Employees.dart';
 import 'package:mobile_app/project%20management/gestion%20de%20projet/listeProjet.dart';
+import 'package:intl/intl.dart';
 
 class AddProjectPage extends StatefulWidget {
   @override
@@ -10,11 +11,13 @@ class AddProjectPage extends StatefulWidget {
 
 class _AddProjectPageState extends State<AddProjectPage> {
   final _formKey = GlobalKey<FormState>();
-  String? _title, _startDate, _endDate;
+  String? _title;
+  DateTime? _startDate, _endDate;
   List<Employee> employees = getMockEmployees();
   List<Employee> _selectedEmployees = [];
   Employee? _selectedEmployee;
-
+  TextEditingController _startDateController = TextEditingController();
+  TextEditingController _endDateController = TextEditingController();
   final TextEditingController _taskNameController = TextEditingController();
   final TextEditingController _taskDueDateController = TextEditingController();
   List<Task> _tasks = [];
@@ -43,22 +46,20 @@ class _AddProjectPageState extends State<AddProjectPage> {
                 onSaved: (value) => _title = value,
               ),
               TextFormField(
+                controller: _startDateController,
                 decoration: InputDecoration(
-                  labelText: 'Start Date',
-                  icon: Icon(Icons.date_range),
-                ),
-                validator: (value) =>
-                    value!.isEmpty ? 'Please enter start date' : null,
-                onSaved: (value) => _startDate = value,
+                    labelText: 'Start Date',
+                    suffixIcon: Icon(Icons.calendar_today)),
+                readOnly: true,
+                onTap: () => _selectDate(context, true),
               ),
               TextFormField(
+                controller: _endDateController,
                 decoration: InputDecoration(
-                  labelText: 'End Date',
-                  icon: Icon(Icons.date_range),
-                ),
-                validator: (value) =>
-                    value!.isEmpty ? 'Please enter end date' : null,
-                onSaved: (value) => _endDate = value,
+                    labelText: 'End Date',
+                    suffixIcon: Icon(Icons.calendar_today)),
+                readOnly: true,
+                onTap: () => _selectDate(context, false),
               ),
               SizedBox(height: 20),
               ElevatedButton.icon(
@@ -97,26 +98,49 @@ class _AddProjectPageState extends State<AddProjectPage> {
     );
   }
 
+  Future<void> _selectDate(BuildContext context, bool isStart) async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate:
+          isStart ? _startDate ?? DateTime.now() : _endDate ?? DateTime.now(),
+      firstDate: DateTime(2000),
+      lastDate: DateTime(2100),
+    );
+    if (picked != null) {
+      setState(() {
+        if (isStart) {
+          _startDate = picked;
+          _startDateController.text = DateFormat('yyyy-MM-dd').format(picked);
+        } else {
+          _endDate = picked;
+          _endDateController.text = DateFormat('yyyy-MM-dd').format(picked);
+        }
+      });
+    }
+  }
+
   void _submitForm() {
     if (_formKey.currentState!.validate()) {
       _formKey.currentState!.save();
 
-      // Assuming Project constructor correctly handles all fields
       Project newProject = Project(
         title: _title!,
-        startDate: _startDate!,
-        endDate: _endDate!,
-        createdBy: 'Admin', // Placeholder for the creator
+        startDate:
+            _startDate.toString(), // Assuming startDate is a DateTime object
+        endDate: _endDate.toString(), // Assuming endDate is a DateTime object
+        createdBy: 'Admin', // Placeholder, replace with actual user data
         tasks: _tasks,
         employees: _selectedEmployees,
-        assignedEmployees: [], // This should be a part of your Project model
+        assignedEmployees: [], // Depending on your model
       );
 
-      ListeProjet.projects
-          .add(newProject); // Assuming this is your global project list
+      ListeProjet.projects.add(newProject);
 
-      print("Project Added: ${newProject.title}");
-      Navigator.of(context).pop(); // Close the screen after adding the project
+      // Showing a snackbar on successful submission
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text('Project successfully added!')));
+
+      Navigator.pop(context); // Close the screen after adding the project
     }
   }
 
@@ -206,9 +230,29 @@ class _AddProjectPageState extends State<AddProjectPage> {
                   controller: _taskNameController,
                   decoration: InputDecoration(labelText: 'Task Name'),
                 ),
-                TextField(
-                  controller: _taskDueDateController,
-                  decoration: InputDecoration(labelText: 'Due Date'),
+                GestureDetector(
+                  onTap: () async {
+                    final DateTime? picked = await showDatePicker(
+                      context: context,
+                      initialDate: DateTime.now(),
+                      firstDate: DateTime(2000),
+                      lastDate: DateTime(2100),
+                    );
+                    if (picked != null && picked != DateTime.now()) {
+                      _taskDueDateController.text = picked
+                          .toString()
+                          .split(' ')[0]; // Formats the date to YYYY-MM-DD
+                    }
+                  },
+                  child: AbsorbPointer(
+                    child: TextField(
+                      controller: _taskDueDateController,
+                      decoration: InputDecoration(
+                        labelText: 'Due Date',
+                        suffixIcon: Icon(Icons.calendar_today),
+                      ),
+                    ),
+                  ),
                 ),
                 DropdownButton<Employee>(
                   value: _selectedEmployee,
