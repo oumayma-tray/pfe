@@ -110,7 +110,7 @@ class ListeProjet {
           name: 'Implement Authentication',
           dueDate: '15/11/2023',
           isCompleted: false,
-          assignedTo: 'haroun',
+          assignedTo: 'oumayma',
           subtasks: [
             Subtask(name: 'Create ER Diagram', isCompleted: true),
             Subtask(name: 'Define Relations', isCompleted: true),
@@ -130,7 +130,7 @@ class ListeProjet {
           name: 'Initial Project Setup',
           dueDate: '25/10/2026',
           isCompleted: false,
-          assignedTo: 'aya',
+          assignedTo: 'oumayma',
           subtasks: [
             Subtask(name: 'Create ER Diagram', isCompleted: true),
             Subtask(name: 'Define Relations', isCompleted: true),
