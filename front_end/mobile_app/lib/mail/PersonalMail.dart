@@ -33,8 +33,6 @@ class _PersonalMailPageState extends State<PersonalMailPage> {
 
   // Placeholder for an async function to fetch personal emails
   void fetchEmails() async {
-    await Future.delayed(Duration(seconds: 2));
-    // Correctly update the class member 'personalEmails', not the local variable
     setState(() {
       emails = [
         Email(
@@ -218,7 +216,8 @@ class _PersonalMailPageState extends State<PersonalMailPage> {
               itemCount: filteredEmails.length,
               itemBuilder: (context, index) {
                 final email = filteredEmails[index];
-                bool isSelected = selectedEmailIndices.contains(index);
+                bool isSelected = selectedEmailIndices
+                    .contains(index); // Check if the email is selected
 
                 return ListTile(
                   leading: Row(
@@ -249,21 +248,22 @@ class _PersonalMailPageState extends State<PersonalMailPage> {
                     height: 12,
                     width: 12,
                     decoration: BoxDecoration(
-                      color: Colors.orange,
+                      color: Colors.orange, // Indicate it's a personal email
                       shape: BoxShape.circle,
                       border: Border.all(color: Color(0xFF28243D), width: 2),
                     ),
                   ),
                   onTap: () {
-                    if (isSelected) {
+                    if (selectedEmailIndices.contains(index)) {
+                      // If already selected, deselect it
                       setState(() {
                         selectedEmailIndices.remove(index);
                       });
                     } else {
+                      // If not selected, select it and navigate
                       setState(() {
                         selectedEmailIndices.add(index);
                       });
-                      // Navigate to EmailViewScreen with the selected email details
                       Navigator.of(context).push(
                         MaterialPageRoute(
                           builder: (context) => EmailViewScreen(email: email),
@@ -271,7 +271,18 @@ class _PersonalMailPageState extends State<PersonalMailPage> {
                       );
                     }
                   },
-                  tileColor: isSelected ? Colors.grey[200] : null,
+                  onLongPress: () {
+                    setState(() {
+                      if (isSelected) {
+                        selectedEmailIndices.remove(index);
+                      } else {
+                        selectedEmailIndices.add(index);
+                      }
+                    });
+                  },
+                  tileColor: isSelected
+                      ? Colors.grey[200]
+                      : null, // Change color when selected
                 );
               },
             ),

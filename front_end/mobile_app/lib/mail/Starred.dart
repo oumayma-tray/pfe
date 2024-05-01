@@ -208,7 +208,7 @@ class _StarredPageState extends State<StarredPage> {
     );
   }
 
-  Widget _buildEmailItem(Email email, bool isSelected) {
+  Widget _buildEmailItem(Email email, bool isSelected, int index) {
     Color getTypeColor(EmailType type) {
       switch (type) {
         case EmailType.important:
@@ -226,22 +226,17 @@ class _StarredPageState extends State<StarredPage> {
 
     return Card(
       color: isSelected ? Color(0xFF9155FD) : Colors.transparent,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(10),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
       child: ListTile(
         leading: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
             IconButton(
-              icon: Icon(
-                email.isStarred ? Icons.star : Icons.star_border,
-                color: email.isStarred ? Colors.yellow : Colors.grey,
-              ),
+              icon: Icon(email.isStarred ? Icons.star : Icons.star_border,
+                  color: email.isStarred ? Colors.yellow : Colors.grey),
               onPressed: () {
                 setState(() {
                   email.isStarred = !email.isStarred;
-                  // Optionally update the list of starred emails based on this change
                 });
               },
             ),
@@ -268,6 +263,15 @@ class _StarredPageState extends State<StarredPage> {
               MaterialPageRoute(
                 builder: (context) => EmailViewScreen(email: email),
               ));
+        },
+        onLongPress: () {
+          setState(() {
+            if (isSelected) {
+              selectedEmailIndices.remove(index);
+            } else {
+              selectedEmailIndices.add(index);
+            }
+          });
         },
       ),
     );

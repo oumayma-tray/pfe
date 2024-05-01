@@ -31,7 +31,6 @@ class _ImportantMailPageState extends State<ImportantMailPage> {
   }
 
   void fetchEmails() async {
-    await Future.delayed(Duration(seconds: 2));
     setState(() {
       ImportantEmails = [
         Email(
@@ -217,6 +216,9 @@ class _ImportantMailPageState extends State<ImportantMailPage> {
               itemCount: filteredEmails.length,
               itemBuilder: (context, index) {
                 final email = filteredEmails[index];
+                bool isSelected = selectedEmailIndices
+                    .contains(index); // Check if the email is selected
+
                 return ListTile(
                   leading: Row(
                     mainAxisSize: MainAxisSize.min,
@@ -246,8 +248,7 @@ class _ImportantMailPageState extends State<ImportantMailPage> {
                     height: 12,
                     width: 12,
                     decoration: BoxDecoration(
-                      color: Colors
-                          .orange, // Orange color indicates 'Important' email
+                      color: Colors.orange, // Orange to signify importance
                       shape: BoxShape.circle,
                       border: Border.all(color: Color(0xFF28243D), width: 2),
                     ),
@@ -259,9 +260,18 @@ class _ImportantMailPageState extends State<ImportantMailPage> {
                       ),
                     );
                   },
-                  tileColor: selectedEmailIndices.contains(index)
+                  onLongPress: () {
+                    setState(() {
+                      if (isSelected) {
+                        selectedEmailIndices.remove(index);
+                      } else {
+                        selectedEmailIndices.add(index);
+                      }
+                    });
+                  },
+                  tileColor: isSelected
                       ? Colors.grey[200]
-                      : null,
+                      : null, // Highlight selected emails
                 );
               },
             ),

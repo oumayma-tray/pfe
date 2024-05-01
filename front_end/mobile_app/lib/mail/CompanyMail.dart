@@ -219,6 +219,17 @@ class _CompanyMailPageState extends State<CompanyMailPage> {
                         ),
                       );
                     },
+                    onLongPress: () {
+                      setState(() {
+                        if (selectedEmailIndices.contains(index)) {
+                          selectedEmailIndices
+                              .remove(index); // Deselect if already selected
+                        } else {
+                          selectedEmailIndices
+                              .add(index); // Select if not already selected
+                        }
+                      });
+                    },
                     child: Container(
                       color: isSelected
                           ? selectedColor

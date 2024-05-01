@@ -217,7 +217,8 @@ class _DraftPageState extends State<DraftPage> {
     );
   }
 
-  Widget _buildEmailItem(Email email, bool isSelected) {
+  Widget _buildEmailItem(Email email, int index) {
+    bool isSelected = selectedEmailIndices.contains(index);
     return ListTile(
       tileColor: isSelected ? Color(0xFF9155FD) : Colors.transparent,
       leading: Row(
@@ -250,6 +251,15 @@ class _DraftPageState extends State<DraftPage> {
             builder: (context) => EmailViewScreen(email: email),
           ),
         );
+      },
+      onLongPress: () {
+        setState(() {
+          if (selectedEmailIndices.contains(index)) {
+            selectedEmailIndices.remove(index);
+          } else {
+            selectedEmailIndices.add(index);
+          }
+        });
       },
     );
   }
@@ -286,8 +296,8 @@ class _DraftPageState extends State<DraftPage> {
         itemCount: filteredEmails.length,
         itemBuilder: (context, index) {
           final email = filteredEmails[index];
-          bool isSelected = selectedEmailIndices.contains(index);
-          return _buildEmailItem(email, isSelected);
+          return _buildEmailItem(
+              email, index); // Ensure index is being passed here
         },
       ),
     );

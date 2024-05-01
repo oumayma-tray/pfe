@@ -29,6 +29,25 @@ class MailHomePage extends StatefulWidget {
 }
 
 class _MailHomePageState extends State<MailHomePage> {
+  double imageWidth = 0;
+  double imageHeight = 0;
+  @override
+  void initState() {
+    super.initState();
+    loadImageDimensions();
+  }
+
+  void loadImageDimensions() {
+    AssetImage('assets/mail_box.png').resolve(ImageConfiguration()).addListener(
+      ImageStreamListener((ImageInfo info, bool _) {
+        setState(() {
+          imageWidth = info.image.width.toDouble();
+          imageHeight = info.image.height.toDouble();
+        });
+      }),
+    );
+  }
+
   List<CircleButtonInfo> circleButtonList = [
     CircleButtonInfo(
         label: 'Personal',
@@ -55,31 +74,25 @@ class _MailHomePageState extends State<MailHomePage> {
   final TextEditingController searchController = TextEditingController();
   @override
   Widget build(BuildContext context) {
-    // Define the screen width for positioning the circles on the image.
-    double screenWidth = MediaQuery.of(context).size.width;
-    // Assuming the image asset takes the full width of the screen.
+    // Show loading screen until image dimensions are loaded
+    if (imageWidth == 0 || imageHeight == 0) {
+      return Center(child: CircularProgressIndicator());
+    }
 
-    double dotSize = 25;
-    // Calculate the scale factor if your design is based on a different width than your current screen width.
+    double screenWidth = MediaQuery.of(context).size.width;
 
     return Scaffold(
-      backgroundColor: const Color(0xFF28243D), // The dark background color
+      backgroundColor: const Color(0xFF28243D),
       appBar: AppBar(
-        backgroundColor:
-            const Color(0xFF28243D), // Adjust the color to match your design
-        elevation: 0, // No shadow for the AppBar
-        centerTitle: true, // Centers the title widget
-        title: Image.asset(
-          'assets/smartovate.png',
-          height: 70,
-          width: 250,
-        ), // Logo as the title widget
+        backgroundColor: const Color(0xFF28243D),
+        elevation: 0,
+        centerTitle: true,
+        title: Image.asset('assets/smartovate.png', height: 70, width: 250),
       ),
       body: SingleChildScrollView(
         child: ConstrainedBox(
-          constraints: BoxConstraints(
-            minHeight: MediaQuery.of(context).size.height,
-          ),
+          constraints:
+              BoxConstraints(minHeight: MediaQuery.of(context).size.height),
           child: IntrinsicHeight(
             child: Column(
               mainAxisSize: MainAxisSize.max,
@@ -166,18 +179,17 @@ class _MailHomePageState extends State<MailHomePage> {
 
   Widget _mailBoxWithButtons() {
     double screenWidth = MediaQuery.of(context).size.width;
-    double screenHeight = MediaQuery.of(context).size.height;
     double buttonSize = screenWidth * 0.1;
-    double relativeTop1 = screenHeight * 0.29; // Example relative positions
-    double relativeLeft1 = screenWidth * 0.09;
-    double relativeTop2 = screenHeight * 0.185; // Example relative positions
-    double relativeLeft2 = screenWidth * 0.17;
-    double relativeTop3 = screenHeight * 0.125; // Example relative positions
-    double relativeLeft3 = screenWidth * 0.41;
-    double relativeTop4 = screenHeight * 0.17; // Example relative positions
-    double relativeLeft4 = screenWidth * 0.66;
-    double relativeTop5 = screenHeight * 0.26; // Example relative positions
-    double relativeLeft5 = screenWidth * 0.77;
+    double relativeTop1 = imageHeight * 0.69; // Example relative positions
+    double relativeLeft1 = imageWidth * 0.16;
+    double relativeTop2 = imageHeight * 0.47; // Example relative positions
+    double relativeLeft2 = imageWidth * 0.24;
+    double relativeTop3 = imageHeight * 0.34; // Example relative positions
+    double relativeLeft3 = imageWidth * 0.49;
+    double relativeTop4 = imageHeight * 0.44; // Example relative positions
+    double relativeLeft4 = imageWidth * 0.75;
+    double relativeTop5 = imageHeight * 0.63; // Example relative positions
+    double relativeLeft5 = imageWidth * 0.85;
     return Stack(
       alignment: Alignment.center,
       children: <Widget>[

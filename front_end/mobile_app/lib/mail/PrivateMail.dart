@@ -218,7 +218,8 @@ class _PrivateMailPageState extends State<PrivateMailPage> {
               itemCount: filteredEmails.length,
               itemBuilder: (context, index) {
                 final email = filteredEmails[index];
-                bool isSelected = selectedEmailIndices.contains(index);
+                bool isSelected = selectedEmailIndices
+                    .contains(index); // Check if the email is selected
 
                 return ListTile(
                   leading: Row(
@@ -249,20 +250,38 @@ class _PrivateMailPageState extends State<PrivateMailPage> {
                     height: 12,
                     width: 12,
                     decoration: BoxDecoration(
-                      color: Colors
-                          .orange, // This might be updated based on your color coding for private emails
+                      color: Colors.orange, // Indicate it's a private email
                       shape: BoxShape.circle,
                       border: Border.all(color: Color(0xFF28243D), width: 2),
                     ),
                   ),
                   onTap: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (context) => EmailViewScreen(email: email),
-                      ),
-                    );
+                    if (isSelected) {
+                      // If already selected, deselect it
+                      setState(() {
+                        selectedEmailIndices.remove(index);
+                      });
+                    } else {
+                      // If not selected, navigate to details
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (context) => EmailViewScreen(email: email),
+                        ),
+                      );
+                    }
                   },
-                  tileColor: isSelected ? Colors.grey[200] : null,
+                  onLongPress: () {
+                    setState(() {
+                      if (isSelected) {
+                        selectedEmailIndices.remove(index);
+                      } else {
+                        selectedEmailIndices.add(index);
+                      }
+                    });
+                  },
+                  tileColor: isSelected
+                      ? Colors.grey[200]
+                      : null, // Change color when selected
                 );
               },
             ),

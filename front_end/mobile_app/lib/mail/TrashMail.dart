@@ -231,56 +231,15 @@ class _TrashMailPageState extends State<TrashMailPage> {
         itemCount: filteredEmails.length,
         itemBuilder: (context, index) {
           final email = filteredEmails[index];
-          return ListTile(
-            leading: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                IconButton(
-                  icon: Icon(
-                    email.isStarred ? Icons.star : Icons.star_border,
-                    color: email.isStarred ? Colors.yellow : Colors.grey,
-                  ),
-                  onPressed: () {
-                    setState(() {
-                      email.isStarred = !email.isStarred;
-                    });
-                  },
-                ),
-                SizedBox(width: 8),
-                CircleAvatar(
-                  backgroundImage: AssetImage(email.senderImagePath),
-                ),
-              ],
-            ),
-            title: Text(email.sender, style: TextStyle(color: Colors.white)),
-            subtitle: Text(email.subject,
-                style: TextStyle(color: Colors.white.withOpacity(0.5))),
-            trailing: Container(
-              height: 12,
-              width: 12,
-              decoration: BoxDecoration(
-                color: Colors.orange,
-                shape: BoxShape.circle,
-                border: Border.all(color: Color(0xFF28243D), width: 2),
-              ),
-            ),
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => EmailViewScreen(email: email),
-                ),
-              );
-            },
-            tileColor:
-                selectedEmailIndices.contains(index) ? Colors.grey[200] : null,
-          );
+          bool isSelected = selectedEmailIndices.contains(index);
+
+          return _buildEmailItem(email, isSelected, index);
         },
       ),
     );
   }
 
-  Widget _buildEmailItem(Email email, bool isSelected, VoidCallback onTap) {
+  Widget _buildEmailItem(Email email, bool isSelected, int index) {
     Color getTypeColor(EmailType type) {
       switch (type) {
         case EmailType.important:
@@ -316,23 +275,31 @@ class _TrashMailPageState extends State<TrashMailPage> {
       title: Text(email.sender, style: TextStyle(color: Colors.white)),
       subtitle: Text(email.subject,
           style: TextStyle(color: Colors.white.withOpacity(0.5))),
-      trailing: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Image.asset('assets/flesh.png'), // Your action icon
-          Container(
-            height: 12,
-            width: 12,
-            margin: EdgeInsets.only(
-                left: 8), // Add margin between the icon and the dot
-            decoration: BoxDecoration(
-              color: getTypeColor(email.type), // Use the method to get color
-              shape: BoxShape.circle,
-            ),
-          ),
-        ],
+      trailing: Container(
+        height: 12,
+        width: 12,
+        decoration: BoxDecoration(
+          color: getTypeColor(email.type), // Use the method to get color
+          shape: BoxShape.circle,
+        ),
       ),
-      onTap: onTap, // Call the onTap callback provided as a parameter
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => EmailViewScreen(email: email),
+          ),
+        );
+      },
+      onLongPress: () {
+        setState(() {
+          if (isSelected) {
+            selectedEmailIndices.remove(index);
+          } else {
+            selectedEmailIndices.add(index);
+          }
+        });
+      },
     );
   }
 }

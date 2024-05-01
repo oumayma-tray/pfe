@@ -1,6 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:mobile_app/calendar/AllEventsPage.dart';
+import 'package:mobile_app/calendar/BusinessEventsPage.dart';
+import 'package:mobile_app/calendar/ETCPEventsPage.dart';
+import 'package:mobile_app/calendar/FamilyEventsPage.dart';
+import 'package:mobile_app/calendar/HolidayEventsPage.dart';
+import 'package:mobile_app/calendar/PersonalEventsPage.dart';
 import 'package:mobile_app/calendar/event.dart';
+import 'package:mobile_app/calendar/listEvent.dart';
 import 'package:table_calendar/table_calendar.dart';
 
 class CalendarHome extends StatefulWidget {
@@ -13,6 +21,14 @@ class CalendarHome extends StatefulWidget {
 class _CalendarHomeState extends State<CalendarHome> {
   DateTime today = DateTime.now();
   DateTime selectedDay = DateTime.now();
+  EventList eventList = EventList();
+
+  @override
+  void initState() {
+    super.initState();
+    // Ajoutez quelques événements initiaux si nécessaire
+  }
+
   void _showAddEventSheet(BuildContext context) {
     showModalBottomSheet(
       context: context,
@@ -183,142 +199,210 @@ class _CalendarHomeState extends State<CalendarHome> {
                 Positioned(
                   top: screenHeight * 0.391,
                   left: screenWidth * 0.04,
-                  child: Image.asset("assets/check.png"),
+                  child: Icon(
+                    Icons.check,
+                    color: Colors.white,
+                    size: 15,
+                  ),
                 ),
                 Positioned(
-                    top: screenHeight * 0.41,
-                    left: screenWidth * 0.03,
-                    child: Text('View All',
+                  top: screenHeight * 0.41,
+                  left: screenWidth * 0.03,
+                  child: InkWell(
+                    onTap: () {
+                      // Action to perform on tap, e.g., navigate to a new screen
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) =>
+                                EventDisplayWidget()), // Assuming AllEventsPage exists
+                      );
+                    },
+                    child: Container(
+                      padding: EdgeInsets.all(
+                          8.0), // Optional: adds padding around the text for easier tapping
+                      child: Text(
+                        'View All',
                         style: GoogleFonts.roboto(
                             fontSize: 12,
                             color: Colors.black,
-                            fontWeight: FontWeight.w700))),
+                            fontWeight: FontWeight.w700),
+                      ),
+                    ),
+                  ),
+                ),
                 Positioned(
                   top: screenHeight * 0.45,
                   left: screenWidth * 0.25,
-                  child: GestureDetector(
+                  child: Image.asset('assets/Rect-red.png'),
+                ),
+                Positioned(
+                  top: screenHeight * 0.45,
+                  left: screenWidth * 0.25,
+                  child: InkWell(
                     onTap: () {
                       Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (context) => Event()),
+                        MaterialPageRoute(
+                            builder: (context) =>
+                                PersonalEventsPage()), // Assuming PersonalEventsPage exists
                       );
                     },
-                    child: Image.asset('assets/Rect-red.png'),
-                  ),
-                ),
-                Positioned(
-                    top: screenHeight * 0.452,
-                    left: screenWidth * 0.26,
-                    child: Image.asset("assets/check.png")),
-                Positioned(
-                  top: screenHeight * 0.47,
-                  left: screenWidth * 0.2,
-                  child: Text('Personal',
-                      style: GoogleFonts.roboto(
-                          fontSize: 12,
-                          color: Colors.black,
-                          fontWeight: FontWeight.w700)),
-                ),
-                Positioned(
-                  top: screenHeight * 0.474,
-                  left: screenWidth * 0.63,
-                  child: GestureDetector(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => Event()),
-                      );
-                    },
-                    child: Image.asset('assets/Rect-yellow.png'),
-                  ),
-                ),
-                Positioned(
-                    top: screenHeight * 0.476,
-                    left: screenWidth * 0.64,
-                    child: Image.asset("assets/check.png")),
-                Positioned(
-                    top: screenHeight * 0.49,
-                    left: screenWidth * 0.6,
-                    child: Text('Family',
+                    child: Row(mainAxisSize: MainAxisSize.min, children: [
+                      Icon(
+                        Icons.check,
+                        color: Colors.white,
+                        size: 15,
+                      ),
+                      SizedBox(width: 8), // Adds padding for easier tapping
+                      Text(
+                        'Personal',
                         style: GoogleFonts.roboto(
                             fontSize: 12,
                             color: Colors.black,
-                            fontWeight: FontWeight.w700))),
-                Positioned(
-                  top: screenHeight * 0.36,
-                  right: screenWidth * 0.08,
-                  child: GestureDetector(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => Event()),
-                      );
-                    },
-                    child: Image.asset('assets/Rect-purple.png'),
+                            fontWeight: FontWeight.w700),
+                      ),
+                    ]),
                   ),
                 ),
                 Positioned(
-                    top: screenHeight * 0.362,
-                    right: screenWidth * 0.085,
-                    child: Image.asset("assets/check.png")),
+                  top: screenHeight * 0.49,
+                  left: screenWidth * 0.6,
+                  child: Image.asset('assets/Rect-yellow.png'),
+                ),
                 Positioned(
-                    top: screenHeight * 0.38,
-                    right: screenWidth * 0.03,
-                    child: Text('Business',
+                  top: screenHeight * 0.49,
+                  left: screenWidth * 0.6,
+                  child: InkWell(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) =>
+                                FamilyEventsPage()), // Assuming FamilyEventsPage exists
+                      );
+                    },
+                    child: Row(mainAxisSize: MainAxisSize.min, children: [
+                      Icon(
+                        Icons.check,
+                        color: Colors.white,
+                        size: 15,
+                      ),
+                      SizedBox(width: 8),
+                      Text(
+                        'Family',
                         style: GoogleFonts.roboto(
                             fontSize: 12,
                             color: Colors.black,
-                            fontWeight: FontWeight.w700))),
-                Positioned(
-                  top: screenHeight * 0.472,
-                  right: screenWidth * 0.11,
-                  child: GestureDetector(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => Event()),
-                      );
-                    },
-                    child: Image.asset('assets/Rect-blue.png'),
+                            fontWeight: FontWeight.w700),
+                      ),
+                    ]),
                   ),
                 ),
                 Positioned(
-                    top: screenHeight * 0.474,
-                    right: screenWidth * 0.115,
-                    child: Image.asset("assets/check.png")),
+                  top: screenHeight * 0.38,
+                  right: screenWidth * 0.19,
+                  child: Image.asset('assets/Rect-purple.png'),
+                ),
                 Positioned(
-                    top: screenHeight * 0.49,
-                    right: screenWidth * 0.1,
-                    child: Text('ETC',
+                  top: screenHeight * 0.38,
+                  right: screenWidth * 0.03,
+                  child: InkWell(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) =>
+                                BusinessEventsPage()), // Assuming BusinessEventsPage exists
+                      );
+                    },
+                    child: Row(mainAxisSize: MainAxisSize.min, children: [
+                      Icon(
+                        Icons.check,
+                        color: Colors.white,
+                        size: 15,
+                      ),
+                      SizedBox(width: 8),
+                      Text(
+                        'Business',
                         style: GoogleFonts.roboto(
                             fontSize: 12,
                             color: Colors.black,
-                            fontWeight: FontWeight.w700))),
-                Positioned(
-                  top: screenHeight * 0.53,
-                  left: screenWidth * 0.42,
-                  child: GestureDetector(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => Event()),
-                      );
-                    },
-                    child: Image.asset('assets/Rect-green.png'),
+                            fontWeight: FontWeight.w700),
+                      ),
+                    ]),
                   ),
                 ),
                 Positioned(
-                    top: screenHeight * 0.531,
-                    left: screenWidth * 0.43,
-                    child: Image.asset("assets/check.png")),
+                  top: screenHeight * 0.49,
+                  right: screenWidth * 0.19,
+                  child: Image.asset('assets/Rect-blue.png'),
+                ),
                 Positioned(
-                  top: screenHeight * 0.55,
+                  top: screenHeight * 0.49,
+                  right: screenWidth * 0.1,
+                  child: InkWell(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) =>
+                                ETCPEventsPage()), // Replace with actual page for ETC events
+                      );
+                    },
+                    child: Row(mainAxisSize: MainAxisSize.min, children: [
+                      Icon(
+                        Icons.check,
+                        color: Colors.white,
+                        size: 15,
+                      ),
+                      SizedBox(width: 8),
+                      Text(
+                        'ETC',
+                        style: GoogleFonts.roboto(
+                            fontSize: 12,
+                            color: Colors.black,
+                            fontWeight: FontWeight.w700),
+                      ),
+                    ]),
+                  ),
+                ),
+                Positioned(
+                  top: screenHeight * 0.52,
                   left: screenWidth * 0.38,
-                  child: Text('Holiday',
-                      style: GoogleFonts.roboto(
-                          fontSize: 12,
-                          color: Colors.black,
-                          fontWeight: FontWeight.w700)),
+                  child: Image.asset('assets/Rect-green.png'),
+                ),
+                Positioned(
+                  top: screenHeight * 0.52,
+                  left: screenWidth * 0.38,
+                  child: InkWell(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) =>
+                                HolidayEventsPage()), // Assuming BusinessEventsPage exists
+                      );
+                    },
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.check,
+                          color: Colors.white,
+                          size: 15,
+                        ),
+                        SizedBox(width: 8),
+                        Text(
+                          'Holiday',
+                          style: GoogleFonts.roboto(
+                              fontSize: 12,
+                              color: Colors.black,
+                              fontWeight: FontWeight.w700),
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
                 Positioned(
                   top: MediaQuery.of(context).size.height * 0.34,

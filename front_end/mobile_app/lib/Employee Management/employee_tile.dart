@@ -48,19 +48,12 @@ class _EmployeeDirectoryPageState extends State<EmployeeDirectoryPage> {
   }
 
   void filterEmployeesByName(String query) {
-    if (query.isNotEmpty) {
-      final queryLower = query.toLowerCase();
-      setState(() {
-        filteredEmployees = employees
-            .where(
-                (employee) => employee.name.toLowerCase().contains(queryLower))
-            .toList();
-      });
-    } else {
-      setState(() {
-        filteredEmployees = List.from(employees);
-      });
-    }
+    final queryLower = query.toLowerCase();
+    setState(() {
+      filteredEmployees = employees.where((employee) {
+        return employee.name.toLowerCase().contains(queryLower);
+      }).toList();
+    });
   }
 
   List<Employee> get paginatedFilteredEmployees {
@@ -88,19 +81,11 @@ class _EmployeeDirectoryPageState extends State<EmployeeDirectoryPage> {
     }
   }
 
-  // You might have a list of employees data to display
-  // For demonstration, it's just empty
-
   @override
   Widget build(BuildContext context) {
-    // Assuming you have a controller for your search bar
-    final searchController = TextEditingController();
-
     return Scaffold(
-      resizeToAvoidBottomInset:
-          true, // This is set to avoid resizing the screen when the keyboard opens.
+      resizeToAvoidBottomInset: true, // Avoid resizing when keyboard shows
       body: SingleChildScrollView(
-        // This makes the whole screen scrollable.
         child: Container(
           decoration: BoxDecoration(
             gradient: LinearGradient(
@@ -134,19 +119,19 @@ class _EmployeeDirectoryPageState extends State<EmployeeDirectoryPage> {
                     ),
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.all(Radius.circular(20)),
-                      borderSide: BorderSide(
-                          color: Colors
-                              .white), // White border for default/normal state
+                      borderSide: BorderSide(color: Colors.white),
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.all(Radius.circular(20)),
-                      borderSide: BorderSide(
-                          color:
-                              Colors.white), // White border for focused state
+                      borderSide: BorderSide(color: Colors.white),
                     ),
                   ),
+                  onChanged: (text) {
+                    filterEmployeesByName(text);
+                  },
                 ),
               ),
+
               SizedBox(height: 5),
               Text(
                 'Employees',
@@ -226,48 +211,63 @@ class _EmployeeRowState extends State<EmployeeRow> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: Color(0xFF28243D),
-      margin: EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: [
-          CircleAvatar(
-            backgroundImage: AssetImage(widget.employee.imagePath),
-            radius: 20.0,
+      decoration: BoxDecoration(
+        color: Color(0xFFAD81FE), // Adjusted to your color preference
+        borderRadius: BorderRadius.circular(10),
+      ),
+      margin: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      height: 100, // Set a fixed height for the container
+      child: ListView(
+        scrollDirection: Axis.horizontal,
+        children: <Widget>[
+          Container(
+            width: 100, // Set a fixed width for better control
+            alignment: Alignment.center,
+            child: CircleAvatar(
+              backgroundImage: AssetImage(widget.employee.imagePath),
+              radius: 30,
+            ),
           ),
-          _buildDetailBox(widget.employee.name),
-          _buildDetailBox(widget.employee.email),
-          _buildDetailBox(widget.employee.jobTitle),
-          _buildDetailBox(widget.employee.phoneNumber),
-          _buildDetailBox(widget.employee.country),
-          CustomPopupMenuButton(
-            onSelected: (value) {
-              _handleMenuItemSelected(context, value);
-            },
+          Container(
+            width: 150,
+            alignment: Alignment.center,
+            child: Text(widget.employee.name,
+                style: TextStyle(color: Colors.white)),
+          ),
+          Container(
+            width: 200,
+            alignment: Alignment.center,
+            child: Text(widget.employee.email,
+                style: TextStyle(color: Colors.white)),
+          ),
+          Container(
+            width: 150,
+            alignment: Alignment.center,
+            child: Text(widget.employee.jobTitle,
+                style: TextStyle(color: Colors.white)),
+          ),
+          Container(
+            width: 120,
+            alignment: Alignment.center,
+            child: Text(widget.employee.phoneNumber,
+                style: TextStyle(color: Colors.white)),
+          ),
+          Container(
+            width: 100,
+            alignment: Alignment.center,
+            child: Text(widget.employee.country,
+                style: TextStyle(color: Colors.white)),
+          ),
+          Container(
+            width: 60,
+            alignment: Alignment.center,
+            child: CustomPopupMenuButton(
+              onSelected: (String value) {
+                _handleMenuItemSelected(context, value);
+              },
+            ),
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildDetailBox(String text) {
-    return Expanded(
-      child: Container(
-        margin: EdgeInsets.all(2),
-        padding: EdgeInsets.symmetric(vertical: 10.0, horizontal: 4.0),
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [Color(0xFF9155FD), Color(0xFFC5A5FE)],
-          ),
-          borderRadius: BorderRadius.circular(5),
-        ),
-        child: Text(
-          text,
-          style: TextStyle(color: Colors.white),
-          textAlign: TextAlign.center,
-        ),
       ),
     );
   }
@@ -354,18 +354,18 @@ class EmployeeHeader extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
+          Expanded(child: Text('Name', style: TextStyle(color: Colors.white))),
           Expanded(
-              child: Text('Employee', style: TextStyle(color: Colors.white))),
-          Expanded(child: Text('Email', style: TextStyle(color: Colors.white))),
+              child: Text(' Email', style: TextStyle(color: Colors.white))),
           Expanded(
-              child: Text('Job Title', style: TextStyle(color: Colors.white))),
+              child: Text(' Job Title', style: TextStyle(color: Colors.white))),
           Expanded(
               child:
-                  Text('Phone Number', style: TextStyle(color: Colors.white))),
+                  Text(' Phone Number', style: TextStyle(color: Colors.white))),
           Expanded(
-              child: Text('Country', style: TextStyle(color: Colors.white))),
+              child: Text(' Country', style: TextStyle(color: Colors.white))),
           Expanded(
-              child: Text('Actions',
+              child: Text('  Actions',
                   style: TextStyle(
                       color: Colors.white))), // Placeholder for action icon
         ],

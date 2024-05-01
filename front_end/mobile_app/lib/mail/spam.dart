@@ -206,72 +206,6 @@ class _spamPageState extends State<spamPage> {
     );
   }
 
-  Widget _buildEmailItem(Email email, bool isSelected, VoidCallback onTap) {
-    Color getTypeColor(EmailType type) {
-      switch (type) {
-        case EmailType.important:
-          return Colors.red;
-        case EmailType.personal:
-          return Colors.green;
-        case EmailType.company:
-          return Colors.blue;
-        case EmailType.private:
-          return Colors.orange;
-        default:
-          return Colors.transparent;
-      }
-    }
-
-    return Card(
-      color: isSelected ? Color(0xFF9155FD) : Colors.transparent,
-      shape: RoundedRectangleBorder(
-        borderRadius:
-            BorderRadius.circular(10), // This sets the rounded corners
-      ),
-      child: ListTile(
-        leading: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            IconButton(
-              icon: Icon(
-                email.isStarred ? Icons.star : Icons.star_border,
-                color: email.isStarred ? Colors.yellow : Colors.grey,
-              ),
-              onPressed: () {
-                setState(() {
-                  // Toggle the isStarred property
-                  email.isStarred = !email.isStarred;
-                });
-              },
-            ),
-            SizedBox(width: 8),
-            CircleAvatar(
-              backgroundImage: AssetImage(email.senderImagePath),
-            ),
-          ],
-        ),
-        title: Text(email.sender, style: TextStyle(color: Colors.white)),
-        subtitle: Text(email.subject,
-            style: TextStyle(color: Colors.white.withOpacity(0.5))),
-        trailing: Container(
-          width: 12,
-          height: 12,
-          decoration: BoxDecoration(
-            color: getTypeColor(email.type),
-            shape: BoxShape.circle,
-          ),
-        ),
-        onTap: () {
-          Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => EmailViewScreen(email: email),
-              ));
-        },
-      ),
-    );
-  }
-
   Widget _buildSearchBar() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
@@ -306,17 +240,87 @@ class _spamPageState extends State<spamPage> {
           final email = filteredEmails[index];
           bool isSelected = selectedEmailIndices.contains(index);
 
-          // Define the onTap callback
+          // Define the onTap and onLongPress callbacks
           VoidCallback onTap = () {
-            Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => EmailViewScreen(email: email),
-                ));
+            if (isSelected) {
+              setState(() {
+                selectedEmailIndices.remove(index);
+              });
+            } else {
+              Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => EmailViewScreen(email: email),
+                  ));
+            }
           };
 
-          // Now pass all required parameters including the onTap callback
-          return _buildEmailItem(email, isSelected, onTap);
+          // Pass the onTap and index to the _buildEmailItem
+          return _buildEmailItem(email, isSelected, index, onTap);
+        },
+      ),
+    );
+  }
+
+  Widget _buildEmailItem(
+      Email email, bool isSelected, int index, VoidCallback onTap) {
+    Color getTypeColor(EmailType type) {
+      switch (type) {
+        case EmailType.important:
+          return Colors.red;
+        case EmailType.personal:
+          return Colors.green;
+        case EmailType.company:
+          return Colors.blue;
+        case EmailType.private:
+          return Colors.orange;
+        default:
+          return Colors.transparent;
+      }
+    }
+
+    return Card(
+      color: isSelected ? Color(0xFF9155FD) : Colors.transparent,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      child: ListTile(
+        leading: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            IconButton(
+              icon: Icon(email.isStarred ? Icons.star : Icons.star_border,
+                  color: email.isStarred ? Colors.yellow : Colors.grey),
+              onPressed: () {
+                setState(() {
+                  email.isStarred = !email.isStarred;
+                });
+              },
+            ),
+            SizedBox(width: 8),
+            CircleAvatar(
+              backgroundImage: AssetImage(email.senderImagePath),
+            ),
+          ],
+        ),
+        title: Text(email.sender, style: TextStyle(color: Colors.white)),
+        subtitle: Text(email.subject,
+            style: TextStyle(color: Colors.white.withOpacity(0.5))),
+        trailing: Container(
+          width: 12,
+          height: 12,
+          decoration: BoxDecoration(
+            color: getTypeColor(email.type),
+            shape: BoxShape.circle,
+          ),
+        ),
+        onTap: onTap,
+        onLongPress: () {
+          setState(() {
+            if (isSelected) {
+              selectedEmailIndices.remove(index);
+            } else {
+              selectedEmailIndices.add(index);
+            }
+          });
         },
       ),
     );

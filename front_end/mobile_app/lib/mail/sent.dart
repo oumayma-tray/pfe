@@ -299,7 +299,20 @@ class _sentPageState extends State<sentPage> {
           ),
         ),
         onTap: () {
-          // Toggle selection and navigate on tap
+          if (isSelected) {
+            setState(() {
+              selectedEmailIndices.remove(index);
+            });
+          } else {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => EmailViewScreen(email: email),
+              ),
+            );
+          }
+        },
+        onLongPress: () {
           setState(() {
             if (isSelected) {
               selectedEmailIndices.remove(index);
@@ -307,30 +320,23 @@ class _sentPageState extends State<sentPage> {
               selectedEmailIndices.add(index);
             }
           });
-          // Navigate to detailed view
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => EmailViewScreen(email: email),
-            ),
-          );
         },
       ),
     );
   }
-}
 
-Color _getTypeColor(EmailType type) {
-  switch (type) {
-    case EmailType.important:
-      return Colors.red;
-    case EmailType.personal:
-      return Colors.green;
-    case EmailType.company:
-      return Colors.blue;
-    case EmailType.private:
-      return Colors.orange;
-    default:
-      return Colors.transparent;
+  Color _getTypeColor(EmailType type) {
+    switch (type) {
+      case EmailType.important:
+        return Colors.red;
+      case EmailType.personal:
+        return Colors.green;
+      case EmailType.company:
+        return Colors.blue;
+      case EmailType.private:
+        return Colors.orange;
+      default:
+        return Colors.transparent;
+    }
   }
 }

@@ -218,7 +218,7 @@ class _InboxPageState extends State<InboxPage> {
     );
   }
 
-  Widget _buildEmailItem(Email email, bool isSelected) {
+  Widget _buildEmailItem(Email email, int index, bool isSelected) {
     Color getTypeColor(EmailType type) {
       switch (type) {
         case EmailType.important:
@@ -230,7 +230,7 @@ class _InboxPageState extends State<InboxPage> {
         case EmailType.private:
           return Colors.orange;
         default:
-          return Colors.transparent;
+          return Colors.transparent; // Default case for safety
       }
     }
 
@@ -239,14 +239,9 @@ class _InboxPageState extends State<InboxPage> {
       leading: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          IconButton(
-            icon: Icon(email.isStarred ? Icons.star : Icons.star_border,
-                color: email.isStarred ? Colors.yellow : Colors.grey),
-            onPressed: () {
-              setState(() {
-                email.isStarred = !email.isStarred;
-              });
-            },
+          Icon(
+            email.isStarred ? Icons.star : Icons.star_border,
+            color: email.isStarred ? Colors.yellow : Colors.grey,
           ),
           SizedBox(width: 8),
           CircleAvatar(
@@ -261,7 +256,7 @@ class _InboxPageState extends State<InboxPage> {
         width: 12,
         height: 12,
         decoration: BoxDecoration(
-          color: getTypeColor(email.type as EmailType),
+          color: getTypeColor(email.type),
           shape: BoxShape.circle,
         ),
       ),
@@ -271,6 +266,15 @@ class _InboxPageState extends State<InboxPage> {
             builder: (context) => EmailViewScreen(email: email),
           ),
         );
+      },
+      onLongPress: () {
+        setState(() {
+          if (isSelected) {
+            selectedEmailIndices.remove(index);
+          } else {
+            selectedEmailIndices.add(index);
+          }
+        });
       },
     );
   }
@@ -308,7 +312,7 @@ class _InboxPageState extends State<InboxPage> {
         itemBuilder: (context, index) {
           final email = filteredEmails[index];
           bool isSelected = selectedEmailIndices.contains(index);
-          return _buildEmailItem(email, isSelected);
+          return _buildEmailItem(email, index, isSelected);
         },
       ),
     );
