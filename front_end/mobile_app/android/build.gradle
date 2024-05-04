@@ -1,9 +1,22 @@
+buildscript {
+    repositories {
+        google() // Google's Maven repository
+        mavenCentral() // Maven Central repository
+    }
+    dependencies {
+        classpath 'com.android.tools.build:gradle:8.4.0'
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:1.9.23"
+        classpath 'com.google.gms:google-services:4.4.1'
+    }
+}
+
 allprojects {
     repositories {
-        google()
+        google() // Also needs to be defined here for all subprojects
         mavenCentral()
     }
 }
+
 
 rootProject.buildDir = '../build'
 subprojects {

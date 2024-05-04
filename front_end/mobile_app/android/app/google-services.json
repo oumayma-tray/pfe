@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "623372766400",
+    "project_id": "authapp-ec7af",
+    "storage_bucket": "authapp-ec7af.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:623372766400:android:b38d3e49edbce3e1967125",
+        "android_client_info": {
+          "package_name": "com.example.mobile_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAur9eYzldF-G3Oc9s7BUxG4KK1Qc-Av-o"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
