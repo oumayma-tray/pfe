@@ -1,10 +1,33 @@
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:mobile_app/auth/Reset Password.dart';
 import 'package:mobile_app/auth/forgotPassword.dart';
 import 'package:mobile_app/auth/login.dart';
 
-void main() {
-  runApp(const MyApp());
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  const firebaseOptions = FirebaseOptions(
+    apiKey: "AIzaSyAur9eYzldF-G3Oc9s7BUxG4KK1Qc-Av-o",
+    appId: "1:623372766400:android:b38d3e49edbce3e1967125",
+    messagingSenderId: "623372766400",
+    projectId: "authapp-ec7af",
+  );
+  await Firebase.initializeApp(options: firebaseOptions);
+  runApp(MyApp());
+}
+
+class ErrorApp extends StatelessWidget {
+  final String errorMessage;
+  const ErrorApp(this.errorMessage, {Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      home: Scaffold(
+        body: Center(child: Text(errorMessage)),
+      ),
+    );
+  }
 }
 
 class MyApp extends StatelessWidget {

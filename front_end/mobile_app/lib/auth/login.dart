@@ -3,9 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:mobile_app/auth/forgotPassword.dart';
 import 'package:mobile_app/components/textfield.dart';
 import 'package:mobile_app/homePage.dart';
-import 'package:http/http.dart' as http;
-
-import 'dart:convert';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class LoginScreen extends StatefulWidget {
   final Function()? onTap;
@@ -16,20 +14,79 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  //text editing controllers
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
-//login  method
-  void Login() async {
-    //show loading cercle
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  bool _isObscure = true; // For password visibility toggle
+  bool _isLoading = false; // To handle loading state
+
+  // Form validation
+  bool get _isFormValid {
+    return emailController.text.isNotEmpty &&
+        passwordController.text.isNotEmpty;
+  }
+
+  Future<void> login() async {
+    if (!_isFormValid) {
+      _showErrorDialog('Please fill in all fields.');
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => const Center(child: CircularProgressIndicator()),
+      );
+
+      final userCredential = await _auth.signInWithEmailAndPassword(
+        email: emailController.text.trim(),
+        password: passwordController.text.trim(),
+      );
+
+      Navigator.pop(context); // Dismiss the loading dialog
+
+      if (userCredential.user != null) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => HomePage()),
+        );
+      }
+    } on FirebaseAuthException catch (e) {
+      _showErrorDialog(e.message ?? 'An unexpected error occurred.');
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
+  void _showErrorDialog(String message) {
+    Navigator.pop(context); // Ensure loading dialog is closed
     showDialog(
       context: context,
-      builder: (context) {
-        return Center(
-          child: CircularProgressIndicator(),
-        );
-      },
+      builder: (context) => AlertDialog(
+        title: const Text('Login Failed'),
+        content: Text(message),
+        actions: [
+          TextButton(
+            child: const Text('OK'),
+            onPressed: () => Navigator.of(context).pop(),
+          ),
+        ],
+      ),
     );
+  }
+
+  @override
+  void dispose() {
+    emailController.dispose();
+    passwordController.dispose();
+    super.dispose();
   }
 
   bool isChecked = false;
@@ -161,7 +218,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                   height: screenHeight * 0.05,
                                   child: InkWell(
                                     onTap: () {
-                                      Login();
+                                      login();
                                       Navigator.push(
                                         context,
                                         MaterialPageRoute(
@@ -194,29 +251,5 @@ class _LoginScreenState extends State<LoginScreen> {
         ),
       ),
     );
-  }
-}
-
-class LoginService {
-  static Future<void> fetchData() async {
-    try {
-      final response = await http
-          .get('https://dev.app.smartovate.com/authentication' as Uri);
-
-      if (response.statusCode == 200) {
-        // Traitement des données de réponse
-        final Map<String, dynamic> data = json.decode(response.body);
-        print(data);
-
-        // Mettez à jour votre interface utilisateur avec les données
-        // ...
-      } else {
-        // Gestion des erreurs
-        print('Erreur de requête : ${response.statusCode}');
-      }
-    } catch (error) {
-      // Gestion des erreurs lors de la requête
-      print('Erreur lors de la requête : $error');
-    }
   }
 }
