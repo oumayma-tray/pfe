@@ -37,18 +37,10 @@ class _LoginScreenState extends State<LoginScreen> {
     });
 
     try {
-      showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (context) => const Center(child: CircularProgressIndicator()),
-      );
-
       final userCredential = await _auth.signInWithEmailAndPassword(
         email: emailController.text.trim(),
         password: passwordController.text.trim(),
       );
-
-      Navigator.pop(context); // Dismiss the loading dialog
 
       if (userCredential.user != null) {
         Navigator.pushReplacement(
@@ -65,21 +57,42 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
+  void _safePop() {
+    if (Navigator.canPop(context)) {
+      Navigator.pop(context);
+    }
+  }
+
   void _showErrorDialog(String message) {
-    Navigator.pop(context); // Ensure loading dialog is closed
+    _safePop(); // Safe pop if any dialog is open
+
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Login Failed'),
-        content: Text(message),
-        actions: [
-          TextButton(
-            child: const Text('OK'),
-            onPressed: () => Navigator.of(context).pop(),
-          ),
-        ],
-      ),
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Login Failed'),
+          content: Text(message),
+          actions: [
+            TextButton(
+              onPressed: () =>
+                  Navigator.of(context).pop(), // Dismiss the dialog
+              child: const Text('OK'),
+            ),
+          ],
+        );
+      },
     );
+  }
+
+  void logout() {
+    // Clear the text fields
+    emailController.clear();
+    passwordController.clear();
+
+    // Navigate the user back to the login screen or another appropriate screen
+    Navigator.pushReplacementNamed(
+        context, '/login'); // Adjust according to your navigation setup
   }
 
   @override
@@ -218,13 +231,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                   height: screenHeight * 0.05,
                                   child: InkWell(
                                     onTap: () {
-                                      login();
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (context) => HomePage(),
-                                        ),
-                                      );
+                                      login(); // This already handles navigation upon successful login
                                     },
                                     child: Text(
                                       'LOGIN',

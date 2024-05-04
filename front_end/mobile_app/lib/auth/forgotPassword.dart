@@ -50,14 +50,19 @@ class _ForgotPasswordState extends State<ForgotPassword> {
       // Assuming email exists and reset email sent, navigate to ResetPassword page
       Navigator.pushNamed(context, '/reset_password');
     } catch (e) {
-      // If an error occurs (e.g., email not found), handle it appropriately
+      // If an error occurs, particularly if email is not found, handle it appropriately
       showDialog(
         context: context,
         builder: (context) {
+          // You can adjust the error message based on the exception message
+          String message =
+              "An error occurred. Please check the email address and try again.";
+          if (e is FirebaseAuthException && e.code == 'user-not-found') {
+            message = "No account found with this email.";
+          }
           return AlertDialog(
             title: Text("Error"),
-            content: Text(
-                "An error occurred. Please check the email address and try again."),
+            content: Text(message),
             actions: [
               TextButton(
                 onPressed: () {
