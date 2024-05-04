@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:mobile_app/components/button.dart';
@@ -21,14 +22,7 @@ class _ForgotPasswordState extends State<ForgotPassword> {
   void submit() async {
     // Validate email address
     bool isEmailValid = EmailValidator.validate(emailController.text);
-
-    // Close the loading circle dialog
-    Navigator.pop(context);
-
-    if (isEmailValid) {
-      // Navigate to reset password page
-      Navigator.pushNamed(context, '/reset_password');
-    } else {
+    if (!isEmailValid) {
       // Show error message for invalid email
       showDialog(
         context: context,
@@ -36,6 +30,34 @@ class _ForgotPasswordState extends State<ForgotPassword> {
           return AlertDialog(
             title: Text("Invalid Email"),
             content: Text("Please enter a valid email address."),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                },
+                child: Text("OK"),
+              ),
+            ],
+          );
+        },
+      );
+      return;
+    }
+
+    try {
+      await FirebaseAuth.instance
+          .sendPasswordResetEmail(email: emailController.text.toLowerCase());
+      // Assuming email exists and reset email sent, navigate to ResetPassword page
+      Navigator.pushNamed(context, '/reset_password');
+    } catch (e) {
+      // If an error occurs (e.g., email not found), handle it appropriately
+      showDialog(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            title: Text("Error"),
+            content: Text(
+                "An error occurred. Please check the email address and try again."),
             actions: [
               TextButton(
                 onPressed: () {

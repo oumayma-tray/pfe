@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:mobile_app/components/button.dart';
@@ -19,6 +20,7 @@ class _ResetPasswordState extends State<ResetPassword> {
   bool showSuccessMessage = false;
 
   void submit() async {
+    // Check if the passwords match
     if (newpasswordController.text != confirmpasswordController.text) {
       setState(() {
         passwordMatchError = true;
@@ -28,13 +30,60 @@ class _ResetPasswordState extends State<ResetPassword> {
       return;
     }
 
-    // Perform the submission logic here
+    // Attempt to update the password
+    try {
+      // Get the current user
+      var user = FirebaseAuth.instance.currentUser;
+      if (user != null) {
+        await user.updatePassword(newpasswordController.text);
 
-    // Show success message
-    setState(() {
-      showSuccessMessage = true;
-      passwordMatchError = false;
-    });
+        // Show success message
+        setState(() {
+          showSuccessMessage = true;
+          passwordMatchError = false;
+        });
+
+        // Optionally, navigate the user or perform other actions like logging out
+        // Navigator.pushReplacementNamed(context, '/login'); // Example: Navigate to login page
+      } else {
+        // Handle case where user is not found (unlikely unless user data is corrupted or session expired)
+        showDialog(
+          context: context,
+          builder: (context) {
+            return AlertDialog(
+              title: Text("Session Expired"),
+              content: Text("Please log in again to update your password."),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.pop(context);
+                    Navigator.pushReplacementNamed(context, '/login');
+                  },
+                  child: Text("OK"),
+                ),
+              ],
+            );
+          },
+        );
+      }
+    } catch (e) {
+      // Handle errors, such as weak password, recent login required, etc.
+      showDialog(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            title: Text("Error Updating Password"),
+            content: Text(e.toString()),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: Text("OK"),
+              ),
+            ],
+          );
+        },
+      );
+    }
   }
 
   @override
