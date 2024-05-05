@@ -1,53 +1,38 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
+import 'package:mobile_app/auth/authentificationService.dart';
 import 'package:mobile_app/auth/forgotPassword.dart';
 import 'package:mobile_app/components/textfield.dart';
 import 'package:mobile_app/homePage.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 
 class LoginScreen extends StatefulWidget {
-  final Function()? onTap;
-  LoginScreen({super.key, required this.onTap});
-
   @override
-  State<LoginScreen> createState() => _LoginScreenState();
+  _LoginScreenState createState() => _LoginScreenState();
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  final emailController = TextEditingController();
-  final passwordController = TextEditingController();
-  final FirebaseAuth _auth = FirebaseAuth.instance;
-  bool _isObscure = true; // For password visibility toggle
-  bool _isLoading = false; // To handle loading state
+  final TextEditingController emailController = TextEditingController();
+  final TextEditingController passwordController = TextEditingController();
+  bool _isObscure = true;
+  bool _isLoading = false;
 
-  // Form validation
-  bool get _isFormValid {
-    return emailController.text.isNotEmpty &&
-        passwordController.text.isNotEmpty;
-  }
-
-  Future<void> login() async {
-    if (!_isFormValid) {
-      _showErrorDialog('Please fill in all fields.');
-      return;
-    }
-
+  void login() async {
     setState(() {
       _isLoading = true;
     });
 
     try {
-      final userCredential = await _auth.signInWithEmailAndPassword(
-        email: emailController.text.trim(),
-        password: passwordController.text.trim(),
+      await Provider.of<AuthenticationService>(context, listen: false)
+          .signInWithEmailAndPassword(
+        emailController.text.trim(),
+        passwordController.text.trim(),
       );
-
-      if (userCredential.user != null) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => HomePage()),
-        );
-      }
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => HomePage()),
+      );
     } on FirebaseAuthException catch (e) {
       _showErrorDialog(e.message ?? 'An unexpected error occurred.');
     } finally {
@@ -57,49 +42,24 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
-  void _safePop() {
-    if (Navigator.canPop(context)) {
-      Navigator.pop(context);
-    }
-  }
-
   void _showErrorDialog(String message) {
-    _safePop(); // Safe pop if any dialog is open
-
     showDialog(
       context: context,
-      barrierDismissible: false,
-      builder: (BuildContext context) {
+      builder: (context) {
         return AlertDialog(
-          title: const Text('Login Failed'),
+          title: const Text('Error'),
           content: Text(message),
-          actions: [
+          actions: <Widget>[
             TextButton(
-              onPressed: () =>
-                  Navigator.of(context).pop(), // Dismiss the dialog
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
               child: const Text('OK'),
             ),
           ],
         );
       },
     );
-  }
-
-  void logout() {
-    // Clear the text fields
-    emailController.clear();
-    passwordController.clear();
-
-    // Navigate the user back to the login screen or another appropriate screen
-    Navigator.pushReplacementNamed(
-        context, '/login'); // Adjust according to your navigation setup
-  }
-
-  @override
-  void dispose() {
-    emailController.dispose();
-    passwordController.dispose();
-    super.dispose();
   }
 
   bool isChecked = false;
@@ -184,8 +144,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) =>
-                                ForgotPassword(onTap: widget.onTap),
+                            builder: (context) => ForgotPassword(),
                           ),
                         );
                       },

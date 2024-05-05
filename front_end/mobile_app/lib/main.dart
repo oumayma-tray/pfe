@@ -1,8 +1,11 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:mobile_app/auth/Reset Password.dart';
+import 'package:mobile_app/auth/authentificationService.dart';
 import 'package:mobile_app/auth/forgotPassword.dart';
 import 'package:mobile_app/auth/login.dart';
+import 'package:provider/provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -13,26 +16,20 @@ void main() async {
     projectId: "authapp-ec7af",
   );
   await Firebase.initializeApp(options: firebaseOptions);
-  runApp(MyApp());
+  runApp(App());
 }
 
-class ErrorApp extends StatelessWidget {
-  final String errorMessage;
-  const ErrorApp(this.errorMessage, {Key? key}) : super(key: key);
-
+class App extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      home: Scaffold(
-        body: Center(child: Text(errorMessage)),
-      ),
+    return Provider<AuthenticationService>(
+      create: (_) => AuthenticationService(FirebaseAuth.instance),
+      child: MyApp(),
     );
   }
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({Key? key});
-
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -44,15 +41,9 @@ class MyApp extends StatelessWidget {
       ),
       initialRoute: '/',
       routes: {
-        '/': (context) => LoginScreen(
-              onTap: () {},
-            ), // Set LoginPage as the initial route
-        '/forgot_password': (context) => ForgotPassword(
-              onTap: () {},
-            ),
-        '/reset_password': (context) => ResetPassword(
-              onTap: () {},
-            ),
+        '/': (context) => LoginScreen(),
+        '/forgot_password': (context) => ForgotPassword(),
+        '/reset_password': (context) => ResetPassword(),
       },
     );
   }

@@ -1,83 +1,69 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:mobile_app/components/button.dart';
+import 'package:provider/provider.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:mobile_app/auth/authentificationService.dart';
 import 'package:mobile_app/components/textfield.dart';
-import 'package:email_validator/email_validator.dart';
 
 class ForgotPassword extends StatefulWidget {
-  final Function()? onTap;
-  ForgotPassword({super.key, required this.onTap});
-
   @override
   State<ForgotPassword> createState() => _ForgotPasswordState();
 }
 
 class _ForgotPasswordState extends State<ForgotPassword> {
-  //text editing controllers
-  final emailController = TextEditingController();
+  final TextEditingController emailController = TextEditingController();
+  bool isLoading = false;
+  String message = '';
 
-//submit  method
-// submit method
-  void submit() async {
-    // Validate email address
-    bool isEmailValid = EmailValidator.validate(emailController.text);
-    if (!isEmailValid) {
-      // Show error message for invalid email
-      showDialog(
-        context: context,
-        builder: (context) {
-          return AlertDialog(
-            title: Text("Invalid Email"),
-            content: Text("Please enter a valid email address."),
-            actions: [
-              TextButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                },
-                child: Text("OK"),
-              ),
-            ],
-          );
-        },
-      );
-      return;
-    }
+  @override
+  void dispose() {
+    emailController.dispose();
+    super.dispose();
+  }
 
+  Future<void> resetPassword() async {
+    setState(() {
+      isLoading = true;
+      message = '';
+    });
+
+    AuthenticationService authService =
+        Provider.of<AuthenticationService>(context, listen: false);
     try {
-      await FirebaseAuth.instance
-          .sendPasswordResetEmail(email: emailController.text.toLowerCase());
-      // Assuming email exists and reset email sent, navigate to ResetPassword page
-      Navigator.pushNamed(context, '/reset_password');
-    } catch (e) {
-      // If an error occurs, particularly if email is not found, handle it appropriately
-      showDialog(
-        context: context,
-        builder: (context) {
-          // You can adjust the error message based on the exception message
-          String message =
-              "An error occurred. Please check the email address and try again.";
-          if (e is FirebaseAuthException && e.code == 'user-not-found') {
-            message = "No account found with this email.";
-          }
-          return AlertDialog(
-            title: Text("Error"),
-            content: Text(message),
-            actions: [
-              TextButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                },
-                child: Text("OK"),
-              ),
-            ],
-          );
-        },
-      );
+      bool emailSent =
+          await authService.sendPasswordResetEmail(emailController.text.trim());
+      if (emailSent) {
+        // Navigate to ResetPassword page or show confirmation message
+        Navigator.pushNamed(context, '/reset_password');
+      } else {
+        showErrorDialog("No account found with this email.");
+      }
+    } on FirebaseAuthException catch (e) {
+      showErrorDialog(e.message ?? "An unexpected error occurred.");
+    } finally {
+      setState(() {
+        isLoading = false;
+      });
     }
   }
 
-  bool isChecked = false;
+  void showErrorDialog(String message) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text("Error"),
+        content: Text(message),
+        actions: <Widget>[
+          TextButton(
+            child: Text("OK"),
+            onPressed: () {
+              Navigator.of(context).pop(); // Close the dialog
+            },
+          ),
+        ],
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -125,10 +111,10 @@ class _ForgotPasswordState extends State<ForgotPassword> {
                 height: screenHeight * 0.01,
               ),
               //submit box
-              button(
-                onTap: submit,
+              ElevatedButton(
+                onPressed: resetPassword,
+                child: Text('Reset Password'),
               ),
-
               SizedBox(
                 height: screenHeight * 0.1213,
               ),
