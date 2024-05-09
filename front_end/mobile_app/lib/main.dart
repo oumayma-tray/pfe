@@ -30,6 +30,8 @@ class App extends StatelessWidget {
 }
 
 class MyApp extends StatelessWidget {
+  const MyApp({Key? key});
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -41,9 +43,11 @@ class MyApp extends StatelessWidget {
       ),
       initialRoute: '/',
       routes: {
-        '/': (context) => LoginScreen(),
+        '/': (context) => LoginScreen(), // Home page or initial route
+        '/login': (context) => LoginScreen(), // Login route
         '/forgot_password': (context) => ForgotPassword(),
         '/reset_password': (context) => ResetPassword(),
+        // Define other routes as needed
       },
     );
   }

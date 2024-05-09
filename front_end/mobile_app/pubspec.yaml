@@ -57,12 +57,18 @@ dependencies:
   firebase_messaging: ^14.9.1
   firebase_auth: ^4.19.4
   google_sign_in: ^6.2.1
+  firebase_dynamic_links: ^5.5.5
+  intl_phone_field: ^3.2.0
+  intl_phone_number_input: ^0.7.4
+  get: ^4.6.6
+  firebase_app_check: ^0.2.2+5
   
   
 dev_dependencies:
   flutter_test:
     sdk: flutter
-
+dependency_overrides:
+  js: ^0.7.1
 
 
   # The "flutter_lints" package below contains a set of recommended lints to

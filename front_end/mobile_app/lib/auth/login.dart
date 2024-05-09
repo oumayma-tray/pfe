@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:mobile_app/auth/register.dart';
 import 'package:provider/provider.dart';
 import 'package:mobile_app/auth/authentificationService.dart';
 import 'package:mobile_app/auth/forgotPassword.dart';
@@ -19,27 +20,143 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _isLoading = false;
 
   void login() async {
+    String email = emailController.text.trim();
+    String password = passwordController.text.trim();
+
+    if (email.isEmpty || password.isEmpty) {
+      _showErrorDialog('Please fill in all fields.');
+      return;
+    }
+
+    if (password.length < 6) {
+      _showErrorDialog('Your password must be at least 6 characters.');
+      return;
+    }
+
     setState(() {
       _isLoading = true;
     });
 
     try {
       await Provider.of<AuthenticationService>(context, listen: false)
-          .signInWithEmailAndPassword(
-        emailController.text.trim(),
-        passwordController.text.trim(),
-      );
+          .signInWithEmailAndPassword(email, password);
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => HomePage()),
       );
+    } on FirebaseAuthMultiFactorException catch (e) {
+      // Handle the second factor requirement
+      handleMultiFactorAuthentication(e);
     } on FirebaseAuthException catch (e) {
       _showErrorDialog(e.message ?? 'An unexpected error occurred.');
+    } catch (e) {
+      _showErrorDialog(e.toString());
     } finally {
-      setState(() {
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
+  }
+
+  void handleMultiFactorAuthentication(FirebaseAuthMultiFactorException e) {
+    final resolver = e.resolver;
+    // Example: prompt for SMS verification
+    showDialog(
+      context: context,
+      builder: (context) {
+        TextEditingController smsCodeController = TextEditingController();
+        return AlertDialog(
+          title: Text("Multi-Factor Authentication"),
+          content: TextField(
+            controller: smsCodeController,
+            decoration: InputDecoration(labelText: "Enter SMS code"),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () async {
+                PhoneAuthCredential credential = PhoneAuthProvider.credential(
+                  verificationId:
+                      resolver.session.id, // Get the session ID correctly
+                  smsCode: smsCodeController.text.trim(),
+                );
+                try {
+                  await resolver.resolveSignIn(
+                      PhoneMultiFactorGenerator.getAssertion(credential));
+                  Navigator.pop(context);
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(builder: (context) => HomePage()),
+                  );
+                } catch (e) {
+                  _showErrorDialog(
+                      "Failed to verify SMS code: ${e.toString()}");
+                }
+              },
+              child: Text('Verify'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> verifyPhoneNumber(
+      String phoneNumber, BuildContext context) async {
+    FirebaseAuth.instance.verifyPhoneNumber(
+      phoneNumber: phoneNumber,
+      verificationCompleted: (PhoneAuthCredential credential) async {
+        // Automatically signs in the user.
+        await FirebaseAuth.instance.signInWithCredential(credential);
+      },
+      verificationFailed: (FirebaseAuthException e) {
+        // Handle error.
+      },
+      codeSent: (String verificationId, int? resendToken) {
+        // This callback is where you get your verificationId
+        _showVerificationCodeInput(
+            context, verificationId); // Call a function to show input dialog
+      },
+      codeAutoRetrievalTimeout: (String verificationId) {
+        // Auto retrieval timeout handling
+      },
+    );
+  }
+
+  void _showVerificationCodeInput(BuildContext context, String verificationId) {
+    TextEditingController codeController = TextEditingController();
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text("Enter Verification Code"),
+          content: TextField(
+            controller: codeController,
+            decoration: InputDecoration(labelText: "Verification code"),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () async {
+                PhoneAuthCredential credential = PhoneAuthProvider.credential(
+                  verificationId: verificationId,
+                  smsCode: codeController.text.trim(),
+                );
+
+                // Now, sign in with the credential
+                try {
+                  await FirebaseAuth.instance.signInWithCredential(credential);
+                  Navigator.of(context).pop(); // Dismiss the dialog
+                } catch (e) {
+                  // Handle errors
+                }
+              },
+              child: Text("Verify"),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   void _showErrorDialog(String message) {
@@ -47,14 +164,14 @@ class _LoginScreenState extends State<LoginScreen> {
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: const Text('Error'),
+          title: Text('Login Error'),
           content: Text(message),
           actions: <Widget>[
             TextButton(
+              child: Text('OK'),
               onPressed: () {
-                Navigator.of(context).pop();
+                Navigator.of(context).pop(); // Close the dialog
               },
-              child: const Text('OK'),
             ),
           ],
         );
@@ -112,9 +229,20 @@ class _LoginScreenState extends State<LoginScreen> {
               Textfield(
                 controller: passwordController,
                 hintText: 'Password',
-                obscureText: true,
-                Icon: Icon(Icons.lock_outline, color: Colors.white),
+                obscureText: _isObscure,
+                Icon: IconButton(
+                  icon: Icon(
+                    _isObscure ? Icons.visibility_off : Icons.visibility,
+                    color: Colors.white,
+                  ),
+                  onPressed: () {
+                    setState(() {
+                      _isObscure = !_isObscure;
+                    });
+                  },
+                ),
               ),
+
               Padding(
                 padding: EdgeInsets.symmetric(horizontal: screenHeight * 0.023),
                 child: Row(
@@ -139,24 +267,50 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                       ],
                     ),
-                    GestureDetector(
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => ForgotPassword(),
+                    Column(
+                      // Changed from Row to Column for vertical arrangement
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        GestureDetector(
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) =>
+                                    RegisterScreen(), // Ensure you have this screen defined
+                              ),
+                            );
+                          },
+                          child: Text(
+                            "Register",
+                            style: GoogleFonts.roboto(
+                                color: Color(0XFF9155FD), fontSize: 13),
                           ),
-                        );
-                      },
-                      child: Text(
-                        "Forgot Password?",
-                        style: GoogleFonts.roboto(
-                            color: Color(0XFF9155FD), fontSize: 13),
-                      ),
-                    )
+                        ),
+                        SizedBox(
+                            height:
+                                8), // Space between Register and Forgot Password links
+                        GestureDetector(
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => ForgotPassword(),
+                              ),
+                            );
+                          },
+                          child: Text(
+                            "Forgot Password?",
+                            style: GoogleFonts.roboto(
+                                color: Color(0XFF9155FD), fontSize: 13),
+                          ),
+                        ),
+                      ],
+                    ),
                   ],
                 ),
               ),
+
               SizedBox(
                 height: screenHeight * 0.1,
               ),

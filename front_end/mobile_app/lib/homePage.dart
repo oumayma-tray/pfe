@@ -1,9 +1,11 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:flutter/widgets.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:mobile_app/Employee%20Management/employee_tile.dart';
 import 'package:mobile_app/Security%20Privacy/SecurityPrivacyPage.dart';
+import 'package:mobile_app/auth/authentificationService.dart';
 import 'package:mobile_app/calendar/calendarHome.dart';
 import 'package:mobile_app/chat/chatHomePage.dart';
 import 'package:mobile_app/mail/mailHomePage.dart';
@@ -89,22 +91,21 @@ class _HomePageState extends State<HomePage> {
                 bottom: screenHeight *
                     0.30, // Adjust this value based on your layout needs
                 right: 110, // Right alignment padding
-                child: Material(
+                child: // This button is part of your HomePage widget
+                    Material(
                   color: Colors.transparent,
                   child: Ink(
                     decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [
-                          Color.fromRGBO(145, 85, 253, 1),
-                          Color.fromRGBO(197, 165, 254, 1)
-                        ],
-                      ), // Distinct color for logout
+                      gradient: LinearGradient(colors: [
+                        Color.fromRGBO(145, 85, 253, 1),
+                        Color.fromRGBO(197, 165, 254, 1)
+                      ]),
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: InkWell(
                       borderRadius: BorderRadius.circular(10),
-                      onTap: () {
-                        showDialog(
+                      onTap: () async {
+                        final confirm = await showDialog(
                           context: context,
                           builder: (BuildContext context) {
                             return AlertDialog(
@@ -113,24 +114,26 @@ class _HomePageState extends State<HomePage> {
                               actions: <Widget>[
                                 TextButton(
                                   child: Text('Cancel'),
-                                  onPressed: () {
-                                    Navigator.of(context)
-                                        .pop(); // Dismiss the dialog
-                                  },
+                                  onPressed: () =>
+                                      Navigator.of(context).pop(false),
                                 ),
                                 TextButton(
                                   child: Text('Logout'),
-                                  onPressed: () {
-                                    Navigator.of(context)
-                                        .pop(); // Dismiss the dialog
-                                    Navigator.pop(
-                                        context); // Navigate back or perform the logout operation
-                                  },
+                                  onPressed: () =>
+                                      Navigator.of(context).pop(true),
                                 ),
                               ],
                             );
                           },
                         );
+                        if (confirm) {
+                          // Call the logout function from AuthenticationService
+                          Provider.of<AuthenticationService>(context,
+                                  listen: false)
+                              .signOut();
+                          // After logout, you might want to navigate the user to the login screen
+                          Navigator.pushReplacementNamed(context, '/login');
+                        }
                       },
                       child: Padding(
                         padding:

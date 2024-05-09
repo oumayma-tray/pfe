@@ -27,14 +27,29 @@ class _ForgotPasswordState extends State<ForgotPassword> {
       message = '';
     });
 
-    AuthenticationService authService =
-        Provider.of<AuthenticationService>(context, listen: false);
     try {
       bool emailSent =
-          await authService.sendPasswordResetEmail(emailController.text.trim());
+          await Provider.of<AuthenticationService>(context, listen: false)
+              .sendPasswordResetEmail(emailController.text.trim());
       if (emailSent) {
-        // Navigate to ResetPassword page or show confirmation message
-        Navigator.pushNamed(context, '/reset_password');
+        showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: Text("Check Your Email"),
+            content: Text(
+                "A password reset link has been sent to your email. Please follow the instructions to reset your password."),
+            actions: <Widget>[
+              TextButton(
+                child: Text("OK"),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                  Navigator.of(context)
+                      .pop(); // Optionally navigate back to the login screen
+                },
+              ),
+            ],
+          ),
+        );
       } else {
         showErrorDialog("No account found with this email.");
       }

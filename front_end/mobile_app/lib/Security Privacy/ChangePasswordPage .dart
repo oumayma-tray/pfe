@@ -1,14 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:mobile_app/auth/authentificationService.dart';
 
 class ChangePasswordPage extends StatelessWidget {
+  final TextEditingController _currentPasswordController =
+      TextEditingController();
+  final TextEditingController _newPasswordController = TextEditingController();
+  final TextEditingController _confirmPasswordController =
+      TextEditingController();
+
   @override
   Widget build(BuildContext context) {
-    // MediaQuery to get the size of the screen
-    var screenSize = MediaQuery.of(context).size;
-
-    // Calculate the width based on the screen size
-    // For example, we want the width to be 90% of the screen width or less
-    double width = screenSize.width > 600 ? 600 : screenSize.width * 0.9;
+    final authService =
+        Provider.of<AuthenticationService>(context, listen: false);
 
     return Scaffold(
       appBar: AppBar(
@@ -18,25 +22,12 @@ class ChangePasswordPage extends StatelessWidget {
       body: Center(
         child: SingleChildScrollView(
           child: Container(
-            width: width,
             padding: const EdgeInsets.all(16.0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Icon(Icons.lock, size: 80, color: Colors.blue),
-                SizedBox(height: 20),
-                Text(
-                  'To change your password, please fill in the fields below.',
-                  style: TextStyle(fontSize: 16),
-                  textAlign: TextAlign.center,
-                ),
-                Text(
-                  'Your password must contain at least 8 characters, it must also include at least one uppercase letter, one lowercase letter, one number and one special character.',
-                  style: TextStyle(fontSize: 16),
-                  textAlign: TextAlign.center,
-                ),
-                SizedBox(height: 20),
                 TextFormField(
+                  controller: _currentPasswordController,
                   obscureText: true,
                   decoration: InputDecoration(
                     labelText: 'Current Password',
@@ -47,6 +38,7 @@ class ChangePasswordPage extends StatelessWidget {
                 ),
                 SizedBox(height: 16),
                 TextFormField(
+                  controller: _newPasswordController,
                   obscureText: true,
                   decoration: InputDecoration(
                     labelText: 'New Password',
@@ -57,6 +49,7 @@ class ChangePasswordPage extends StatelessWidget {
                 ),
                 SizedBox(height: 16),
                 TextFormField(
+                  controller: _confirmPasswordController,
                   obscureText: true,
                   decoration: InputDecoration(
                     labelText: 'Confirm Password',
@@ -67,8 +60,28 @@ class ChangePasswordPage extends StatelessWidget {
                 ),
                 SizedBox(height: 24),
                 ElevatedButton(
-                  onPressed: () {
-                    // Implement change password logic
+                  onPressed: () async {
+                    if (_newPasswordController.text ==
+                        _confirmPasswordController.text) {
+                      try {
+                        await authService.changePassword(
+                            _currentPasswordController.text,
+                            _newPasswordController.text);
+                        // Show a success message
+                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                            content: Text('Password changed successfully!')));
+                      } catch (e) {
+                        // Handle errors, e.g., wrong current password
+                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                            content: Text(
+                                'Failed to change password: ${e.toString()}')));
+                      }
+                    } else {
+                      // Handle error when passwords don't match
+                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                          content: Text(
+                              'New password and confirm password do not match!')));
+                    }
                   },
                   child: Text('Change Password'),
                 ),
