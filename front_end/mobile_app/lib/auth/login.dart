@@ -1,12 +1,15 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:mobile_app/auth/register.dart';
-import 'package:provider/provider.dart';
-import 'package:mobile_app/auth/authentificationService.dart';
 import 'package:mobile_app/auth/forgotPassword.dart';
+import 'package:mobile_app/auth/otp.dart';
+import 'package:provider/provider.dart';
+import 'package:mobile_app/auth/ForgotandResetPassword.dart';
+import 'package:mobile_app/auth/register.dart';
 import 'package:mobile_app/components/textfield.dart';
 import 'package:mobile_app/homePage.dart';
+import 'package:mobile_app/services/Auth_service/authentificationService.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class LoginScreen extends StatefulWidget {
   @override
@@ -16,147 +19,103 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
+  final TextEditingController phoneController = TextEditingController();
   bool _isObscure = true;
   bool _isLoading = false;
+  bool isOTPEnabled = false;
+  String? _verificationId;
 
-  void login() async {
-    String email = emailController.text.trim();
-    String password = passwordController.text.trim();
+  @override
+  void dispose() {
+    emailController.dispose();
+    passwordController.dispose();
+    phoneController.dispose();
+    super.dispose();
+  }
 
-    if (email.isEmpty || password.isEmpty) {
-      _showErrorDialog('Please fill in all fields.');
-      return;
-    }
-
-    if (password.length < 6) {
-      _showErrorDialog('Your password must be at least 6 characters.');
-      return;
-    }
-
+  void _login() async {
     setState(() {
       _isLoading = true;
     });
 
     try {
-      await Provider.of<AuthenticationService>(context, listen: false)
-          .signInWithEmailAndPassword(email, password);
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => HomePage()),
+      UserCredential userCredential =
+          await FirebaseAuth.instance.signInWithEmailAndPassword(
+        email: emailController.text,
+        password: passwordController.text,
       );
-    } on FirebaseAuthMultiFactorException catch (e) {
-      // Handle the second factor requirement
-      handleMultiFactorAuthentication(e);
-    } on FirebaseAuthException catch (e) {
-      _showErrorDialog(e.message ?? 'An unexpected error occurred.');
-    } catch (e) {
-      _showErrorDialog(e.toString());
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
+
+      User? user = userCredential.user;
+
+      if (user != null) {
+        DocumentSnapshot userDoc = await FirebaseFirestore.instance
+            .collection('users')
+            .doc(user.uid)
+            .get();
+
+        Map<String, dynamic>? userData =
+            userDoc.data() as Map<String, dynamic>?;
+
+        if (userData != null && userData['isTwoFactorEnabled'] == true) {
+          _showPhoneNumberInput(userData['phoneNumber']);
+        } else {
+          Navigator.of(context).pushReplacement(
+              MaterialPageRoute(builder: (context) => HomePage()));
+        }
+      } else {
+        _showErrorDialog('Failed to login. Check credentials.');
       }
+    } on FirebaseAuthException catch (e) {
+      _showErrorDialog(e.message ?? 'Failed to login. Check credentials.');
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
     }
   }
 
-  void handleMultiFactorAuthentication(FirebaseAuthMultiFactorException e) {
-    final resolver = e.resolver;
-    // Example: prompt for SMS verification
-    showDialog(
-      context: context,
-      builder: (context) {
-        TextEditingController smsCodeController = TextEditingController();
-        return AlertDialog(
-          title: Text("Multi-Factor Authentication"),
-          content: TextField(
-            controller: smsCodeController,
-            decoration: InputDecoration(labelText: "Enter SMS code"),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () async {
-                PhoneAuthCredential credential = PhoneAuthProvider.credential(
-                  verificationId:
-                      resolver.session.id, // Get the session ID correctly
-                  smsCode: smsCodeController.text.trim(),
-                );
-                try {
-                  await resolver.resolveSignIn(
-                      PhoneMultiFactorGenerator.getAssertion(credential));
-                  Navigator.pop(context);
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(builder: (context) => HomePage()),
-                  );
-                } catch (e) {
-                  _showErrorDialog(
-                      "Failed to verify SMS code: ${e.toString()}");
-                }
-              },
-              child: Text('Verify'),
-            ),
-          ],
-        );
-      },
-    );
-  }
+  void _sendOTP(String phoneNumber) async {
+    setState(() {
+      _isLoading = true;
+    });
 
-  Future<void> verifyPhoneNumber(
-      String phoneNumber, BuildContext context) async {
     FirebaseAuth.instance.verifyPhoneNumber(
       phoneNumber: phoneNumber,
       verificationCompleted: (PhoneAuthCredential credential) async {
-        // Automatically signs in the user.
         await FirebaseAuth.instance.signInWithCredential(credential);
+        if (mounted) {
+          Navigator.of(context).pushReplacement(
+              MaterialPageRoute(builder: (context) => HomePage()));
+        }
       },
       verificationFailed: (FirebaseAuthException e) {
-        // Handle error.
+        _showErrorDialog('Failed to send OTP.');
       },
       codeSent: (String verificationId, int? resendToken) {
-        // This callback is where you get your verificationId
-        _showVerificationCodeInput(
-            context, verificationId); // Call a function to show input dialog
+        setState(() {
+          _verificationId = verificationId;
+        });
+        Navigator.of(context).push(MaterialPageRoute(
+          builder: (context) => OTPScreen(
+            phoneNumber: phoneNumber,
+            verificationId: verificationId,
+          ),
+        ));
       },
       codeAutoRetrievalTimeout: (String verificationId) {
-        // Auto retrieval timeout handling
+        setState(() {
+          _verificationId = verificationId;
+        });
       },
     );
+
+    setState(() {
+      _isLoading = false;
+    });
   }
 
-  void _showVerificationCodeInput(BuildContext context, String verificationId) {
-    TextEditingController codeController = TextEditingController();
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: Text("Enter Verification Code"),
-          content: TextField(
-            controller: codeController,
-            decoration: InputDecoration(labelText: "Verification code"),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () async {
-                PhoneAuthCredential credential = PhoneAuthProvider.credential(
-                  verificationId: verificationId,
-                  smsCode: codeController.text.trim(),
-                );
-
-                // Now, sign in with the credential
-                try {
-                  await FirebaseAuth.instance.signInWithCredential(credential);
-                  Navigator.of(context).pop(); // Dismiss the dialog
-                } catch (e) {
-                  // Handle errors
-                }
-              },
-              child: Text("Verify"),
-            ),
-          ],
-        );
-      },
-    );
+  void _showPhoneNumberInput(String phoneNumber) {
+    _sendOTP(phoneNumber);
   }
 
   void _showErrorDialog(String message) {
@@ -170,7 +129,7 @@ class _LoginScreenState extends State<LoginScreen> {
             TextButton(
               child: Text('OK'),
               onPressed: () {
-                Navigator.of(context).pop(); // Close the dialog
+                Navigator.of(context).pop();
               },
             ),
           ],
@@ -180,26 +139,22 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   bool isChecked = false;
+
   @override
   Widget build(BuildContext context) {
     double screenHeight = MediaQuery.of(context).size.height;
     double screenWidth = MediaQuery.of(context).size.width;
     return SafeArea(
       child: Scaffold(
-        resizeToAvoidBottomInset: false, //remove the overflow
+        resizeToAvoidBottomInset: false,
         backgroundColor: Color(0XFF28243D),
         body: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              SizedBox(
-                height: screenHeight * 0.032,
-              ), //khater hasb design logo b3id al top 23.2 w a7na aana screen height 722 donc 23.2/722= 0.032
+              SizedBox(height: screenHeight * 0.032),
               Image.asset("assets/Group.png"),
-
-              SizedBox(
-                height: screenHeight * 0.097,
-              ),
+              SizedBox(height: screenHeight * 0.097),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -210,27 +165,21 @@ class _LoginScreenState extends State<LoginScreen> {
                         fontSize: 32,
                         fontWeight: FontWeight.w700),
                   ),
-                  SizedBox(
-                    height: screenHeight * 0.01,
-                  ),
-                  //mail text-field
+                  SizedBox(height: screenHeight * 0.01),
                   Textfield(
                     controller: emailController,
                     hintText: 'Email',
-                    Icon: Icon(Icons.email_outlined, color: Colors.white),
+                    icon: Icon(Icons.email_outlined, color: Colors.white),
                     obscureText: false,
                   )
                 ],
               ),
-              SizedBox(
-                height: screenHeight * 0.03,
-              ),
-              //password text-field
+              SizedBox(height: screenHeight * 0.03),
               Textfield(
                 controller: passwordController,
                 hintText: 'Password',
                 obscureText: _isObscure,
-                Icon: IconButton(
+                icon: IconButton(
                   icon: Icon(
                     _isObscure ? Icons.visibility_off : Icons.visibility,
                     color: Colors.white,
@@ -242,7 +191,6 @@ class _LoginScreenState extends State<LoginScreen> {
                   },
                 ),
               ),
-
               Padding(
                 padding: EdgeInsets.symmetric(horizontal: screenHeight * 0.023),
                 child: Row(
@@ -268,7 +216,6 @@ class _LoginScreenState extends State<LoginScreen> {
                       ],
                     ),
                     Column(
-                      // Changed from Row to Column for vertical arrangement
                       crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
                         GestureDetector(
@@ -276,8 +223,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (context) =>
-                                    RegisterScreen(), // Ensure you have this screen defined
+                                builder: (context) => RegisterScreen(),
                               ),
                             );
                           },
@@ -287,9 +233,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                 color: Color(0XFF9155FD), fontSize: 13),
                           ),
                         ),
-                        SizedBox(
-                            height:
-                                8), // Space between Register and Forgot Password links
+                        SizedBox(height: 8),
                         GestureDetector(
                           onTap: () {
                             Navigator.push(
@@ -310,10 +254,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   ],
                 ),
               ),
-
-              SizedBox(
-                height: screenHeight * 0.1,
-              ),
+              SizedBox(height: screenHeight * 0.1),
               Expanded(
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.end,
@@ -344,7 +285,11 @@ class _LoginScreenState extends State<LoginScreen> {
                                   height: screenHeight * 0.05,
                                   child: InkWell(
                                     onTap: () {
-                                      login(); // This already handles navigation upon successful login
+                                      if (isOTPEnabled) {
+                                        _showPhoneNumberInput('');
+                                      } else {
+                                        _login();
+                                      }
                                     },
                                     child: Text(
                                       'LOGIN',

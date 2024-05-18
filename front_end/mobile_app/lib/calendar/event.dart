@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:mobile_app/services/calendarService/service_calendar.dart';
 
 class Event extends StatefulWidget {
   const Event({Key? key}) : super(key: key);
@@ -9,19 +11,19 @@ class Event extends StatefulWidget {
 }
 
 class _EventState extends State<Event> {
+  final CalendarService _calendarService = CalendarService();
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+
   DateTime today = DateTime.now();
   DateTime selectedDay = DateTime.now();
   final _formKey = GlobalKey<FormState>();
-  final calendarKey = GlobalKey<FormState>();
-  final guestKey = GlobalKey<FormState>();
   final _controller = TextEditingController();
   final _startDateController = TextEditingController();
   final _endDateController = TextEditingController();
   DateTime _startDate = DateTime.now();
   DateTime _endDate = DateTime.now().add(Duration(days: 1));
-  Map<DateTime, List<String>> selectedEvents = {};
-
   final DateFormat dateFormat = DateFormat('yyyy-MM-dd hh:mm a');
+
   String? selectedGuests;
   final List<String> guestOptions = [
     'guest 1',
@@ -31,35 +33,50 @@ class _EventState extends State<Event> {
     'guest 5'
   ];
   List<String> selectedGuestsList = [];
+
   String? selectedCalendar;
   final List<String> calendarOptions = [
     "Personal",
     "Holiday",
     "Family",
-    "ETC",
-    "Buisiness",
-    "View All"
+    "Business",
   ];
 
-  void _addEventToCalendar(DateTime selectedDate, String eventTitle) {
-    if (selectedEvents[selectedDate] == null) {
-      selectedEvents[selectedDate] = [eventTitle];
-    } else {
-      selectedEvents[selectedDate]!.add(eventTitle);
+  void _addEvent() async {
+    if (_formKey.currentState!.validate()) {
+      User? currentUser = _auth.currentUser;
+
+      if (currentUser == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('User not logged in')),
+        );
+        return;
+      }
+
+      Map<String, dynamic> eventData = {
+        'title': _controller.text,
+        'calendar': selectedCalendar ?? 'ETC',
+        'start_date': _startDateController.text,
+        'end_date': _endDateController.text,
+        'event_url': '', // Add your URL field here if needed
+        'guests': selectedGuestsList,
+        'description': '', // Add your description field here if needed
+        'created_by': currentUser.uid, // Current user's ID
+      };
+
+      try {
+        await _calendarService.addEvent(eventData);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Event added successfully')),
+        );
+        Navigator.of(context).pop();
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to add event: $e')),
+        );
+      }
     }
-
-    Navigator.of(context).pop();
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Event added on $selectedDate'),
-      ),
-    );
-
-    _controller.clear();
   }
-
-  bool viewAllList = false;
 
   @override
   Widget build(BuildContext context) {
@@ -68,12 +85,9 @@ class _EventState extends State<Event> {
       child: Scaffold(
         resizeToAvoidBottomInset: false,
         body: SingleChildScrollView(
-          // Allows the form to be scrollable
-          reverse:
-              true, // Ensures the scrollview starts at the bottom of the viewport
+          reverse: true,
           child: Padding(
-            padding: EdgeInsets.only(
-                bottom: bottomInset), // Padding for the keyboard
+            padding: EdgeInsets.only(bottom: bottomInset),
             child: Container(
               decoration: BoxDecoration(
                 color: Color.fromRGBO(40, 36, 61, 1),
@@ -92,7 +106,7 @@ class _EventState extends State<Event> {
                         controller: _controller,
                         validator: (value) {
                           if (value == null || value.isEmpty) {
-                            return 'please enter an event title ';
+                            return 'Please enter an event title';
                           }
                           return null;
                         },
@@ -125,60 +139,47 @@ class _EventState extends State<Event> {
                         ),
                       ),
                       SizedBox(height: 12),
-                      Form(
-                        key: calendarKey,
-                        child: Column(
-                          children: [
-                            DropdownButtonFormField<String>(
-                              value: selectedCalendar,
-                              validator: (value) {
-                                if (value == null || value.isEmpty) {
-                                  return 'please enter a calendar ';
-                                }
-                                return null;
-                              },
-                              style: TextStyle(color: Colors.white),
-                              decoration: InputDecoration(
-                                labelText: 'Calendar*',
-                                labelStyle: TextStyle(
-                                  fontSize: 12,
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.w900,
-                                ),
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(30.0),
-                                  borderSide: BorderSide(
-                                    color: Color.fromRGBO(145, 85, 253, 1),
-                                  ),
-                                ),
-                                focusedBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(30.0),
-                                  borderSide: BorderSide(
-                                    color: Color.fromRGBO(145, 85, 253, 1),
-                                  ),
-                                ),
-                                enabledBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(30.0),
-                                  borderSide: BorderSide(
-                                    color: Color.fromRGBO(145, 85, 253, 1),
-                                  ),
-                                ),
-                              ),
-                              onChanged: (value) {
-                                setState(() {
-                                  selectedCalendar = value!;
-                                });
-                              },
-                              dropdownColor: Color.fromRGBO(40, 36, 61, 1),
-                              items: calendarOptions.map((option) {
-                                return DropdownMenuItem<String>(
-                                  value: option,
-                                  child: Text(option),
-                                );
-                              }).toList(),
+                      DropdownButtonFormField<String>(
+                        value: selectedCalendar,
+                        style: TextStyle(color: Colors.white),
+                        decoration: InputDecoration(
+                          labelText: 'Calendar',
+                          labelStyle: TextStyle(
+                            fontSize: 12,
+                            color: Colors.white,
+                            fontWeight: FontWeight.w900,
+                          ),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(30.0),
+                            borderSide: BorderSide(
+                              color: Color.fromRGBO(145, 85, 253, 1),
                             ),
-                          ],
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(30.0),
+                            borderSide: BorderSide(
+                              color: Color.fromRGBO(145, 85, 253, 1),
+                            ),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(30.0),
+                            borderSide: BorderSide(
+                              color: Color.fromRGBO(145, 85, 253, 1),
+                            ),
+                          ),
                         ),
+                        onChanged: (value) {
+                          setState(() {
+                            selectedCalendar = value!;
+                          });
+                        },
+                        dropdownColor: Color.fromRGBO(40, 36, 61, 1),
+                        items: calendarOptions.map((option) {
+                          return DropdownMenuItem<String>(
+                            value: option,
+                            child: Text(option),
+                          );
+                        }).toList(),
                       ),
                       SizedBox(height: 12),
                       TextFormField(
@@ -305,7 +306,7 @@ class _EventState extends State<Event> {
                         ),
                       ),
                       SizedBox(height: 12),
-                      TextField(
+                      TextFormField(
                         style: TextStyle(color: Colors.white),
                         decoration: InputDecoration(
                           labelText: 'Event URL',
@@ -336,57 +337,50 @@ class _EventState extends State<Event> {
                         keyboardType: TextInputType.url,
                       ),
                       SizedBox(height: 12),
-                      Form(
-                        key: guestKey,
-                        child: Column(
-                          children: [
-                            DropdownButtonFormField<String>(
-                              value: selectedGuests,
-                              style: TextStyle(color: Colors.white),
-                              decoration: InputDecoration(
-                                labelText: 'Guests',
-                                labelStyle: TextStyle(
-                                  fontSize: 12,
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.w900,
-                                ),
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(30.0),
-                                  borderSide: BorderSide(
-                                    color: Color.fromRGBO(145, 85, 253, 1),
-                                  ),
-                                ),
-                                focusedBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(30.0),
-                                  borderSide: BorderSide(
-                                    color: Color.fromRGBO(145, 85, 253, 1),
-                                  ),
-                                ),
-                                enabledBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(30.0),
-                                  borderSide: BorderSide(
-                                    color: Color.fromRGBO(145, 85, 253, 1),
-                                  ),
-                                ),
-                              ),
-                              onChanged: (value) {
-                                setState(() {
-                                  selectedGuests = value!;
-                                });
-                              },
-                              dropdownColor: Color.fromRGBO(40, 36, 61, 1),
-                              items: guestOptions.map((option) {
-                                return DropdownMenuItem<String>(
-                                  value: option,
-                                  child: Text(option),
-                                );
-                              }).toList(),
+                      DropdownButtonFormField<String>(
+                        value: selectedGuests,
+                        style: TextStyle(color: Colors.white),
+                        decoration: InputDecoration(
+                          labelText: 'Guests',
+                          labelStyle: TextStyle(
+                            fontSize: 12,
+                            color: Colors.white,
+                            fontWeight: FontWeight.w900,
+                          ),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(30.0),
+                            borderSide: BorderSide(
+                              color: Color.fromRGBO(145, 85, 253, 1),
                             ),
-                          ],
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(30.0),
+                            borderSide: BorderSide(
+                              color: Color.fromRGBO(145, 85, 253, 1),
+                            ),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(30.0),
+                            borderSide: BorderSide(
+                              color: Color.fromRGBO(145, 85, 253, 1),
+                            ),
+                          ),
                         ),
+                        onChanged: (value) {
+                          setState(() {
+                            selectedGuests = value!;
+                          });
+                        },
+                        dropdownColor: Color.fromRGBO(40, 36, 61, 1),
+                        items: guestOptions.map((option) {
+                          return DropdownMenuItem<String>(
+                            value: option,
+                            child: Text(option),
+                          );
+                        }).toList(),
                       ),
                       SizedBox(height: 12),
-                      TextField(
+                      TextFormField(
                         style: TextStyle(color: Colors.white),
                         decoration: InputDecoration(
                           labelText: 'Description',
@@ -420,15 +414,7 @@ class _EventState extends State<Event> {
                         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                         children: [
                           ElevatedButton(
-                            onPressed: () {
-                              if (_formKey.currentState!.validate() &&
-                                  calendarKey.currentState!.validate()) {
-                                DateTime selectedDate = selectedDay;
-                                String eventTitle = _controller.text;
-                                _addEventToCalendar(selectedDate, eventTitle);
-                                Navigator.of(context).pop();
-                              }
-                            },
+                            onPressed: _addEvent,
                             child: Text(
                               'Add',
                               style: TextStyle(

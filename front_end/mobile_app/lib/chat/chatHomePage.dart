@@ -284,29 +284,24 @@ class ChatItemWidget extends StatelessWidget {
     switch (status) {
       case MessageStatus.sent:
         icons = [
-          Image.asset('assets/now hiring! - 2023-10-26T234739 4.png',
-              width: 21, height: 15),
+          Image.asset('assets/sent_icon.png', width: 21, height: 15),
         ];
         break;
       case MessageStatus.received:
         icons = [
-          Image.asset('assets/now hiring! - 2023-10-26T234739 4.png',
-              width: 21, height: 15),
+          Image.asset('assets/sent_icon.png', width: 21, height: 15),
           Positioned(
             top: 2, // No vertical space between icons.
-            child: Image.asset('assets/now hiring! - 2023-10-26T234739 4.png',
-                width: 27, height: 19),
+            child: Image.asset('assets/sent_icon.png', width: 27, height: 19),
           ),
         ];
         break;
       case MessageStatus.read:
         icons = [
-          Image.asset('assets/now hiring! - 2023-10-26T234739 9.png',
-              width: 21, height: 15),
+          Image.asset('assets/read_icon.png', width: 21, height: 15),
           Positioned(
             top: 2, // No vertical space between icons.
-            child: Image.asset('assets/now hiring! - 2023-10-26T234739 9.png',
-                width: 27, height: 19),
+            child: Image.asset('assets/read_icon.png', width: 27, height: 19),
           ),
         ];
         break;

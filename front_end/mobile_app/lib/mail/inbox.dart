@@ -31,7 +31,6 @@ class _InboxPageState extends State<InboxPage> {
 // Define a callback
 
   void fetchEmails() async {
-    await Future.delayed(Duration(seconds: 2));
     setState(() {
       inboxEmails = [
         Email(

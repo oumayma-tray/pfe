@@ -1,16 +1,17 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:mobile_app/auth/login.dart';
+
 import 'package:provider/provider.dart';
 import 'package:flutter/widgets.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:mobile_app/Employee%20Management/employee_tile.dart';
-import 'package:mobile_app/Security%20Privacy/SecurityPrivacyPage.dart';
-import 'package:mobile_app/auth/authentificationService.dart';
+import 'package:mobile_app/auth/Security%20Privacy/SecurityPrivacyPage.dart';
+import 'package:mobile_app/services/Auth_service/authentificationService.dart';
 import 'package:mobile_app/calendar/calendarHome.dart';
 import 'package:mobile_app/chat/chatHomePage.dart';
 import 'package:mobile_app/mail/mailHomePage.dart';
 import 'package:mobile_app/Employee%20Management/Employees.dart';
-import 'package:mobile_app/Employee%20Management/EmployeeDetails.dart';
 import 'package:mobile_app/project%20management/ProjectManagementHomePage.dart';
 
 List<Employee> employees = getMockEmployees();
@@ -119,20 +120,26 @@ class _HomePageState extends State<HomePage> {
                                 ),
                                 TextButton(
                                   child: Text('Logout'),
-                                  onPressed: () =>
-                                      Navigator.of(context).pop(true),
+                                  onPressed: () async {
+                                    Navigator.of(context).pop(true);
+                                  },
                                 ),
                               ],
                             );
                           },
                         );
+
                         if (confirm) {
-                          // Call the logout function from AuthenticationService
-                          Provider.of<AuthenticationService>(context,
+                          // Sign out the user
+                          await Provider.of<AuthenticationService>(context,
                                   listen: false)
                               .signOut();
-                          // After logout, you might want to navigate the user to the login screen
-                          Navigator.pushReplacementNamed(context, '/login');
+
+                          // Navigate to the login page
+                          Navigator.of(context).pushReplacement(
+                            MaterialPageRoute(
+                                builder: (context) => LoginScreen()),
+                          );
                         }
                       },
                       child: Padding(
@@ -277,10 +284,8 @@ class _HomePageState extends State<HomePage> {
                       }),
                       SizedBox(height: 5),
                       appRow(context, 'Chat', Icons.chat, () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (context) => Chat()),
-                        );
+                        Navigator.push(context,
+                            MaterialPageRoute(builder: (context) => Chat()));
                       }),
                       // ... Add more app rows as needed
                     ],

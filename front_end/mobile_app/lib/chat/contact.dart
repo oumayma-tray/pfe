@@ -75,7 +75,7 @@ class ContactPage extends StatelessWidget {
             ),
             ListTile(
               leading: Icon(Icons.phone, color: Colors.white),
-              title: Text(phone, style: const TextStyle(color: Colors.white)),
+              title: Text(phone, style: TextStyle(color: Colors.white)),
             ),
             ListTile(
               leading: Icon(Icons.home, color: Colors.white),

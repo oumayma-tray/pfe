@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:mobile_app/calendar/AllEventsPage.dart';
 import 'package:mobile_app/calendar/BusinessEventsPage.dart';
@@ -8,7 +7,7 @@ import 'package:mobile_app/calendar/FamilyEventsPage.dart';
 import 'package:mobile_app/calendar/HolidayEventsPage.dart';
 import 'package:mobile_app/calendar/PersonalEventsPage.dart';
 import 'package:mobile_app/calendar/event.dart';
-import 'package:mobile_app/calendar/listEvent.dart';
+
 import 'package:table_calendar/table_calendar.dart';
 
 class CalendarHome extends StatefulWidget {
@@ -21,47 +20,38 @@ class CalendarHome extends StatefulWidget {
 class _CalendarHomeState extends State<CalendarHome> {
   DateTime today = DateTime.now();
   DateTime selectedDay = DateTime.now();
-  EventList eventList = EventList();
 
   @override
   void initState() {
     super.initState();
-    // Ajoutez quelques événements initiaux si nécessaire
+    // Add initial events if necessary
   }
 
   void _showAddEventSheet(BuildContext context) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor:
-          Colors.transparent, // Makes the bottom sheet's background transparent
+      backgroundColor: Colors.transparent,
       builder: (BuildContext context) {
         return DraggableScrollableSheet(
-          initialChildSize:
-              0.8, // Adjust the initial height of the bottom sheet
-          maxChildSize:
-              0.8, // Adjust the maximum height of the bottom sheet if needed
+          initialChildSize: 0.8,
+          maxChildSize: 0.8,
           builder: (_, scrollController) {
             return Container(
               decoration: BoxDecoration(
-                color: Theme.of(context)
-                    .scaffoldBackgroundColor, // Use the scaffold's background color
+                color: Theme.of(context).scaffoldBackgroundColor,
                 borderRadius: BorderRadius.only(
-                  topLeft:
-                      Radius.circular(30), // Rounded corners on the top left
-                  topRight:
-                      Radius.circular(30), // Rounded corners on the top right
+                  topLeft: Radius.circular(30),
+                  topRight: Radius.circular(30),
                 ),
               ),
               child: SingleChildScrollView(
-                controller: scrollController, // Ensures the sheet is scrollable
+                controller: scrollController,
                 child: Padding(
                   padding: EdgeInsets.all(20.0),
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: <Widget>[
-                      // Here you would build the form fields similar to those in the Event widget
-                      // You can also call Event() directly if it’s designed to fit this space
                       Event(), // Using the Event form widget
                     ],
                   ),
@@ -76,8 +66,9 @@ class _CalendarHomeState extends State<CalendarHome> {
 
   @override
   Widget build(BuildContext context) {
-    late double screenHeight = MediaQuery.of(context).size.height;
-    late double screenWidth = MediaQuery.of(context).size.width;
+    double screenHeight = MediaQuery.of(context).size.height;
+    double screenWidth = MediaQuery.of(context).size.width;
+
     return SafeArea(
       child: Scaffold(
         body: Center(
@@ -91,7 +82,6 @@ class _CalendarHomeState extends State<CalendarHome> {
               fit: StackFit.expand,
               children: [
                 Positioned(
-                  //width: screenWidth * 1.02,
                   child: Align(
                     alignment: Alignment.topCenter,
                     child: Image.asset(
@@ -109,11 +99,14 @@ class _CalendarHomeState extends State<CalendarHome> {
                 Positioned(
                   top: 30,
                   left: 60,
-                  child: Text('CALENDARS',
-                      style: GoogleFonts.roboto(
-                          fontSize: 40,
-                          color: Colors.white,
-                          fontWeight: FontWeight.w900)),
+                  child: Text(
+                    'CALENDARS',
+                    style: GoogleFonts.roboto(
+                      fontSize: 40,
+                      color: Colors.white,
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
                 ),
                 Positioned(
                   top: screenHeight * 0.12,
@@ -210,23 +203,21 @@ class _CalendarHomeState extends State<CalendarHome> {
                   left: screenWidth * 0.03,
                   child: InkWell(
                     onTap: () {
-                      // Action to perform on tap, e.g., navigate to a new screen
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                            builder: (context) =>
-                                EventDisplayWidget()), // Assuming AllEventsPage exists
+                            builder: (context) => EventDisplayWidget()),
                       );
                     },
                     child: Container(
-                      padding: EdgeInsets.all(
-                          8.0), // Optional: adds padding around the text for easier tapping
+                      padding: EdgeInsets.all(8.0),
                       child: Text(
                         'View All',
                         style: GoogleFonts.roboto(
-                            fontSize: 12,
-                            color: Colors.black,
-                            fontWeight: FontWeight.w700),
+                          fontSize: 12,
+                          color: Colors.black,
+                          fontWeight: FontWeight.w700,
+                        ),
                       ),
                     ),
                   ),
@@ -244,25 +235,28 @@ class _CalendarHomeState extends State<CalendarHome> {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                            builder: (context) =>
-                                PersonalEventsPage()), // Assuming PersonalEventsPage exists
+                            builder: (context) => PersonalEventsPage()),
                       );
                     },
-                    child: Row(mainAxisSize: MainAxisSize.min, children: [
-                      Icon(
-                        Icons.check,
-                        color: Colors.white,
-                        size: 15,
-                      ),
-                      SizedBox(width: 8), // Adds padding for easier tapping
-                      Text(
-                        'Personal',
-                        style: GoogleFonts.roboto(
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.check,
+                          color: Colors.white,
+                          size: 15,
+                        ),
+                        SizedBox(width: 8),
+                        Text(
+                          'Personal',
+                          style: GoogleFonts.roboto(
                             fontSize: 12,
                             color: Colors.black,
-                            fontWeight: FontWeight.w700),
-                      ),
-                    ]),
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
                 Positioned(
@@ -278,25 +272,28 @@ class _CalendarHomeState extends State<CalendarHome> {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                            builder: (context) =>
-                                FamilyEventsPage()), // Assuming FamilyEventsPage exists
+                            builder: (context) => FamilyEventsPage()),
                       );
                     },
-                    child: Row(mainAxisSize: MainAxisSize.min, children: [
-                      Icon(
-                        Icons.check,
-                        color: Colors.white,
-                        size: 15,
-                      ),
-                      SizedBox(width: 8),
-                      Text(
-                        'Family',
-                        style: GoogleFonts.roboto(
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.check,
+                          color: Colors.white,
+                          size: 15,
+                        ),
+                        SizedBox(width: 8),
+                        Text(
+                          'Family',
+                          style: GoogleFonts.roboto(
                             fontSize: 12,
                             color: Colors.black,
-                            fontWeight: FontWeight.w700),
-                      ),
-                    ]),
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
                 Positioned(
@@ -312,25 +309,27 @@ class _CalendarHomeState extends State<CalendarHome> {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                            builder: (context) =>
-                                BusinessEventsPage()), // Assuming BusinessEventsPage exists
+                            builder: (context) => BusinessEventsPage()),
                       );
                     },
-                    child: Row(mainAxisSize: MainAxisSize.min, children: [
-                      Icon(
-                        Icons.check,
-                        color: Colors.white,
-                        size: 15,
-                      ),
-                      SizedBox(width: 8),
-                      Text(
-                        'Business',
-                        style: GoogleFonts.roboto(
-                            fontSize: 12,
-                            color: Colors.black,
-                            fontWeight: FontWeight.w700),
-                      ),
-                    ]),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.check,
+                          color: Colors.white,
+                          size: 15,
+                        ),
+                        SizedBox(width: 8),
+                        Text(
+                          'Business',
+                          style: GoogleFonts.roboto(
+                              fontSize: 12,
+                              color: Colors.black,
+                              fontWeight: FontWeight.w700),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
                 Positioned(
@@ -346,25 +345,28 @@ class _CalendarHomeState extends State<CalendarHome> {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                            builder: (context) =>
-                                ETCPEventsPage()), // Replace with actual page for ETC events
+                            builder: (context) => ETCPEventsPage()),
                       );
                     },
-                    child: Row(mainAxisSize: MainAxisSize.min, children: [
-                      Icon(
-                        Icons.check,
-                        color: Colors.white,
-                        size: 15,
-                      ),
-                      SizedBox(width: 8),
-                      Text(
-                        'ETC',
-                        style: GoogleFonts.roboto(
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.check,
+                          color: Colors.white,
+                          size: 15,
+                        ),
+                        SizedBox(width: 8),
+                        Text(
+                          'ETC',
+                          style: GoogleFonts.roboto(
                             fontSize: 12,
                             color: Colors.black,
-                            fontWeight: FontWeight.w700),
-                      ),
-                    ]),
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
                 Positioned(
@@ -380,8 +382,7 @@ class _CalendarHomeState extends State<CalendarHome> {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                            builder: (context) =>
-                                HolidayEventsPage()), // Assuming BusinessEventsPage exists
+                            builder: (context) => HolidayEventsPage()),
                       );
                     },
                     child: Row(
@@ -396,9 +397,10 @@ class _CalendarHomeState extends State<CalendarHome> {
                         Text(
                           'Holiday',
                           style: GoogleFonts.roboto(
-                              fontSize: 12,
-                              color: Colors.black,
-                              fontWeight: FontWeight.w700),
+                            fontSize: 12,
+                            color: Colors.black,
+                            fontWeight: FontWeight.w700,
+                          ),
                         ),
                       ],
                     ),
@@ -436,7 +438,6 @@ class _CalendarHomeState extends State<CalendarHome> {
                 Positioned(
                   top: screenHeight * 0.55,
                   child: Container(
-                    //height: screenHeight * 0.001,
                     width: screenWidth * 0.95,
                     child: TableCalendar(
                       firstDay: DateTime.utc(today.year, today.month - 100),
@@ -461,8 +462,9 @@ class _CalendarHomeState extends State<CalendarHome> {
                                   width: 6,
                                   height: 6,
                                   decoration: BoxDecoration(
-                                      color: Colors.red,
-                                      shape: BoxShape.circle),
+                                    color: Colors.red,
+                                    shape: BoxShape.circle,
+                                  ),
                                 ),
                               ),
                             );
@@ -488,9 +490,10 @@ class _CalendarHomeState extends State<CalendarHome> {
                         formatButtonVisible: false,
                         titleCentered: true,
                         titleTextStyle: GoogleFonts.roboto(
-                            fontSize: 17,
-                            color: Colors.white,
-                            fontWeight: FontWeight.w900),
+                          fontSize: 17,
+                          color: Colors.white,
+                          fontWeight: FontWeight.w900,
+                        ),
                       ),
                     ),
                   ),

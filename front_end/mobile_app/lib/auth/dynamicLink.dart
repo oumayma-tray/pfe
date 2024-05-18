@@ -19,8 +19,8 @@ class DynamicLinksManager {
   void _handleDeepLink(BuildContext context, Uri? deepLink) {
     if (deepLink != null) {
       // Check if the deep link matches the expected reset password path
-      if (deepLink.path == '/resetPassword') {
-        Navigator.pushNamed(context, '/resetPassword');
+      if (deepLink.path == '/reset_Password') {
+        Navigator.pushNamed(context, '/reset_Password');
       }
     }
   }

@@ -1,3 +1,6 @@
 {
-    "java.configuration.updateBuildConfiguration": "interactive"
+    "java.configuration.updateBuildConfiguration": "interactive",
+    "java.compile.nullAnalysis.mode": "automatic",
+    "CodeGPT.apiKey": "CodeGPT Plus Beta",
+    "cmake.sourceDirectory": "C:/Users/oumay/OneDrive/Bureau/pf1/pfe/front_end/mobile_app/linux"
 }

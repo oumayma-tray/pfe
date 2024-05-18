@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:mobile_app/components/texfieldEye.dart';
-import 'package:provider/provider.dart';
-import 'package:mobile_app/auth/authentificationService.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:mobile_app/components/button.dart';
+import 'package:mobile_app/components/textfield.dart';
+import 'package:mobile_app/services/Auth_service/authentificationService.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class ResetPassword extends StatefulWidget {
   @override
@@ -11,54 +10,80 @@ class ResetPassword extends StatefulWidget {
 }
 
 class _ResetPasswordState extends State<ResetPassword> {
-  final newpasswordController = TextEditingController();
-  final confirmpasswordController = TextEditingController();
-  bool passwordMatchError = false;
-  bool showSuccessMessage = false;
-  bool isLoading = false; // Declare isLoading here
+  final TextEditingController passwordController = TextEditingController();
+  final TextEditingController confirmPasswordController =
+      TextEditingController();
+  bool _isLoading = false;
+  late AuthenticationService authService;
 
-  void submit() async {
-    if (newpasswordController.text != confirmpasswordController.text) {
-      setState(() {
-        passwordMatchError = true;
-        showSuccessMessage = false;
-      });
+  @override
+  void initState() {
+    super.initState();
+    authService = AuthenticationService(FirebaseAuth.instance);
+  }
+
+  @override
+  void dispose() {
+    passwordController.dispose();
+    confirmPasswordController.dispose();
+    super.dispose();
+  }
+
+  void _showErrorDialog(String message) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text("Error"),
+        content: Text(message),
+        actions: <Widget>[
+          TextButton(
+            child: Text('OK'),
+            onPressed: () => Navigator.of(context).pop(),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showSnackbar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: Colors.green,
+      ),
+    );
+  }
+
+  void _resetPassword() async {
+    String password = passwordController.text.trim();
+    String confirmPassword = confirmPasswordController.text.trim();
+
+    if (password.isEmpty || confirmPassword.isEmpty) {
+      _showErrorDialog("Please enter and confirm your new password.");
+      return;
+    }
+
+    if (password != confirmPassword) {
+      _showErrorDialog("Passwords do not match. Please try again.");
       return;
     }
 
     setState(() {
-      isLoading = true; // Set isLoading to true when operation starts
+      _isLoading = true;
     });
 
     try {
-      await Provider.of<AuthenticationService>(context, listen: false)
-          .updatePassword(newpasswordController.text);
-
-      setState(() {
-        showSuccessMessage = true;
-        passwordMatchError = false;
-        newpasswordController.clear();
-        confirmpasswordController.clear();
-      });
+      User? user = authService.currentUser;
+      if (user != null) {
+        await user.updatePassword(password);
+        _showSnackbar("Password has been changed successfully.");
+        Navigator.of(context).pop(); // Go back to previous screen
+      }
     } catch (e) {
-      showDialog(
-        context: context,
-        builder: (context) {
-          return AlertDialog(
-            title: Text("Error"),
-            content: Text("Failed to update password: ${e.toString()}"),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: Text("OK"),
-              ),
-            ],
-          );
-        },
-      );
+      _showErrorDialog("Failed to change password. Please try again.");
     } finally {
       setState(() {
-        isLoading = false; // Set isLoading to false when operation ends
+        _isLoading = false;
       });
     }
   }
@@ -70,91 +95,76 @@ class _ResetPasswordState extends State<ResetPassword> {
 
     return SafeArea(
       child: Scaffold(
-        resizeToAvoidBottomInset: false,
+        resizeToAvoidBottomInset: false, // Remove the overflow
         backgroundColor: Color(0XFF28243D),
         body: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              SizedBox(
-                height: screenHeight * 0.032,
-              ),
+              SizedBox(height: screenHeight * 0.032),
               Image.asset("assets/Group.png"),
-              SizedBox(
-                height: screenHeight * 0.097,
-              ),
+              SizedBox(height: screenHeight * 0.097),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    "Reset Password?",
+                    "Reset Password",
                     style: GoogleFonts.roboto(
-                      color: Colors.white,
-                      fontSize: 24,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                  SizedBox(
-                    height: screenHeight * 0.03,
-                  ),
-                  // New password text-field
-                  TextFieldEye(
-                    controller: newpasswordController,
-                    hintText: 'New Password',
+                        color: Colors.white,
+                        fontSize: 24,
+                        fontWeight: FontWeight.w700),
                   ),
                   SizedBox(height: screenHeight * 0.03),
-                  // Confirm password text-field
-                  TextFieldEye(
-                    controller: confirmpasswordController,
-                    hintText: 'Confirm New Password',
+                  // New password text field
+                  Textfield(
+                    controller: passwordController,
+                    hintText: 'New Password',
+                    icon: Icon(Icons.lock_outline, color: Colors.white),
+                    obscureText: true,
                   ),
-
-                  // Display error message if passwords don't match
-                  if (passwordMatchError)
-                    Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 8.0),
-                      child: Text(
-                        "Passwords do not match.",
-                        style: TextStyle(
-                          color: Colors.red,
-                        ),
-                      ),
-                    ),
-
-                  // Display success message
-                  if (showSuccessMessage)
-                    Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 8.0),
-                      child: Text(
-                        "Password changed successfully!",
-                        style: TextStyle(
-                          color: Colors.green,
-                        ),
-                      ),
-                    ),
+                  SizedBox(height: screenHeight * 0.03),
+                  // Confirm new password text field
+                  Textfield(
+                    controller: confirmPasswordController,
+                    hintText: 'Confirm New Password',
+                    icon: Icon(Icons.lock_outline, color: Colors.white),
+                    obscureText: true,
+                  ),
                 ],
               ),
-              SizedBox(
-                height: screenHeight * 0.01,
-              ),
+              SizedBox(height: screenHeight * 0.01),
               // Submit button
-              button(onTap: submit),
-              SizedBox(
-                height: screenHeight * 0.1213,
+              ElevatedButton(
+                onPressed: _resetPassword,
+                child: _isLoading
+                    ? CircularProgressIndicator(
+                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                      )
+                    : Text('Change Password'),
               ),
+              SizedBox(height: screenHeight * 0.1213),
               Expanded(
                 child: Stack(
                   children: [
-                    Positioned(
-                      left: 0,
-                      child: Image.asset('assets/vecp3.png'),
-                    ),
+                    // Right vector
+                    Positioned(right: 0, child: Image.asset('assets/lv.png')),
+                    // Left vector
+                    Positioned(left: 0, child: Image.asset('assets/rv.png')),
+                    // PC image
                     Positioned.fill(
-                      top: screenHeight * 0.06,
-                      right: screenWidth * 0.4,
+                      top: screenHeight * 0.001, // Adjust the top position
                       child: Transform.scale(
-                        scale: 1.066,
-                        child: Image.asset('assets/imgp3.png'),
+                        scale: 1.24, // Adjust the scale factor as needed
+                        child: Image.asset('assets/pc.png'),
+                      ),
+                    ),
+                    // Ellipse image
+                    Positioned(
+                      top: screenHeight * 0.75 / 4, // Adjust the top position
+                      left: screenWidth * 1.5 / 4, // Adjust the left position
+                      child: Transform.scale(
+                        scale: 2.8,
+                        child: Image.asset('assets/ellipse1.png'),
                       ),
                     ),
                   ],
