@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:firebase_storage/firebase_storage.dart';
+import 'dart:io';
 import 'package:mobile_app/Employee%20Management/Employees.dart';
+import 'package:mobile_app/services/Service%20Employe/GestionEmployeService.dart';
 
 class UpdateEmployeePage extends StatefulWidget {
-  final Employee employee; // Pass the employee object that will be edited.
+  final Employee employee;
 
   UpdateEmployeePage({required this.employee});
 
@@ -11,14 +15,12 @@ class UpdateEmployeePage extends StatefulWidget {
 }
 
 class _UpdateEmployeePageState extends State<UpdateEmployeePage> {
-  String? selectedRole; // Declaring with an explicit type
-// Declaring with type inference
-
-  late String? selectedLanguage;
+  final GestionEmployeService _employeeService = GestionEmployeService();
+  String? selectedRole;
+  String? selectedLanguage;
   final List<String> roles = ['Admin', 'User', 'Viewer'];
   final List<String> languages = ['English', 'French', 'Spanish'];
 
-  // Text editing controllers to hold and manage form field contents
   late TextEditingController nameController;
   late TextEditingController emailController;
   late TextEditingController firstNameController;
@@ -27,13 +29,15 @@ class _UpdateEmployeePageState extends State<UpdateEmployeePage> {
   late TextEditingController phoneNumberController;
   late TextEditingController jobTitleController;
 
+  File? _image;
+  final ImagePicker _picker = ImagePicker();
+  String? imageUrl;
+
   @override
   void initState() {
     super.initState();
-    selectedRole = roles.contains(widget.employee.role)
-        ? widget.employee.role
-        : roles.first;
-    // Initialize the controllers with existing data
+    selectedRole = widget.employee.role;
+    selectedLanguage = widget.employee.language;
 
     nameController = TextEditingController(text: widget.employee.name);
     emailController = TextEditingController(text: widget.employee.email);
@@ -44,30 +48,71 @@ class _UpdateEmployeePageState extends State<UpdateEmployeePage> {
     phoneNumberController =
         TextEditingController(text: widget.employee.phoneNumber);
     jobTitleController = TextEditingController(text: widget.employee.jobTitle);
-    selectedRole = roles.contains(widget.employee.role)
-        ? widget.employee.role
-        : roles.first;
-    selectedLanguage = languages.contains(widget.employee.language)
-        ? widget.employee.language
-        : languages.first;
-    selectedLanguage = widget.employee.language;
+    imageUrl = widget.employee.imagePath;
+  }
+
+  Future<void> _pickImage() async {
+    final pickedFile = await _picker.pickImage(source: ImageSource.gallery);
+    if (pickedFile != null) {
+      setState(() {
+        _image = File(pickedFile.path);
+      });
+    }
+  }
+
+  Future<String> _uploadImage(File imageFile) async {
+    final storageRef = FirebaseStorage.instance
+        .ref()
+        .child('employee_images')
+        .child('${emailController.text}.jpg');
+    await storageRef.putFile(imageFile);
+    return await storageRef.getDownloadURL();
+  }
+
+  void _updateEmployee() async {
+    try {
+      if (_image != null) {
+        imageUrl = await _uploadImage(_image!);
+      }
+
+      Map<String, dynamic> updatedEmployee = {
+        'name': nameController.text,
+        'email': emailController.text,
+        'firstName': firstNameController.text,
+        'lastName': lastNameController.text,
+        'country': countryController.text,
+        'phoneNumber': phoneNumberController.text,
+        'jobTitle': jobTitleController.text,
+        'role': selectedRole,
+        'language': selectedLanguage,
+        'imagePath': imageUrl,
+      };
+
+      await _employeeService.updateEmployee(
+          widget.employee.id, updatedEmployee);
+      ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Employee updated successfully')));
+      Navigator.of(context).pop(); // Navigate back to the previous screen
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to update employee: $e')));
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF9155FD), // Page background color
+      backgroundColor: const Color(0xFF9155FD),
       body: SafeArea(
         child: SingleChildScrollView(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Image.asset('assets/smartovate.png', height: 100), // Company Logo
+              Image.asset('assets/smartovate.png', height: 100),
               _buildSection('1. Account Details'),
               _buildTextField('Username', nameController),
               _buildTextField('Email', emailController),
               _buildDropdown('Select Role', roles, selectedRole),
-
               _buildSection('2. Personal Info'),
               _buildTextField('First Name', firstNameController),
               _buildTextField('Last Name', lastNameController),
@@ -75,12 +120,12 @@ class _UpdateEmployeePageState extends State<UpdateEmployeePage> {
               _buildDropdown('Language', languages, selectedLanguage),
               _buildTextField('Phone Number', phoneNumberController),
               _buildTextField('Job Title', jobTitleController),
+              _buildImagePicker(),
               _buildSubmitButton(),
-              SizedBox(height: 20), // Space at the end of the form
+              SizedBox(height: 20),
               Align(
                 alignment: Alignment.bottomCenter,
-                child: Image.asset(
-                    widget.employee.imagePath), // Employee image at the bottom
+                child: Image.network(imageUrl!),
               ),
             ],
           ),
@@ -112,7 +157,7 @@ class _UpdateEmployeePageState extends State<UpdateEmployeePage> {
           hintText: hintText,
           hintStyle: TextStyle(color: Colors.white.withOpacity(0.7)),
           filled: true,
-          fillColor: Color(0x40000000), // Semi-transparent black
+          fillColor: Color(0x40000000),
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(8.0),
             borderSide: BorderSide.none,
@@ -125,15 +170,12 @@ class _UpdateEmployeePageState extends State<UpdateEmployeePage> {
 
   Widget _buildDropdown(
       String hintText, List<String> options, String? selectedValue) {
-    // Ensure that selectedValue is either null or a value that exists in the options list
-    assert(selectedValue == null || options.contains(selectedValue));
-
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 4.0),
         decoration: BoxDecoration(
-          color: Color(0x40000000), // Semi-transparent black
+          color: Color(0x40000000),
           borderRadius: BorderRadius.circular(8.0),
         ),
         child: DropdownButtonHideUnderline(
@@ -152,9 +194,9 @@ class _UpdateEmployeePageState extends State<UpdateEmployeePage> {
             }).toList(),
             onChanged: (newValue) {
               setState(() {
-                if (options == roles) {
+                if (hintText == 'Select Role') {
                   selectedRole = newValue;
-                } else if (options == languages) {
+                } else if (hintText == 'Language') {
                   selectedLanguage = newValue;
                 }
               });
@@ -166,12 +208,35 @@ class _UpdateEmployeePageState extends State<UpdateEmployeePage> {
     );
   }
 
+  Widget _buildImagePicker() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+      child: Row(
+        children: [
+          if (_image != null)
+            CircleAvatar(
+              backgroundImage: FileImage(_image!),
+              radius: 40,
+            ),
+          SizedBox(width: 10),
+          ElevatedButton.icon(
+            onPressed: _pickImage,
+            icon: Icon(Icons.camera_alt),
+            label: Text('Upload Image'),
+            style: ElevatedButton.styleFrom(
+              shadowColor: Colors.white.withOpacity(0.7),
+              backgroundColor: Colors.black,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildSubmitButton() {
     return Center(
       child: ElevatedButton(
-        onPressed: () {
-          // Submit updated employee data logic
-        },
+        onPressed: _updateEmployee,
         style: ElevatedButton.styleFrom(
           backgroundColor: Colors.transparent,
           shadowColor: Colors.transparent,

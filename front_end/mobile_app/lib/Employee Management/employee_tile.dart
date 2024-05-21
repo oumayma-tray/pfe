@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:mobile_app/Employee%20Management/Employees.dart';
 import 'package:mobile_app/Employee%20Management/EmployeeDetails.dart';
+import 'package:mobile_app/Employee%20Management/Employees.dart';
 import 'package:mobile_app/Employee%20Management/addEmployee.dart';
 import 'package:mobile_app/Employee%20Management/updateEmployee.dart';
+import 'package:mobile_app/services/Service%20Employe/GestionEmployeService.dart';
+import 'package:mobile_app/services/projectMnagementService/project_mangementService.dart';
 
 class EmployeeDirectoryPage extends StatefulWidget {
   @override
@@ -10,41 +12,37 @@ class EmployeeDirectoryPage extends StatefulWidget {
 }
 
 class _EmployeeDirectoryPageState extends State<EmployeeDirectoryPage> {
+  final GestionEmployeService _employeeService = GestionEmployeService();
+  final ProjectManagementService _projectService = ProjectManagementService();
   final int itemsPerPage = 10;
   int currentPage = 1;
-  List<Employee> employees =
-      getMockEmployees(); // Consider initializing employees in the initState
-  late List<Employee> filteredEmployees; // Same for filteredEmployees
+  List<Employee> employees = [];
+  List<Employee> filteredEmployees = [];
   late TextEditingController searchController;
-
-  void onDelete(Employee employee) {
-    setState(() {
-      // Directly modifying the list, not expecting a return value
-      employees.removeWhere((item) => item == employee);
-    });
-  }
 
   @override
   void initState() {
     super.initState();
-    employees =
-        getMockEmployees(); // Call this first to ensure employees are populated.
-    filteredEmployees = List.from(
-        employees); // Then initialize filteredEmployees with employees.
     searchController = TextEditingController();
     searchController.addListener(() {
-      filterEmployeesByName(
-          searchController.text); // Filter whenever the text changes.
-    });
-  }
-
-  @override
-  void dispose() {
-    searchController.removeListener(() {
       filterEmployeesByName(searchController.text);
     });
-    searchController.dispose(); // Dispose of the text controller.
-    super.dispose();
+    fetchEmployees();
+  }
+
+  void fetchEmployees() async {
+    try {
+      List<Employee> fetchedEmployees =
+          (await _employeeService.fetchAllEmployees()).map((data) {
+        return Employee.fromMap(data, data['id']);
+      }).toList();
+      setState(() {
+        employees = fetchedEmployees;
+        filteredEmployees = fetchedEmployees;
+      });
+    } catch (e) {
+      print('Error fetching employees: $e');
+    }
   }
 
   void filterEmployeesByName(String query) {
@@ -81,10 +79,28 @@ class _EmployeeDirectoryPageState extends State<EmployeeDirectoryPage> {
     }
   }
 
+  void onDelete(String employeeId) async {
+    try {
+      await _employeeService.deleteEmployee(employeeId);
+      fetchEmployees();
+    } catch (e) {
+      print('Error deleting employee: $e');
+    }
+  }
+
+  @override
+  void dispose() {
+    searchController.removeListener(() {
+      filterEmployeesByName(searchController.text);
+    });
+    searchController.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      resizeToAvoidBottomInset: true, // Avoid resizing when keyboard shows
+      resizeToAvoidBottomInset: true,
       body: SingleChildScrollView(
         child: Container(
           decoration: BoxDecoration(
@@ -131,37 +147,34 @@ class _EmployeeDirectoryPageState extends State<EmployeeDirectoryPage> {
                   },
                 ),
               ),
-
               SizedBox(height: 5),
               Text(
                 'Employees',
                 style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold),
+                  color: Colors.white,
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
               ElevatedButton(
                 onPressed: () {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                        builder: (context) => addEmployeeScreen()),
-                  );
+                        builder: (context) => AddEmployeeScreen()),
+                  ).then((_) => fetchEmployees());
                 },
-                //... ElevatedButton style
                 child: Text('ADD EMPLOYEE'),
               ),
-              Image.asset('assets/SEO.png'), // Remove the Expanded widget here.
+              Image.asset('assets/SEO.png'),
               Container(
                 color: Color(0xFF28243D),
                 child: Column(
                   children: [
-                    EmployeeHeader(), // Your employee list header
+                    EmployeeHeader(),
                     ListView.builder(
-                      primary:
-                          false, // Setting this to false in a SingleChildScrollView to disable scrolling.
-                      shrinkWrap:
-                          true, // Shrink-wrapping the content of the ListView.
+                      primary: false,
+                      shrinkWrap: true,
                       itemCount: paginatedFilteredEmployees.length,
                       itemBuilder: (context, index) {
                         return EmployeeRow(
@@ -197,66 +210,63 @@ class _EmployeeDirectoryPageState extends State<EmployeeDirectoryPage> {
   }
 }
 
-class EmployeeRow extends StatefulWidget {
+class EmployeeRow extends StatelessWidget {
   final Employee employee;
-  final Function(Employee) onDelete;
+  final Function(String) onDelete;
 
   EmployeeRow({required this.employee, required this.onDelete});
 
   @override
-  _EmployeeRowState createState() => _EmployeeRowState();
-}
-
-class _EmployeeRowState extends State<EmployeeRow> {
-  @override
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: Color(0xFFAD81FE), // Adjusted to your color preference
+        color: Color(0xFFAD81FE),
         borderRadius: BorderRadius.circular(10),
       ),
       margin: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-      height: 100, // Set a fixed height for the container
+      height: 100,
       child: ListView(
         scrollDirection: Axis.horizontal,
         children: <Widget>[
           Container(
-            width: 100, // Set a fixed width for better control
+            width: 100,
             alignment: Alignment.center,
             child: CircleAvatar(
-              backgroundImage: AssetImage(widget.employee.imagePath),
-              radius: 30,
+              backgroundImage: NetworkImage(
+                employee.imagePath.isEmpty
+                    ? 'assets/Ellipse 10.png'
+                    : employee.imagePath,
+              ),
+              radius: 40,
             ),
           ),
           Container(
             width: 150,
             alignment: Alignment.center,
-            child: Text(widget.employee.name,
-                style: TextStyle(color: Colors.white)),
+            child: Text(employee.name, style: TextStyle(color: Colors.white)),
           ),
           Container(
             width: 200,
             alignment: Alignment.center,
-            child: Text(widget.employee.email,
-                style: TextStyle(color: Colors.white)),
+            child: Text(employee.email, style: TextStyle(color: Colors.white)),
           ),
           Container(
             width: 150,
             alignment: Alignment.center,
-            child: Text(widget.employee.jobTitle,
-                style: TextStyle(color: Colors.white)),
+            child:
+                Text(employee.jobTitle, style: TextStyle(color: Colors.white)),
           ),
           Container(
             width: 120,
             alignment: Alignment.center,
-            child: Text(widget.employee.phoneNumber,
+            child: Text(employee.phoneNumber,
                 style: TextStyle(color: Colors.white)),
           ),
           Container(
             width: 100,
             alignment: Alignment.center,
-            child: Text(widget.employee.country,
-                style: TextStyle(color: Colors.white)),
+            child:
+                Text(employee.country, style: TextStyle(color: Colors.white)),
           ),
           Container(
             width: 60,
@@ -278,8 +288,7 @@ class _EmployeeRowState extends State<EmployeeRow> {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) =>
-                EmployeeDetailsPage(employee: widget.employee),
+            builder: (context) => EmployeeDetailsPage(employee: employee),
           ),
         );
         break;
@@ -287,11 +296,9 @@ class _EmployeeRowState extends State<EmployeeRow> {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => UpdateEmployeePage(employee: widget.employee),
+            builder: (context) => UpdateEmployeePage(employee: employee),
           ),
-        ).catchError((error) {
-          print('Navigation error: $error');
-        });
+        );
         break;
       case 'Delete':
         showDialog(
@@ -308,7 +315,7 @@ class _EmployeeRowState extends State<EmployeeRow> {
                 TextButton(
                   child: Text("Delete"),
                   onPressed: () {
-                    widget.onDelete(widget.employee);
+                    onDelete(employee.id);
                     Navigator.of(context).pop();
                   },
                 ),
@@ -323,28 +330,6 @@ class _EmployeeRowState extends State<EmployeeRow> {
   }
 }
 
-Widget _buildDetailBox(String text) {
-  return Expanded(
-    child: Container(
-      margin: EdgeInsets.all(2),
-      padding: EdgeInsets.symmetric(vertical: 10.0, horizontal: 4.0),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [Color(0xFF9155FD), Color(0xFFC5A5FE)],
-        ),
-        borderRadius: BorderRadius.circular(5), // Rounded corners
-      ),
-      child: Text(
-        text,
-        style: TextStyle(color: Colors.white),
-        textAlign: TextAlign.center,
-      ),
-    ),
-  );
-}
-
 class EmployeeHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -355,26 +340,22 @@ class EmployeeHeader extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
           Expanded(child: Text('Name', style: TextStyle(color: Colors.white))),
+          Expanded(child: Text('Email', style: TextStyle(color: Colors.white))),
           Expanded(
-              child: Text(' Email', style: TextStyle(color: Colors.white))),
-          Expanded(
-              child: Text(' Job Title', style: TextStyle(color: Colors.white))),
+              child: Text('Job Title', style: TextStyle(color: Colors.white))),
           Expanded(
               child:
-                  Text(' Phone Number', style: TextStyle(color: Colors.white))),
+                  Text('Phone Number', style: TextStyle(color: Colors.white))),
           Expanded(
-              child: Text(' Country', style: TextStyle(color: Colors.white))),
+              child: Text('Country', style: TextStyle(color: Colors.white))),
           Expanded(
-              child: Text('  Actions',
-                  style: TextStyle(
-                      color: Colors.white))), // Placeholder for action icon
+              child: Text('Actions', style: TextStyle(color: Colors.white))),
         ],
       ),
     );
   }
 }
 
-// A callback function type definition for menu item selection
 typedef MenuItemCallback = void Function(String value);
 
 class CustomPopupMenuButton extends StatelessWidget {
@@ -387,13 +368,11 @@ class CustomPopupMenuButton extends StatelessWidget {
     return IconButton(
       icon: Icon(Icons.more_vert, color: Colors.white),
       onPressed: () {
-        // The menu is shown when the button is tapped
         _showCustomMenu(context);
       },
     );
   }
 
-  // Function to show the menu
   void _showCustomMenu(BuildContext context) {
     final RenderBox button = context.findRenderObject() as RenderBox;
     final RenderBox overlay =
@@ -407,31 +386,28 @@ class CustomPopupMenuButton extends StatelessWidget {
       Offset.zero & overlay.size,
     );
 
-    // Build and show the menu
     showMenu(
       context: context,
       position: position,
       items: [
-        _buildPopupMenuItem(context, 'View', 'assets/view.png'),
-        _buildPopupMenuItem(context, 'Edit', 'assets/edit.png'),
-        _buildPopupMenuItem(context, 'Delete', 'assets/delate.png'),
+        _buildPopupMenuItem(context, 'View', Icons.visibility),
+        _buildPopupMenuItem(context, 'Edit', Icons.edit),
+        _buildPopupMenuItem(context, 'Delete', Icons.delete),
       ],
       color: Color(0xFF28243D),
     ).then((value) {
-      // Handle the action when an item is selected
       if (value != null) {
         onSelected(value);
       }
     });
   }
 
-  // Function to build an individual menu item
   PopupMenuItem<String> _buildPopupMenuItem(
-      BuildContext context, String value, String asset) {
+      BuildContext context, String value, IconData icon) {
     return PopupMenuItem<String>(
       value: value,
       child: ListTile(
-        leading: Image.asset(asset, width: 24, height: 24),
+        leading: Icon(icon, color: Colors.white),
         title: Text(value, style: TextStyle(color: Colors.white)),
       ),
     );

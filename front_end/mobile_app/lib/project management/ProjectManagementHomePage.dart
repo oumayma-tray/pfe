@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:mobile_app/project%20management/gestion%20de%20projet/ProjectManagementDetails.dart';
 import 'package:mobile_app/project%20management/planning/PlanningDetails.dart';
+import 'package:mobile_app/Employee%20Management/Employees.dart';
+import 'package:mobile_app/services/projectMnagementService/project_mangementService.dart';
 
 class ProjectManagementHomePage extends StatefulWidget {
   @override
@@ -15,15 +19,21 @@ class _ProjectManagementHomePageState extends State<ProjectManagementHomePage>
   late Animation<double> _opacityAnimation;
   late Animation<Offset> _slideAnimation;
 
+  final ProjectManagementService _projectService = ProjectManagementService();
+  Employee? currentEmployee;
+
+  String userName = '';
+  Map<String, dynamic>? workingHours;
+
   @override
   void initState() {
     super.initState();
+
     _animationController = AnimationController(
       duration: const Duration(milliseconds: 500),
       vsync: this,
     );
 
-    // Ensure you initialize the animations like this
     _opacityAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(
         parent: _animationController,
@@ -39,8 +49,27 @@ class _ProjectManagementHomePageState extends State<ProjectManagementHomePage>
       ),
     );
 
-    // Start the animation
     _animationController.forward();
+
+    _loadCurrentUser();
+  }
+
+  Future<void> _loadCurrentUser() async {
+    User? currentUser = FirebaseAuth.instance.currentUser;
+    if (currentUser != null) {
+      DocumentSnapshot userDoc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(currentUser.uid)
+          .get();
+      Map<String, dynamic>? userData = userDoc.data() as Map<String, dynamic>?;
+
+      if (userData != null) {
+        setState(() {
+          userName = userData['name'];
+          workingHours = userData['workingHours'];
+        });
+      }
+    }
   }
 
   @override
@@ -66,8 +95,19 @@ class _ProjectManagementHomePageState extends State<ProjectManagementHomePage>
               ),
               SlideTransition(
                 position: _slideAnimation,
-                child: _buildFeatureSection(screenWidth, 'project list',
-                    Icons.dashboard_customize, ProjectManagementDetails()),
+                child: _buildWelcomeMessage(),
+              ),
+              SlideTransition(
+                position: _slideAnimation,
+                child: _buildStatusCard(),
+              ),
+              SlideTransition(
+                position: _slideAnimation,
+                child: _buildFeatureSection(
+                    screenWidth,
+                    'Project List',
+                    Icons.dashboard_customize,
+                    ProjectManagementDetails() as Widget),
               ),
               SlideTransition(
                 position: _slideAnimation,
@@ -75,15 +115,10 @@ class _ProjectManagementHomePageState extends State<ProjectManagementHomePage>
                     screenWidth,
                     'Planification',
                     Icons.schedule,
-                    PlanningDetails(
-                      currentUserID: 'oumayma',
-                    )),
+                    currentEmployee != null
+                        ? PlanningDetails(currentUserID: currentEmployee!.id)
+                        : Container()), // Display an empty container if currentEmployee is null
               ),
-              FadeTransition(
-                opacity: _opacityAnimation,
-                child: _buildStatisticsBanner(screenWidth),
-              ),
-              _buildTestimonialCarousel(screenWidth, screenHeight),
             ],
           ),
         ),
@@ -103,39 +138,176 @@ class _ProjectManagementHomePageState extends State<ProjectManagementHomePage>
       ),
       alignment: Alignment.center,
       child: Container(
-        // Overlay gradient
         decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: [
               Colors.transparent,
-              Colors.black.withOpacity(0.7), // Adjust opacity as needed
+              Colors.black.withOpacity(0.7),
             ],
           ),
         ),
-        // Inner padding for text
         padding: EdgeInsets.symmetric(
             horizontal: screenWidth * 0.05, vertical: screenHeight * 0.02),
         child: Text(
           'Enhance Your Project Management Skills',
-          textAlign: TextAlign.center, // Ensure text is centered
+          textAlign: TextAlign.center,
           style: GoogleFonts.roboto(
-            fontSize: screenWidth * 0.06, // Responsive font size
+            fontSize: screenWidth * 0.06,
             fontWeight: FontWeight.bold,
             color: Colors.white,
             shadows: <Shadow>[
               Shadow(
-                offset: Offset(0, 2), // Text shadow position
+                offset: Offset(0, 2),
                 blurRadius: 3.0,
-                color: Color.fromARGB(
-                    150, 0, 0, 0), // Text shadow color with some transparency
+                color: Color.fromARGB(150, 0, 0, 0),
               ),
             ],
           ),
         ),
       ),
     );
+  }
+
+  Widget _buildWelcomeMessage() {
+    return Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: Text(
+        'Welcome, $userName',
+        style: GoogleFonts.roboto(
+          fontSize: 24,
+          fontWeight: FontWeight.bold,
+          color: Colors.white,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStatusCard() {
+    if (workingHours == null) {
+      return CircularProgressIndicator();
+    }
+
+    DateTime now = DateTime.now();
+    String dayOfWeek = _getDayOfWeek(now.weekday);
+    String checkInTime = workingHours![dayOfWeek]?['checkIn'] ?? '--:--';
+    String checkOutTime = workingHours![dayOfWeek]?['checkOut'] ?? '--:--';
+
+    bool isHoliday = checkInTime == 'holiday' || checkOutTime == 'holiday';
+
+    bool isValidTime(String time) {
+      return time.contains(':') &&
+          time.split(':').length == 2 &&
+          int.tryParse(time.split(':')[0]) != null &&
+          int.tryParse(time.split(':')[1]) != null;
+    }
+
+    bool workDayComplete = false;
+    if (!isHoliday && isValidTime(checkOutTime)) {
+      workDayComplete = now.isAfter(DateTime(
+        now.year,
+        now.month,
+        now.day,
+        int.parse(checkOutTime.split(':')[0]),
+        int.parse(checkOutTime.split(':')[1]),
+      ));
+    }
+
+    return Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: Container(
+        padding: const EdgeInsets.all(16.0),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Column(
+          children: [
+            Text(
+              "Today's Status",
+              style: GoogleFonts.roboto(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: Colors.black,
+              ),
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                Column(
+                  children: [
+                    Text(
+                      'Check In',
+                      style:
+                          GoogleFonts.roboto(fontSize: 16, color: Colors.black),
+                    ),
+                    Text(
+                      checkInTime,
+                      style:
+                          GoogleFonts.roboto(fontSize: 16, color: Colors.black),
+                    ),
+                  ],
+                ),
+                Column(
+                  children: [
+                    Text(
+                      'Check Out',
+                      style:
+                          GoogleFonts.roboto(fontSize: 16, color: Colors.black),
+                    ),
+                    Text(
+                      checkOutTime,
+                      style:
+                          GoogleFonts.roboto(fontSize: 16, color: Colors.black),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+            SizedBox(height: 10),
+            Text(
+              '${now.toLocal()}'.split(' ')[0],
+              style: GoogleFonts.roboto(fontSize: 14, color: Colors.black),
+            ),
+            Text(
+              '${now.toLocal()}'.split(' ')[1],
+              style: GoogleFonts.roboto(fontSize: 14, color: Colors.black),
+            ),
+            SizedBox(height: 10),
+            Text(
+              isHoliday
+                  ? 'Today is a holiday'
+                  : workDayComplete
+                      ? 'Workday complete'
+                      : 'Work in progress',
+              style: GoogleFonts.roboto(fontSize: 16, color: Colors.black),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  String _getDayOfWeek(int day) {
+    switch (day) {
+      case DateTime.monday:
+        return 'Monday';
+      case DateTime.tuesday:
+        return 'Tuesday';
+      case DateTime.wednesday:
+        return 'Wednesday';
+      case DateTime.thursday:
+        return 'Thursday';
+      case DateTime.friday:
+        return 'Friday';
+      case DateTime.saturday:
+        return 'Saturday';
+      case DateTime.sunday:
+        return 'Sunday';
+      default:
+        return 'Monday';
+    }
   }
 
   Widget _buildFeatureSection(
@@ -171,121 +343,6 @@ class _ProjectManagementHomePageState extends State<ProjectManagementHomePage>
           ],
         ),
       ),
-    );
-  }
-
-  Widget _buildStatisticsBanner(double screenWidth) {
-    final titleFontSize = screenWidth * 0.06;
-    final statsFontSize = screenWidth * 0.05;
-
-    // Add padding around the entire statistics banner
-    return Padding(
-      padding: EdgeInsets.only(
-        top: screenWidth * 0.1, // This adds space above the Quick Stats section
-        left: screenWidth * 0.05,
-        right: screenWidth * 0.05,
-        bottom: screenWidth * 0.05,
-      ),
-      child: Container(
-        color: Color(0xFF9155FD),
-        child: Column(
-          children: [
-            Text(
-              'Quick Stats',
-              style: GoogleFonts.roboto(
-                  fontSize: titleFontSize, color: Colors.white),
-            ),
-            SizedBox(
-                height: screenWidth * 0.05), // Space between title and stats
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                Expanded(
-                    child: _buildStatistic('150+', 'Projects Managed',
-                        statsFontSize, screenWidth)),
-                Expanded(
-                    child: _buildStatistic(
-                        '89%', 'Success Rate', statsFontSize, screenWidth)),
-                Expanded(
-                    child: _buildStatistic('30+', 'Certified Trainers',
-                        statsFontSize, screenWidth)),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildStatistic(
-      String number, String description, double fontSize, double screenWidth) {
-    return Container(
-      margin: EdgeInsets.all(screenWidth * 0.02), // Add margin for spacing
-      decoration: BoxDecoration(
-        color: Color(0xFF6D42CE), // Or any other color you want
-        borderRadius: BorderRadius.circular(20), // Rounded corners
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            spreadRadius: 1,
-            blurRadius: 3,
-            offset: Offset(0, 2), // changes position of shadow
-          ),
-        ],
-      ),
-      padding: EdgeInsets.all(
-          screenWidth * 0.03), // Add padding inside the container
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: <Widget>[
-          Text(
-            number,
-            style: GoogleFonts.roboto(
-              fontSize: fontSize,
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
-            ),
-          ),
-          SizedBox(
-              height:
-                  screenWidth * 0.01), // Spacing between number and description
-          Text(
-            description,
-            style: GoogleFonts.roboto(
-              fontSize: fontSize * 0.8, // A bit smaller than the number
-              color: Colors.white.withOpacity(0.7),
-            ),
-            textAlign: TextAlign.center,
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildTestimonialCarousel(double screenWidth, double screenHeight) {
-    return Container(
-      height: screenHeight * 0.2,
-      child: PageView(
-        children: [
-          _buildTestimonial(
-              screenWidth,
-              "This system helped our team streamline the development process.",
-              "- John Doe, CTO"),
-          _buildTestimonial(
-              screenWidth,
-              "I highly recommend this for any project managers looking to improve.",
-              "- Jane Smith, Project Manager"),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildTestimonial(double screenWidth, String quote, String author) {
-    return ListTile(
-      title: Text(quote,
-          style: TextStyle(color: Colors.white, fontStyle: FontStyle.italic)),
-      subtitle: Text(author, style: TextStyle(color: Colors.white70)),
-      contentPadding: EdgeInsets.symmetric(horizontal: screenWidth * 0.1),
     );
   }
 }

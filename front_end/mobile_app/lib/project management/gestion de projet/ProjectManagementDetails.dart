@@ -1,9 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:mobile_app/Employee%20Management/Employees.dart';
 import 'package:mobile_app/project%20management/gestion%20de%20projet/addproject.dart';
-import 'package:mobile_app/project%20management/gestion%20de%20projet/listeProjet.dart';
+import 'package:mobile_app/project%20management/gestion%20de%20projet/editproject.dart';
+import 'package:mobile_app/project%20management/gestion%20de%20projet/models/project.dart';
 import 'package:mobile_app/project%20management/gestion%20de%20projet/project.dart';
+import 'package:mobile_app/services/projectMnagementService/project_mangementService.dart';
+import 'package:intl/intl.dart';
 
 class ProjectManagementDetails extends StatefulWidget {
   @override
@@ -12,10 +17,11 @@ class ProjectManagementDetails extends StatefulWidget {
 }
 
 class _ProjectManagementDetailsState extends State<ProjectManagementDetails> {
-  bool isAdmin =
-      true; // This should ideally be determined by the current user's role
+  final ProjectManagementService _projectService = ProjectManagementService();
+  bool isAdmin = true;
   Employee? currentUser;
-  bool isLoading = false;
+  bool isLoading = true;
+  List<Project> projects = [];
 
   @override
   void initState() {
@@ -24,17 +30,55 @@ class _ProjectManagementDetailsState extends State<ProjectManagementDetails> {
   }
 
   Future<void> _initUser() async {
+    setState(() => isLoading = true);
     try {
-      var user =
-          await getCurrentUser(); // Make sure this method is implemented to fetch the current user
-      setState(() {
-        currentUser = user;
-        isAdmin = user.jobTitle.toLowerCase() == "admin";
-        isLoading = false;
-      });
+      User? firebaseUser = FirebaseAuth.instance.currentUser;
+      print('Firebase user: ${firebaseUser?.uid}'); // Debug print
+
+      if (firebaseUser != null) {
+        DocumentSnapshot userDoc = await FirebaseFirestore.instance
+            .collection('employees')
+            .doc(firebaseUser.uid)
+            .get();
+        print('User document exists: ${userDoc.exists}'); // Debug print
+
+        if (userDoc.exists) {
+          currentUser = Employee.fromMap(
+              userDoc.data() as Map<String, dynamic>, firebaseUser.uid);
+          print('Current user: ${currentUser?.name}'); // Debug print
+          _fetchProjects();
+        } else {
+          print('No user document found in Firestore'); // Debug print
+        }
+      } else {
+        print('No Firebase user found'); // Debug print
+      }
     } catch (e) {
-      setState(() => isLoading = false);
+      print('Error fetching user: $e'); // Debug print
     }
+    setState(() => isLoading = false);
+  }
+
+  Future<void> _fetchProjects() async {
+    if (currentUser == null) return;
+
+    setState(() => isLoading = true);
+    try {
+      if (currentUser!.projectIds.isEmpty) {
+        print('No projects found for the current user'); // Debug print
+      } else {
+        List<Project> fetchedProjects =
+            await _projectService.fetchProjectsByIds(currentUser!.projectIds);
+        print(
+            'Fetched projects: ${fetchedProjects.map((p) => p.title).toList()}'); // Debug print
+        setState(() {
+          projects = fetchedProjects;
+        });
+      }
+    } catch (e) {
+      print('Error fetching projects: $e'); // Debug print
+    }
+    setState(() => isLoading = false);
   }
 
   @override
@@ -50,49 +94,37 @@ class _ProjectManagementDetailsState extends State<ProjectManagementDetails> {
         title: Text('Manage Projects', style: TextStyle(color: Colors.white)),
         backgroundColor: Color(0xFF6D42CE),
         actions: <Widget>[
-          IconButton(
-            icon: Icon(Icons.add),
-            onPressed: () => _navigateToAddProject(context),
-          ),
+          if (isAdmin)
+            IconButton(
+              icon: Icon(Icons.add),
+              onPressed: () => _navigateToAddProject(context),
+            ),
         ],
       ),
       body: currentUser == null
           ? Center(child: Text("No user found"))
-          : ListView.builder(
-              itemCount: ListeProjet.projects.length,
-              itemBuilder: (context, index) {
-                final Project project = ListeProjet.projects[index];
-                return Card(
-                  margin: EdgeInsets.all(10),
-                  child: buildProjectListTile(project),
-                );
-              },
-            ),
+          : projects.isEmpty
+              ? Center(child: Text("No projects found"))
+              : ListView.builder(
+                  itemCount: projects.length,
+                  itemBuilder: (context, index) {
+                    final Project project = projects[index];
+                    return Card(
+                      margin: EdgeInsets.all(10),
+                      child: buildProjectListTile(project),
+                    );
+                  },
+                ),
     );
   }
 
   Widget buildProjectListTile(Project project) {
-    Employee? creator = getMockEmployees().firstWhere(
-      (emp) => emp.name == project.createdBy,
-      orElse: () => Employee(
-        firstName: 'Unknown',
-        lastName: '',
-        email: 'N/A',
-        jobTitle: 'N/A',
-        phoneNumber: 'N/A',
-        country: 'N/A',
-        language: 'N/A',
-        imagePath: 'assets/placeholder.png',
-        name: 'Unknown',
-      ),
-    );
-
     return ListTile(
       title: Text(project.title),
       onTap: () {
         Navigator.of(context).push(PageRouteBuilder(
           pageBuilder: (context, animation, secondaryAnimation) =>
-              ProjectDetails(project: project),
+              ProjectDetailsScreen(project: project),
           transitionsBuilder: (context, animation, secondaryAnimation, child) {
             return SlideTransition(
               position: Tween<Offset>(
@@ -107,9 +139,9 @@ class _ProjectManagementDetailsState extends State<ProjectManagementDetails> {
       subtitle: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
-          Text('Start Date: ${project.startDate}'),
-          Text('End Date: ${project.endDate}'),
-          Text('Created By: ${creator.name}'),
+          Text(
+              'Start Date: ${DateFormat('yyyy-MM-dd').format(project.startDate)}'),
+          Text('End Date: ${DateFormat('yyyy-MM-dd').format(project.endDate)}'),
           LinearProgressIndicator(value: project.progress / 100),
         ],
       ),
@@ -127,7 +159,11 @@ class _ProjectManagementDetailsState extends State<ProjectManagementDetails> {
           icon: Icon(Icons.edit, color: Colors.blue),
           tooltip: 'Edit Project',
           onPressed: () {
-            // Implement edit functionality
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (context) => EditProjectScreen(project: project),
+              ),
+            );
           },
         ),
         IconButton(
@@ -156,9 +192,16 @@ class _ProjectManagementDetailsState extends State<ProjectManagementDetails> {
             ),
             TextButton(
               child: Text('Delete'),
-              onPressed: () {
-                // Implement your deletion logic here
-                Navigator.of(context).pop();
+              onPressed: () async {
+                try {
+                  await _projectService.deleteProject(project.id);
+                  setState(() {
+                    projects.remove(project);
+                  });
+                  Navigator.of(context).pop();
+                } catch (e) {
+                  print('Error deleting project: $e');
+                }
               },
             ),
           ],
@@ -168,22 +211,16 @@ class _ProjectManagementDetailsState extends State<ProjectManagementDetails> {
   }
 
   bool canModifyProject(Project project) {
-    if (currentUser == null) {
-      print("currentUser is null");
-      return false;
-    }
-    print(
-        "currentUser jobTitle: ${currentUser?.jobTitle}"); // Check what job title is being received
-    String jobTitleLower = currentUser!.jobTitle.toLowerCase();
-    bool canModify =
-        jobTitleLower == 'admin' || jobTitleLower == 'project management';
-    print("Can modify: $canModify"); // Check if this returns true when expected
-    return canModify;
+    return currentUser != null;
   }
-}
 
-void _navigateToAddProject(BuildContext context) {
-  Navigator.of(context).push(
-    MaterialPageRoute(builder: (context) => AddProjectPage()),
-  );
+  void _navigateToAddProject(BuildContext context) {
+    Navigator.of(context)
+        .push(
+      MaterialPageRoute(builder: (context) => AddProjectPage()),
+    )
+        .then((_) {
+      _fetchProjects();
+    });
+  }
 }

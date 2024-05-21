@@ -9,13 +9,10 @@ class EmployeeDetailsPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Size calculation for responsive design
-    double width = MediaQuery.of(context).size.width * 1; // 80% of screen width
-    double imageRadius = width * 0.15; // 15% of allocated width for the image
-    double editButtonWidth =
-        width * 0.45; // 45% of allocated width for the edit button
-    double editButtonHeight =
-        imageRadius * 0.8; // 60% of the image radius for button height
+    double width = MediaQuery.of(context).size.width * 0.8;
+    double imageRadius = width * 0.2;
+    double editButtonWidth = width * 0.6;
+    double editButtonHeight = 50;
 
     return Scaffold(
       body: SafeArea(
@@ -32,46 +29,59 @@ class EmployeeDetailsPage extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               children: <Widget>[
                 SizedBox(height: 50),
-                Image.asset('assets/smartovate.png',
-                    height: 100), // Company logo
+                Image.asset('assets/smartovate.png', height: 100),
                 SizedBox(height: 30),
                 CircleAvatar(
-                  backgroundImage: AssetImage(employee.imagePath),
-                  radius: imageRadius, // Dynamic size based on screen width
+                  backgroundImage: NetworkImage(employee.imagePath),
+                  radius: imageRadius,
                 ),
                 SizedBox(height: 20),
-                Text(employee.name,
-                    style: Theme.of(context).textTheme.headline5),
-                Text('Details', style: Theme.of(context).textTheme.subtitle1),
+                Text(
+                  employee.name,
+                  style: Theme.of(context).textTheme.headline5!.copyWith(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
+                ),
+                Text(
+                  'Details',
+                  style: Theme.of(context).textTheme.subtitle1!.copyWith(
+                        color: Colors.white70,
+                      ),
+                ),
                 SizedBox(height: 20),
                 Container(
-                  width: width, // Dynamic width based on screen size
+                  width: width,
                   padding: EdgeInsets.all(20),
+                  margin: EdgeInsets.symmetric(horizontal: 20),
                   decoration: BoxDecoration(
-                    color: Color(0x40000000), // Semi-transparent black
-                    borderRadius: BorderRadius.only(
-                      topLeft: Radius.circular(20),
-                      bottomLeft: Radius.circular(20),
-                    ),
+                    color: Colors.transparent,
+                    borderRadius: BorderRadius.circular(20),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: <Widget>[
-                      _buildDetailRow('Username', employee.name),
-                      _buildDetailRow('First Name', employee.firstName),
-                      _buildDetailRow('Last Name', employee.lastName),
-                      _buildDetailRow('Email', employee.email),
-                      _buildDetailRow('Phone', employee.phoneNumber),
-                      _buildDetailRow('Country', employee.country),
-                      _buildDetailRow('Job Title', employee.jobTitle),
-                      _buildDetailRow('Language', employee.language),
+                      _buildDetailRow(Icons.person, 'Username', employee.name),
+                      _buildDetailRow(Icons.person_outline, 'First Name',
+                          employee.firstName),
+                      _buildDetailRow(
+                          Icons.person_outline, 'Last Name', employee.lastName),
+                      _buildDetailRow(Icons.email, 'Email', employee.email),
+                      _buildDetailRow(
+                          Icons.phone, 'Phone', employee.phoneNumber),
+                      _buildDetailRow(
+                          Icons.location_on, 'Country', employee.country),
+                      _buildDetailRow(
+                          Icons.work, 'Job Title', employee.jobTitle),
+                      _buildDetailRow(
+                          Icons.language, 'Language', employee.language),
                     ],
                   ),
                 ),
+                SizedBox(height: 20),
                 Container(
-                  width: editButtonWidth, // Dynamic width based on screen size
-                  height:
-                      editButtonHeight, // Dynamic height based on image radius
+                  width: editButtonWidth,
+                  height: editButtonHeight,
                   margin: EdgeInsets.only(top: 20),
                   child: ElevatedButton(
                     onPressed: () {
@@ -86,22 +96,20 @@ class EmployeeDetailsPage extends StatelessWidget {
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Color(0xFF28243D),
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.only(
-                          topLeft: Radius.circular(10),
-                        ),
+                        borderRadius: BorderRadius.circular(20),
                       ),
                     ),
                     child: Text(
                       'EDIT',
                       style: TextStyle(
                         color: Colors.white,
-                        fontSize: 20,
+                        fontSize: 18,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
                   ),
                 ),
-                SizedBox(height: 50), // Provide spacing at the end of the page
+                SizedBox(height: 50),
               ],
             ),
           ),
@@ -110,26 +118,36 @@ class EmployeeDetailsPage extends StatelessWidget {
     );
   }
 
-  Widget _buildDetailRow(String label, String value) {
+  Widget _buildDetailRow(IconData icon, String label, String value) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 8.0),
-      child: RichText(
-        text: TextSpan(
-          text: '$label: ',
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
-          ),
-          children: [
-            TextSpan(
-              text: value,
-              style: TextStyle(
-                fontWeight: FontWeight.normal,
-                color: Colors.white.withOpacity(0.7),
+      padding: const EdgeInsets.only(bottom: 16.0),
+      child: Row(
+        children: [
+          Icon(icon, color: Colors.white, size: 30),
+          SizedBox(width: 10),
+          Expanded(
+            child: RichText(
+              text: TextSpan(
+                text: '$label: ',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                  fontSize: 18,
+                ),
+                children: [
+                  TextSpan(
+                    text: value,
+                    style: TextStyle(
+                      fontWeight: FontWeight.normal,
+                      color: Colors.white.withOpacity(0.7),
+                      fontSize: 18,
+                    ),
+                  ),
+                ],
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

@@ -2,13 +2,11 @@ import 'dart:async';
 import 'dart:io';
 import 'package:email_validator/email_validator.dart';
 import 'package:flutter/material.dart';
-
 import 'package:mobile_app/components/texfieldEye.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:mobile_app/services/Auth_service/authentificationService.dart';
-
 import 'package:mobile_app/homePage.dart';
 
 class RegisterScreen extends StatefulWidget {
@@ -21,7 +19,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final TextEditingController passwordController = TextEditingController();
   final TextEditingController nameController = TextEditingController();
   final TextEditingController jobTitleController = TextEditingController();
-  final phoneNumberController = TextEditingController();
+  final TextEditingController phoneNumberController = TextEditingController();
+  final TextEditingController countryController = TextEditingController();
 
   File? _userImageFile;
   final ImagePicker _picker = ImagePicker();
@@ -34,6 +33,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     passwordController.dispose();
     nameController.dispose();
     jobTitleController.dispose();
+    countryController.dispose();
     super.dispose();
   }
 
@@ -86,6 +86,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
           emailController.text.trim(), passwordController.text.trim(),
           name: nameController.text.trim(),
           jobTitle: jobTitleController.text.trim(),
+          country: countryController.text.trim(),
           photoPath: _userImageFile?.path);
 
       // Start a timer to check email verification status
@@ -195,6 +196,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       TextInputType.phone, // Keyboard type for phone input
                 ),
                 TextFieldContainer(
+                    controller: countryController,
+                    hintText: 'Country',
+                    icon: Icons.location_on),
+                TextFieldContainer(
                     controller: passwordController,
                     hintText: 'Password',
                     icon: Icons.lock_outline,
@@ -267,25 +272,6 @@ class TextFieldContainer extends StatelessWidget {
           border: InputBorder.none,
         ),
       ),
-    );
-  }
-}
-
-void main() async {
-  runApp(MyApp());
-}
-
-class MyApp extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Flutter Demo',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-        visualDensity: VisualDensity.adaptivePlatformDensity,
-      ),
-      home:
-          RegisterScreen(), // Navigates directly to the RegisterScreen for testing
     );
   }
 }

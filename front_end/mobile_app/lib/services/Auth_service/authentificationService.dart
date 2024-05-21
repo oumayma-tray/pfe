@@ -9,6 +9,7 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:get/get.dart';
 import 'package:mobile_app/auth/Reset%20Password.dart';
+import 'package:mobile_app/compteUser/model.dart';
 
 class AuthenticationService {
   final GoogleSignIn _googleSignIn = GoogleSignIn();
@@ -140,8 +141,24 @@ class AuthenticationService {
     return await _firebaseAuth.signInWithCredential(credential);
   }
 
+  // Initialize working hours
+  Map<String, Map<String, String>> _initializeWorkingHours() {
+    return {
+      'Monday': {'checkIn': '09:00', 'checkOut': '17:00'},
+      'Tuesday': {'checkIn': '09:00', 'checkOut': '17:00'},
+      'Wednesday': {'checkIn': '09:00', 'checkOut': '17:00'},
+      'Thursday': {'checkIn': '09:00', 'checkOut': '17:00'},
+      'Friday': {'checkIn': '09:00', 'checkOut': '17:00'},
+      'Saturday': {'checkIn': 'holiday', 'checkOut': 'holiday'},
+      'Sunday': {'checkIn': 'holiday', 'checkOut': 'holiday'},
+    };
+  }
+
   Future<void> registerWithEmailAndPassword(String email, String password,
-      {String? name, String? jobTitle, String? photoPath}) async {
+      {required String name,
+      required String jobTitle,
+      required String country,
+      String? photoPath}) async {
     try {
       UserCredential userCredential = await _firebaseAuth
           .createUserWithEmailAndPassword(email: email, password: password);
@@ -166,14 +183,24 @@ class AuthenticationService {
           }
         }
 
+        CompteUser user = CompteUser(
+          uid: newUser.uid,
+          name: name,
+          email: email,
+          firstName: '',
+          lastName: '',
+          country: country,
+          phoneNumber: '',
+          jobTitle: jobTitle,
+          role: 'User',
+          language: 'English',
+          imagePath: photoUrl ?? '',
+          workingHours: {},
+        );
+
         DocumentReference userDoc =
             _firestore.collection('users').doc(newUser.uid);
-        await userDoc.set({
-          'name': name,
-          'jobTitle': jobTitle,
-          'photoUrl': photoUrl,
-          'email': email,
-        });
+        await userDoc.set(user.toMap());
       } else {
         throw FirebaseAuthException(
             code: "USER_CREATION_FAILED",

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:mobile_app/project%20management/gestion%20de%20projet/listeProjet.dart';
+import 'package:mobile_app/project%20management/gestion%20de%20projet/models/project.dart';
+import 'package:mobile_app/project%20management/gestion%20de%20projet/models/task.dart';
 
 class PlanningDetails extends StatefulWidget {
   final String currentUserID;
@@ -13,48 +14,33 @@ class PlanningDetails extends StatefulWidget {
 
 class _PlanningDetailsState extends State<PlanningDetails> {
   late List<Task> filteredTasks;
+
   @override
   void initState() {
     super.initState();
-    filteredTasks = _getAllTasks(); // Start with all tasks
+    filteredTasks = _getAllTasks();
   }
 
   List<Task> _getAllTasks() {
-    return ListeProjet.projects
+    return projectRepository.projects
         .expand((project) => project.tasks)
         .where((task) => task.assignedTo == widget.currentUserID)
         .toList();
   }
 
   List<Task> _getInProgressTasks() {
-    return _getAllTasks()
-        .where(
-            (task) => !task.isCompleted) // Check if the task is not completed.
-        .toList();
+    return _getAllTasks().where((task) => !task.isCompleted).toList();
   }
 
   List<Task> _getCompletedTasks() {
-    // Retrieve all tasks that are assigned to the current user and that meet the completion criteria.
-    var completedTasks = _getAllTasks().where((task) {
-      // Check if the task is marked as completed and all its subtasks are also completed.
+    return _getAllTasks().where((task) {
       bool allSubtasksCompleted =
           task.subtasks.every((subtask) => subtask.isCompleted);
       return task.isCompleted && allSubtasksCompleted;
     }).toList();
-
-    // Debug output to verify the functionality.
-    print("Completed tasks count: ${completedTasks.length}");
-    completedTasks.forEach((task) => print("Completed Task: ${task.name}"));
-
-    return completedTasks;
   }
 
   List<Widget> buildTasksList(BuildContext context) {
-    var tasks = ListeProjet.projects
-        .expand((project) => project.tasks
-            .where((task) => task.assignedTo == widget.currentUserID))
-        .toList();
-
     if (filteredTasks.isEmpty) {
       return [
         Padding(
@@ -69,7 +55,7 @@ class _PlanningDetailsState extends State<PlanningDetails> {
         .map((task) => ListTile(
               title: Text(task.name,
                   style: GoogleFonts.roboto(fontSize: 18, color: Colors.black)),
-              subtitle: Text(task.dueDate,
+              subtitle: Text(task.dueDate.toString(),
                   style: GoogleFonts.roboto(color: Colors.black)),
               leading: Icon(Icons.check_circle,
                   color: task.isCompleted ? Colors.green : Colors.red),
@@ -78,7 +64,7 @@ class _PlanningDetailsState extends State<PlanningDetails> {
                 children: [
                   Icon(Icons.checklist, color: Colors.grey),
                   Text(
-                      '${task.completedSubtasksCount}/${task.subtasks.length}'),
+                      '${task.subtasks.where((subtask) => subtask.isCompleted).length}/${task.subtasks.length}'),
                 ],
               ),
               onTap: () => navigateToTaskDetails(context, task),
@@ -108,7 +94,7 @@ class _PlanningDetailsState extends State<PlanningDetails> {
                   setState(() {
                     filteredTasks = _getInProgressTasks();
                   });
-                  Navigator.of(context).pop(); // Close the dialog
+                  Navigator.of(context).pop();
                 },
               ),
               ListTile(
@@ -117,7 +103,7 @@ class _PlanningDetailsState extends State<PlanningDetails> {
                   setState(() {
                     filteredTasks = _getCompletedTasks();
                   });
-                  Navigator.of(context).pop(); // Close the dialog
+                  Navigator.of(context).pop();
                 },
               ),
             ],
@@ -131,7 +117,7 @@ class _PlanningDetailsState extends State<PlanningDetails> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Tasks', style: TextStyle(color: Colors.black)),
+        title: Text('Tasks', style: TextStyle(color: Colors.white)),
         backgroundColor: Color(0xFF6D42CE),
         actions: <Widget>[
           IconButton(
@@ -179,8 +165,6 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
               setState(() {
                 subtask.isCompleted = !subtask.isCompleted;
               });
-              // If using a provider or other state management, you would call that here
-              // Also, if you have a backend, you would send the update to the server
             },
           );
         }).toList(),

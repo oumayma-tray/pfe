@@ -1,27 +1,43 @@
 import 'package:flutter/material.dart';
-
 import 'package:google_fonts/google_fonts.dart';
-import 'package:mobile_app/project%20management/gestion%20de%20projet/Project.dart';
-import 'package:mobile_app/project%20management/gestion%20de%20projet/listeProjet.dart'; // Ensure you have the correct import for Project
+import 'package:intl/intl.dart';
+import 'package:mobile_app/project%20management/gestion%20de%20projet/editproject.dart';
+import 'package:mobile_app/project%20management/gestion%20de%20projet/models/project.dart';
+import 'package:mobile_app/project%20management/gestion%20de%20projet/models/task.dart';
+import 'package:mobile_app/services/projectMnagementService/project_mangementService.dart';
 
-class ProjectDetails extends StatefulWidget {
-  Project project;
+class ProjectDetailsScreen extends StatefulWidget {
+  final Project project;
 
-  ProjectDetails({Key? key, required this.project}) : super(key: key);
+  ProjectDetailsScreen({Key? key, required this.project}) : super(key: key);
 
   @override
-  _ProjectDetailsState createState() => _ProjectDetailsState();
+  _ProjectDetailsScreenState createState() => _ProjectDetailsScreenState();
 }
 
-class _ProjectDetailsState extends State<ProjectDetails> {
+class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
+  final ProjectManagementService _projectService = ProjectManagementService();
   List<Task> _userTasks = [];
   bool _showUserTasks = false;
 
-  get currentUserRole => "admin";
+  String get currentUserRole => "admin"; // Simulate the current user's role
+
   @override
   void initState() {
     super.initState();
-    _filterUserTasks();
+    _fetchTasks();
+  }
+
+  void _fetchTasks() async {
+    try {
+      List<Task> tasks = await _projectService.fetchAllTasks(widget.project.id);
+      setState(() {
+        widget.project.tasks = tasks;
+        _filterUserTasks();
+      });
+    } catch (e) {
+      print('Error fetching tasks: $e');
+    }
   }
 
   void _showDeleteConfirmation() {
@@ -35,15 +51,13 @@ class _ProjectDetailsState extends State<ProjectDetails> {
             TextButton(
               child: Text('Cancel'),
               onPressed: () {
-                Navigator.of(context)
-                    .pop(); // Dismiss the dialog but do nothing
+                Navigator.of(context).pop();
               },
             ),
             TextButton(
               child: Text('Delete'),
               onPressed: () {
-                Navigator.of(context)
-                    .pop(); // Dismiss the dialog and proceed with deletion
+                Navigator.of(context).pop();
                 _deleteProject();
               },
             ),
@@ -53,23 +67,18 @@ class _ProjectDetailsState extends State<ProjectDetails> {
     );
   }
 
-  void _deleteProject() {
-    // Logic to delete the project
-    // Assuming you have a method to remove the project from your data source, like a list or database
-
-    // Example: Let's say you're just removing from a local list for now
-    ListeProjet.projects.remove(widget.project);
-
-    // After deleting, you might want to navigate back or show a success message
-    Navigator.of(context).pop(); // Pop current project detail page
+  void _deleteProject() async {
+    try {
+      await _projectService.deleteProject(widget.project.id);
+      Navigator.of(context).pop();
+    } catch (e) {
+      print('Error deleting project: $e');
+    }
   }
 
   void _filterUserTasks() {
     setState(() {
-      // Replace 'currentUser' with the actual user identifier of the logged-in user.
-      // For example, if you store the logged-in user details in a User object,
-      // you would compare task.assignedTo with User.id or a similar property.
-      String currentUser = "oumayma"; // Get the current user's id
+      String currentUser = "oumayma"; // Replace with actual current user ID
       _userTasks = widget.project.tasks.where((task) {
         return task.assignedTo == currentUser;
       }).toList();
@@ -77,9 +86,7 @@ class _ProjectDetailsState extends State<ProjectDetails> {
   }
 
   void _onMenuSelected(String value) {
-    if ((currentUserRole == 'admin' ||
-            currentUserRole == 'project management') &&
-        (value == 'Edit' || value == 'Delete')) {
+    if (currentUserRole == 'admin' && (value == 'Edit' || value == 'Delete')) {
       switch (value) {
         case 'Edit':
           Navigator.push(
@@ -101,108 +108,108 @@ class _ProjectDetailsState extends State<ProjectDetails> {
     }
   }
 
-  void _updateTaskCompletion(Task task, bool isCompleted) {
+  void _updateTaskCompletion(Task task, bool isCompleted) async {
     setState(() {
-      // Find the task and update its completion status
       final int taskIndex = widget.project.tasks.indexOf(task);
       if (taskIndex != -1) {
         widget.project.tasks[taskIndex].isCompleted = isCompleted;
       }
-
-      // Recalculate the project progress
-      widget.project.updateTask(widget.project.tasks[taskIndex]);
     });
+
+    try {
+      await _projectService.updateTask(widget.project.id, task);
+    } catch (e) {
+      print('Error updating task: $e');
+    }
   }
 
   int _calculateProgress(List<Task> tasks) {
     int completedTasks = tasks.where((task) => task.isCompleted).length;
-    return (completedTasks / tasks.length * 100)
-        .round(); // Converts to percentage
+    return (completedTasks / tasks.length * 100).round();
   }
 
   @override
   Widget build(BuildContext context) {
     List<Task> tasksToShow = _showUserTasks ? _userTasks : widget.project.tasks;
     return Scaffold(
-        backgroundColor: Color(0xffC5A5FE),
-        appBar: AppBar(
-          title: Text(widget.project.title,
-              style: GoogleFonts.roboto(
-                  fontSize: 22, fontWeight: FontWeight.bold)),
-          backgroundColor: Color(0xff9155FD),
-          actions: <Widget>[
-            PopupMenuButton<String>(
-              onSelected: _onMenuSelected,
-              itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
-                if (currentUserRole == 'admin' ||
-                    currentUserRole == 'project management')
-                  PopupMenuItem<String>(
-                    value: 'Edit',
-                    child: Text('Edit'),
-                  ),
-                if (currentUserRole == 'admin' ||
-                    currentUserRole == 'project management')
-                  PopupMenuItem<String>(
-                    value: 'Delete',
-                    child: Text('Delete'),
-                  ),
+      backgroundColor: Color(0xffC5A5FE),
+      appBar: AppBar(
+        title: Text(widget.project.title,
+            style:
+                GoogleFonts.roboto(fontSize: 22, fontWeight: FontWeight.bold)),
+        backgroundColor: Color(0xff9155FD),
+        actions: <Widget>[
+          PopupMenuButton<String>(
+            onSelected: _onMenuSelected,
+            itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
+              if (currentUserRole == 'admin')
                 PopupMenuItem<String>(
-                  value: 'My Tasks',
-                  child: Text('My Tasks'),
+                  value: 'Edit',
+                  child: Text('Edit'),
                 ),
-              ],
-            ),
-          ],
-        ),
-        body: RefreshIndicator(
-          onRefresh: () async {
-            // Call your method to fetch or refresh project details
-          },
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                DetailItem(
-                  icon: Icons.date_range,
-                  title: 'Start Date',
-                  subtitle: widget.project.startDate,
+              if (currentUserRole == 'admin')
+                PopupMenuItem<String>(
+                  value: 'Delete',
+                  child: Text('Delete'),
                 ),
-                DetailItem(
-                  icon: Icons.date_range,
-                  title: 'End Date',
-                  subtitle: widget.project.endDate,
-                ),
-                DetailItem(
-                  icon: Icons.trending_up,
-                  title: 'Progress',
-                  subtitle: '${widget.project.progress}%',
-                  progress: widget.project.progress /
-                      100, // Pass the progress to the DetailItem widget
-                ),
-                SizedBox(height: 20),
-                Text(
-                  'Project Tasks',
-                  style: GoogleFonts.roboto(
-                      fontSize: 18, fontWeight: FontWeight.w500),
-                ),
-                ...tasksToShow
-                    .map((task) => TaskItem(
-                          task: task,
-                          onTaskCompletionChanged:
-                              (Task task, bool isCompleted) {
-                            _updateTaskCompletion(task, isCompleted);
-                          },
-                        ))
-                    .toList(),
-              ],
-            ),
+              PopupMenuItem<String>(
+                value: 'My Tasks',
+                child: Text('My Tasks'),
+              ),
+            ],
           ),
-        ));
+        ],
+      ),
+      body: RefreshIndicator(
+        onRefresh: () async {
+          _fetchTasks();
+        },
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              DetailItem(
+                icon: Icons.date_range,
+                title: 'Start Date',
+                subtitle:
+                    DateFormat('yyyy-MM-dd').format(widget.project.startDate),
+              ),
+              DetailItem(
+                icon: Icons.date_range,
+                title: 'End Date',
+                subtitle:
+                    DateFormat('yyyy-MM-dd').format(widget.project.endDate),
+              ),
+              DetailItem(
+                icon: Icons.trending_up,
+                title: 'Progress',
+                subtitle: '${widget.project.progress}%',
+                progress: widget.project.progress / 100,
+              ),
+              SizedBox(height: 20),
+              Text(
+                'Project Tasks',
+                style: GoogleFonts.roboto(
+                    fontSize: 18, fontWeight: FontWeight.w500),
+              ),
+              ...tasksToShow
+                  .map((task) => TaskItem(
+                        task: task,
+                        onTaskCompletionChanged: (Task task, bool isCompleted) {
+                          _updateTaskCompletion(task, isCompleted);
+                        },
+                      ))
+                  .toList(),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }
 
-class DetailItem extends StatefulWidget {
+class DetailItem extends StatelessWidget {
   final IconData icon;
   final String title;
   final String subtitle;
@@ -217,23 +224,18 @@ class DetailItem extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  _DetailItemState createState() => _DetailItemState();
-}
-
-class _DetailItemState extends State<DetailItem> {
-  @override
   Widget build(BuildContext context) {
     return ListTile(
       contentPadding: EdgeInsets.symmetric(vertical: 8),
-      leading: Icon(widget.icon, color: Colors.white),
-      title: Text(widget.title,
+      leading: Icon(icon, color: Colors.white),
+      title: Text(title,
           style: GoogleFonts.roboto(fontSize: 16, fontWeight: FontWeight.w500)),
-      subtitle: Text(widget.subtitle, style: GoogleFonts.roboto(fontSize: 14)),
-      trailing: widget.progress != null
+      subtitle: Text(subtitle, style: GoogleFonts.roboto(fontSize: 14)),
+      trailing: progress != null
           ? SizedBox(
               width: 100,
               child: LinearProgressIndicator(
-                value: widget.progress,
+                value: progress,
                 backgroundColor: Colors.grey[300],
                 valueColor: AlwaysStoppedAnimation<Color>(Colors.indigo),
               ),
@@ -266,23 +268,17 @@ class _TaskItemState extends State<TaskItem> {
     _isCompleted = widget.task.isCompleted;
   }
 
-// In your TaskItem stateful widget
   void _toggleCompleted(bool newValue) {
-    // This line is no longer needed because we are using the newValue directly
-    // widget.task.toggleCompleted();
-
     setState(() {
-      _isCompleted = newValue; // Update the local state with the new value
+      _isCompleted = newValue;
     });
 
-    widget.onTaskCompletionChanged(
-        widget.task, _isCompleted); // Notify the parent widget of the change
+    widget.onTaskCompletionChanged(widget.task, _isCompleted);
   }
 
   @override
   Widget build(BuildContext context) {
     return InkWell(
-      // Use InkWell for the ripple effect
       onTap: () => _toggleCompleted(!_isCompleted),
       child: Card(
         margin: EdgeInsets.symmetric(vertical: 8),
@@ -303,27 +299,24 @@ class _TaskItemState extends State<TaskItem> {
                     ),
                     SizedBox(height: 4),
                     Text(
-                      'Due by ${widget.task.dueDate}',
+                      'Due by ${DateFormat('yyyy-MM-dd').format(widget.task.dueDate)}',
                       style: GoogleFonts.roboto(
                         fontSize: 14,
                         color: Colors.grey,
                       ),
                     ),
-                    if (widget.task.isCompleted) ...[
-                      SizedBox(height: 4),
+                    if (widget.task.isCompleted) SizedBox(height: 4),
+                    if (widget.task.isCompleted)
                       Chip(
                         label: Text('Completed'),
                         backgroundColor: Color(0xff9155FD),
                       ),
-                    ],
                   ],
                 ),
               ),
               Switch(
                 value: _isCompleted,
-                onChanged: _isCompleted
-                    ? _toggleCompleted
-                    : null, // Disable switch if task is not completed
+                onChanged: _toggleCompleted,
                 activeColor: Colors.white,
                 activeTrackColor: Color(0xff9155FD),
                 inactiveThumbColor: Colors.white,
@@ -333,205 +326,6 @@ class _TaskItemState extends State<TaskItem> {
           ),
         ),
       ),
-    );
-  }
-}
-
-class EditProjectScreen extends StatefulWidget {
-  final Project project;
-
-  EditProjectScreen({Key? key, required this.project}) : super(key: key);
-
-  @override
-  _EditProjectScreenState createState() => _EditProjectScreenState();
-}
-
-class _EditProjectScreenState extends State<EditProjectScreen> {
-  final _formKey = GlobalKey<FormState>();
-  late TextEditingController _titleController;
-  late TextEditingController _startDateController;
-  late TextEditingController _endDateController;
-
-  @override
-  void initState() {
-    super.initState();
-    _titleController = TextEditingController(text: widget.project.title);
-    _startDateController =
-        TextEditingController(text: widget.project.startDate);
-    _endDateController = TextEditingController(text: widget.project.endDate);
-  }
-
-  @override
-  void dispose() {
-    _titleController.dispose();
-    _startDateController.dispose();
-    _endDateController.dispose();
-    super.dispose();
-  }
-
-  void _saveProject() {
-    if (_formKey.currentState!.validate()) {
-      widget.project.title = _titleController.text;
-      widget.project.startDate = _startDateController.text;
-      widget.project.endDate = _endDateController.text;
-
-      Navigator.pop(context, widget.project); // Return the updated project
-    }
-  }
-
-  void _editTask(BuildContext context, Task task) {
-    showDialog(
-      context: context,
-      builder: (context) {
-        TextEditingController nameController =
-            TextEditingController(text: task.name);
-        TextEditingController dueDateController =
-            TextEditingController(text: task.dueDate);
-
-        return AlertDialog(
-          title: Text('Edit Task'),
-          content: Form(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                TextFormField(
-                  controller: nameController,
-                  decoration: InputDecoration(labelText: 'Task Name'),
-                ),
-                TextFormField(
-                  controller: dueDateController,
-                  decoration: InputDecoration(labelText: 'Due Date'),
-                ),
-              ],
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                task.name = nameController.text;
-                task.dueDate = dueDateController.text;
-                Navigator.of(context).pop();
-                setState(() {}); // Refresh the UI with the updated task info
-              },
-              child: Text('Save'),
-            ),
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: Text('Cancel'),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Color(0xffC5A5FE),
-      appBar: AppBar(
-        backgroundColor: Color(0xffC5A5FE),
-        title: Text('Edit Project'),
-        actions: [
-          IconButton(
-            icon: Icon(Icons.save),
-            onPressed: _saveProject,
-          ),
-        ],
-      ),
-      body: Form(
-        key: _formKey,
-        child: ListView(
-          padding: EdgeInsets.all(16),
-          children: [
-            TextFormField(
-              controller: _titleController,
-              decoration: InputDecoration(labelText: 'Project Title'),
-              validator: (value) {
-                if (value?.isEmpty ?? true) return 'Please enter some text';
-                return null;
-              },
-            ),
-            TextFormField(
-              controller: _startDateController,
-              decoration: InputDecoration(labelText: 'Start Date'),
-            ),
-            TextFormField(
-              controller: _endDateController,
-              decoration: InputDecoration(labelText: 'End Date'),
-            ),
-            SizedBox(height: 20),
-            Text('Project Tasks', style: Theme.of(context).textTheme.headline6),
-            ...widget.project.tasks.map((task) => ListTile(
-                  title: Text(task.name),
-                  subtitle: Text('Due by ${task.dueDate}'),
-                  trailing: IconButton(
-                    icon: Icon(Icons.edit),
-                    onPressed: () => _editTask(context, task),
-                  ),
-                )),
-            ElevatedButton(
-              onPressed: () => _addNewTask(context),
-              child: Text('Add Task'),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  void _addNewTask(BuildContext context) {
-    TextEditingController nameController = TextEditingController();
-    TextEditingController dueDateController = TextEditingController();
-    TextEditingController _assignedToController = TextEditingController();
-
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: Text('Add New Task'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: <Widget>[
-              TextFormField(
-                controller: nameController,
-                decoration: InputDecoration(labelText: 'Task Name'),
-              ),
-              TextFormField(
-                controller: dueDateController,
-                decoration: InputDecoration(labelText: 'Due Date'),
-              ),
-            ],
-          ),
-          actions: <Widget>[
-            TextButton(
-              child: Text('Cancel'),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-            TextButton(
-              child: Text('Add'),
-              onPressed: () {
-                // Only add the task if fields are not empty
-                if (nameController.text.isNotEmpty &&
-                    dueDateController.text.isNotEmpty) {
-                  Task newTask = Task(
-                    name: nameController.text,
-                    dueDate: dueDateController.text,
-                    isCompleted: false,
-                    assignedTo: _assignedToController.text,
-                  );
-                  setState(() {
-                    widget.project.tasks.add(newTask);
-                  });
-                  Navigator.of(context).pop();
-                }
-              },
-            ),
-          ],
-        );
-      },
     );
   }
 }

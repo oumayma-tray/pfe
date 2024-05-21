@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:mobile_app/Employee%20Management/Employees.dart';
-import 'package:mobile_app/project%20management/gestion%20de%20projet/listeProjet.dart';
 import 'package:intl/intl.dart';
+import 'package:mobile_app/Employee%20Management/Employees.dart';
+import 'package:mobile_app/project%20management/gestion%20de%20projet/models/project.dart';
+import 'package:mobile_app/project%20management/gestion%20de%20projet/models/task.dart';
+import 'package:mobile_app/services/projectMnagementService/project_mangementService.dart';
 
 class AddProjectPage extends StatefulWidget {
   @override
@@ -13,7 +15,6 @@ class _AddProjectPageState extends State<AddProjectPage> {
   final _formKey = GlobalKey<FormState>();
   String? _title;
   DateTime? _startDate, _endDate;
-  List<Employee> employees = getMockEmployees();
   List<Employee> _selectedEmployees = [];
   Employee? _selectedEmployee;
   TextEditingController _startDateController = TextEditingController();
@@ -21,6 +22,26 @@ class _AddProjectPageState extends State<AddProjectPage> {
   final TextEditingController _taskNameController = TextEditingController();
   final TextEditingController _taskDueDateController = TextEditingController();
   List<Task> _tasks = [];
+  final ProjectManagementService _projectService = ProjectManagementService();
+  List<Employee>? _employees;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchEmployees();
+  }
+
+  Future<void> _fetchEmployees() async {
+    try {
+      List<Employee> fetchedEmployees =
+          await _projectService.fetchAllEmployees();
+      setState(() {
+        _employees = fetchedEmployees;
+      });
+    } catch (e) {
+      print('Error fetching employees: $e');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -48,16 +69,18 @@ class _AddProjectPageState extends State<AddProjectPage> {
               TextFormField(
                 controller: _startDateController,
                 decoration: InputDecoration(
-                    labelText: 'Start Date',
-                    suffixIcon: Icon(Icons.calendar_today)),
+                  labelText: 'Start Date',
+                  suffixIcon: Icon(Icons.calendar_today),
+                ),
                 readOnly: true,
                 onTap: () => _selectDate(context, true),
               ),
               TextFormField(
                 controller: _endDateController,
                 decoration: InputDecoration(
-                    labelText: 'End Date',
-                    suffixIcon: Icon(Icons.calendar_today)),
+                  labelText: 'End Date',
+                  suffixIcon: Icon(Icons.calendar_today),
+                ),
                 readOnly: true,
                 onTap: () => _selectDate(context, false),
               ),
@@ -67,8 +90,8 @@ class _AddProjectPageState extends State<AddProjectPage> {
                 label: Text('Add Employees'),
                 onPressed: _showEmployeePicker,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Color(0xffC5A5FE), // Button color
-                  shadowColor: Colors.white, // Text color
+                  backgroundColor: Color(0xffC5A5FE),
+                  shadowColor: Colors.white,
                 ),
               ),
               SizedBox(height: 20),
@@ -77,8 +100,8 @@ class _AddProjectPageState extends State<AddProjectPage> {
                 label: Text('Add Task'),
                 onPressed: () => _showTaskDialog(),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Color(0xffC5A5FE), // Button color
-                  shadowColor: Colors.white, // Text color
+                  backgroundColor: Color(0xffC5A5FE),
+                  shadowColor: Colors.white,
                 ),
               ),
               SizedBox(height: 20),
@@ -87,8 +110,8 @@ class _AddProjectPageState extends State<AddProjectPage> {
                 label: Text('Create Project'),
                 onPressed: _submitForm,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Color(0xffC5A5FE), // Button color
-                  shadowColor: Colors.white, // Text color
+                  backgroundColor: Color(0xffC5A5FE),
+                  shadowColor: Colors.white,
                 ),
               ),
             ],
@@ -119,28 +142,32 @@ class _AddProjectPageState extends State<AddProjectPage> {
     }
   }
 
-  void _submitForm() {
+  void _submitForm() async {
     if (_formKey.currentState!.validate()) {
       _formKey.currentState!.save();
 
       Project newProject = Project(
+        id: '',
         title: _title!,
-        startDate:
-            _startDate.toString(), // Assuming startDate is a DateTime object
-        endDate: _endDate.toString(), // Assuming endDate is a DateTime object
-        createdBy: 'Admin', // Placeholder, replace with actual user data
-        tasks: _tasks,
+        startDate: _startDate!,
+        endDate: _endDate!,
         employees: _selectedEmployees,
-        assignedEmployees: [], // Depending on your model
+        tasks: _tasks,
+        isCompleted: false,
+        progress: 0.0,
       );
 
-      ListeProjet.projects.add(newProject);
-
-      // Showing a snackbar on successful submission
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text('Project successfully added!')));
-
-      Navigator.pop(context); // Close the screen after adding the project
+      try {
+        await _projectService.addProject(newProject);
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text('Project successfully added!'),
+        ));
+        Navigator.pop(context);
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text('Error adding project: $e'),
+        ));
+      }
     }
   }
 
@@ -155,32 +182,38 @@ class _AddProjectPageState extends State<AddProjectPage> {
           title: Text('Select Employees'),
           content: StatefulBuilder(
             builder: (BuildContext context, StateSetter setStateDialog) {
-              return Container(
-                width: double.maxFinite,
-                child: ListView.builder(
-                  shrinkWrap: true,
-                  itemCount: employees.length,
-                  itemBuilder: (BuildContext context, int index) {
-                    return CheckboxListTile(
-                      title: Text(employees[index].name),
-                      subtitle: Text(employees[index].jobTitle),
-                      secondary: CircleAvatar(
-                        backgroundImage: AssetImage(employees[index].imagePath),
-                      ),
-                      value: localSelectedEmployees.contains(employees[index]),
-                      onChanged: (bool? value) {
-                        setStateDialog(() {
-                          if (value!) {
-                            localSelectedEmployees.add(employees[index]);
-                          } else {
-                            localSelectedEmployees.remove(employees[index]);
-                          }
-                        });
-                      },
-                    );
-                  },
-                ),
-              );
+              if (_employees == null) {
+                return Center(child: CircularProgressIndicator());
+              } else {
+                return Container(
+                  width: double.maxFinite,
+                  child: ListView.builder(
+                    shrinkWrap: true,
+                    itemCount: _employees!.length,
+                    itemBuilder: (BuildContext context, int index) {
+                      return CheckboxListTile(
+                        title: Text(_employees![index].name),
+                        subtitle: Text(_employees![index].jobTitle),
+                        secondary: CircleAvatar(
+                          backgroundImage:
+                              AssetImage(_employees![index].imagePath),
+                        ),
+                        value:
+                            localSelectedEmployees.contains(_employees![index]),
+                        onChanged: (bool? value) {
+                          setStateDialog(() {
+                            if (value!) {
+                              localSelectedEmployees.add(_employees![index]);
+                            } else {
+                              localSelectedEmployees.remove(_employees![index]);
+                            }
+                          });
+                        },
+                      );
+                    },
+                  ),
+                );
+              }
             },
           ),
           actions: [
@@ -201,20 +234,6 @@ class _AddProjectPageState extends State<AddProjectPage> {
         );
       },
     );
-  }
-
-  void _addTask() {
-    Task newTask = Task(
-      name: _taskNameController.text,
-      dueDate: _taskDueDateController.text,
-      isCompleted: false,
-      assignedTo: 'Assigned Employee ID or Name', // Adjust as needed
-    );
-    setState(() {
-      _tasks.add(newTask);
-      _taskNameController.clear();
-      _taskDueDateController.clear();
-    });
   }
 
   void _showTaskDialog() {
@@ -239,9 +258,8 @@ class _AddProjectPageState extends State<AddProjectPage> {
                       lastDate: DateTime(2100),
                     );
                     if (picked != null && picked != DateTime.now()) {
-                      _taskDueDateController.text = picked
-                          .toString()
-                          .split(' ')[0]; // Formats the date to YYYY-MM-DD
+                      _taskDueDateController.text =
+                          DateFormat('yyyy-MM-dd').format(picked);
                     }
                   },
                   child: AbsorbPointer(
@@ -276,7 +294,9 @@ class _AddProjectPageState extends State<AddProjectPage> {
           actions: <Widget>[
             TextButton(
               child: Text('Cancel'),
-              onPressed: () => Navigator.of(context).pop(),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
             ),
             TextButton(
               child: Text('Add Task'),
@@ -285,19 +305,20 @@ class _AddProjectPageState extends State<AddProjectPage> {
                     _taskDueDateController.text.isNotEmpty &&
                     _selectedEmployee != null) {
                   Task newTask = Task(
+                    id: '',
                     name: _taskNameController.text,
-                    dueDate: _taskDueDateController.text,
-                    assignedTo: _selectedEmployee!
-                        .name, // Ensure Employee has a 'name' property
+                    assignedTo: _selectedEmployee!.id,
+                    dueDate: DateTime.parse(_taskDueDateController.text),
+                    isCompleted: false,
+                    subtasks: [],
                   );
                   setState(() {
                     _tasks.add(newTask);
                     _taskNameController.clear();
                     _taskDueDateController.clear();
-                    _selectedEmployee =
-                        null; // Reset the selected employee after adding a task
+                    _selectedEmployee = null;
                   });
-                  Navigator.of(context).pop(); // Close the dialog
+                  Navigator.of(context).pop();
                 }
               },
             ),
