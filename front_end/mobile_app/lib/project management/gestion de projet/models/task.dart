@@ -1,12 +1,12 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class Task {
-  late final String id;
-  late final String name;
-  final String assignedTo;
-  late final DateTime dueDate;
-  late final bool isCompleted;
-  final List<SubTask> subtasks;
+  String id;
+  String name;
+  String assignedTo;
+  DateTime dueDate;
+  bool isCompleted;
+  List<SubTask> subtasks;
 
   Task({
     required this.id,
@@ -33,7 +33,6 @@ class Task {
 
   Map<String, dynamic> toMap() {
     return {
-      'id': id,
       'name': name,
       'assignedTo': assignedTo,
       'dueDate': dueDate,
@@ -44,9 +43,9 @@ class Task {
 }
 
 class SubTask {
-  final String id;
-  final String name;
-  late final bool isCompleted;
+  String id;
+  String name;
+  bool isCompleted;
 
   SubTask({
     required this.id,

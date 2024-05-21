@@ -54,7 +54,8 @@ class GestionEmployeService {
         'firstName': firstName,
         'lastName': lastName,
         'workingHours': workingHours,
-        'projectIds': [],
+        'projectIds': [], // Initialize with an empty list of project IDs
+        'projects': [], // Initialize with an empty list of project details
       });
 
       // Add the same details to the users collection
@@ -71,7 +72,8 @@ class GestionEmployeService {
         'firstName': firstName,
         'lastName': lastName,
         'workingHours': workingHours,
-        'projectIds': [],
+        'projectIds': [], // Initialize with an empty list of project IDs
+        'projects': [], // Initialize with an empty list of project details
       });
     } catch (e) {
       print('Error adding employee: $e');
@@ -145,6 +147,35 @@ class GestionEmployeService {
     } catch (e) {
       print('Error adding working hour: $e');
       throw e;
+    }
+  }
+
+  // Create user account and add employee details
+  Future<void> createUserAccount(
+      String email, String password, Map<String, dynamic> userDetails) async {
+    try {
+      UserCredential userCredential = await FirebaseAuth.instance
+          .createUserWithEmailAndPassword(email: email, password: password);
+      String userId = userCredential.user!.uid;
+
+      // Add user details to users collection
+      await _firestore.collection('users').doc(userId).set(userDetails);
+    } catch (e) {
+      if (e is FirebaseAuthException && e.code == 'email-already-in-use') {
+        // Handle the case where the email is already in use
+        DocumentSnapshot userDoc =
+            await _firestore.collection('users').doc(email).get();
+        if (userDoc.exists) {
+          // The user already exists, so just update their details
+          await _firestore.collection('users').doc(email).update(userDetails);
+        } else {
+          print(
+              'Error: email already in use but no corresponding user document found.');
+        }
+      } else {
+        print('Error creating user account: $e');
+        throw e;
+      }
     }
   }
 

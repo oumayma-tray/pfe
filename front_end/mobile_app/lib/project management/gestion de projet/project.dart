@@ -109,6 +109,11 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
   }
 
   void _updateTaskCompletion(Task task, bool isCompleted) async {
+    if (task.id.isEmpty) {
+      print('Task ID is empty, cannot update task');
+      return;
+    }
+
     setState(() {
       final int taskIndex = widget.project.tasks.indexOf(task);
       if (taskIndex != -1) {

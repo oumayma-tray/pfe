@@ -12,6 +12,7 @@ class Employee {
   final String lastName;
   final Map<String, Map<String, String>> workingHours;
   final List<String> projectIds;
+  final List<Map<String, dynamic>> projects;
 
   Employee({
     required this.id,
@@ -27,6 +28,7 @@ class Employee {
     required this.lastName,
     required this.workingHours,
     required this.projectIds,
+    required this.projects,
   });
 
   factory Employee.fromMap(Map<String, dynamic> data, String id) {
@@ -50,6 +52,7 @@ class Employee {
           ) ??
           {},
       projectIds: List<String>.from(data['projectIds'] ?? []),
+      projects: List<Map<String, dynamic>>.from(data['projects'] ?? []),
     );
   }
 
@@ -68,6 +71,7 @@ class Employee {
       'lastName': lastName,
       'workingHours': workingHours,
       'projectIds': projectIds,
+      'projects': projects,
     };
   }
 }

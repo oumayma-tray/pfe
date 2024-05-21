@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:intl/intl.dart';
 import 'package:mobile_app/project%20management/gestion%20de%20projet/models/project.dart';
 import 'package:mobile_app/project%20management/gestion%20de%20projet/models/task.dart';
 
@@ -55,7 +56,7 @@ class _PlanningDetailsState extends State<PlanningDetails> {
         .map((task) => ListTile(
               title: Text(task.name,
                   style: GoogleFonts.roboto(fontSize: 18, color: Colors.black)),
-              subtitle: Text(task.dueDate.toString(),
+              subtitle: Text(DateFormat('yyyy-MM-dd').format(task.dueDate),
                   style: GoogleFonts.roboto(color: Colors.black)),
               leading: Icon(Icons.check_circle,
                   color: task.isCompleted ? Colors.green : Colors.red),

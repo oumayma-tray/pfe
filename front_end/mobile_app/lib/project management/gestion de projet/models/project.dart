@@ -27,18 +27,20 @@ class Project {
     return Project(
       id: id,
       title: map['title'] ?? '',
-      startDate: (map['startDate'] as Timestamp).toDate(),
-      endDate: (map['endDate'] as Timestamp).toDate(),
-      progress: map['progress'] ?? 0.0,
+      startDate: (map['startDate'] as Timestamp?)?.toDate() ?? DateTime.now(),
+      endDate: (map['endDate'] as Timestamp?)?.toDate() ?? DateTime.now(),
+      progress: (map['progress'] ?? 0.0).toDouble(),
       isCompleted: map['isCompleted'] ?? false,
-      employees: (map['employees'] as List<dynamic>).map((e) {
-        var empData = e as Map<String, dynamic>;
-        return Employee.fromMap(empData, empData['id']);
-      }).toList(),
-      tasks: (map['tasks'] as List<dynamic>).map((t) {
-        var taskData = t as Map<String, dynamic>;
-        return Task.fromMap(taskData, taskData['id']);
-      }).toList(),
+      employees: (map['employees'] as List<dynamic>?)?.map((e) {
+            var empData = e as Map<String, dynamic>;
+            return Employee.fromMap(empData, empData['id'] ?? '');
+          }).toList() ??
+          [],
+      tasks: (map['tasks'] as List<dynamic>?)?.map((t) {
+            var taskData = t as Map<String, dynamic>;
+            return Task.fromMap(taskData, taskData['id'] ?? '');
+          }).toList() ??
+          [],
     );
   }
 

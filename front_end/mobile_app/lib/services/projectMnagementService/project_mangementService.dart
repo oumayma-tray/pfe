@@ -52,7 +52,8 @@ class ProjectManagementService {
         .collection('projects')
         .doc(projectId)
         .collection('tasks')
-        .add(task.toMap());
+        .doc(task.id)
+        .set(task.toMap());
   }
 
   Future<List<Task>> fetchAllTasks(String projectId) async {
@@ -77,6 +78,9 @@ class ProjectManagementService {
   }
 
   Future<void> updateTask(String projectId, Task task) async {
+    if (task.id.isEmpty) {
+      throw ArgumentError('Task ID must not be empty');
+    }
     await _firestore
         .collection('projects')
         .doc(projectId)
@@ -117,8 +121,17 @@ class ProjectManagementService {
           .where(FieldPath.documentId, whereIn: projectIds)
           .get();
       return snapshot.docs
-          .map((doc) =>
-              Project.fromMap(doc.data() as Map<String, dynamic>, doc.id))
+          .map((doc) {
+            final data = doc.data() as Map<String, dynamic>;
+            if (data != null) {
+              return Project.fromMap(data, doc.id);
+            } else {
+              print('Null data found for project ID ${doc.id}');
+              return null;
+            }
+          })
+          .where((project) => project != null)
+          .cast<Project>()
           .toList();
     } catch (e) {
       print('Error fetching projects by IDs: $e');
@@ -160,5 +173,9 @@ class ProjectManagementService {
       print('Error fetching projects: $e');
       return [];
     }
+  }
+
+  String generateTaskId() {
+    return _firestore.collection('projects').doc().id;
   }
 }

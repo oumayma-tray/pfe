@@ -68,6 +68,15 @@ class _ProjectManagementHomePageState extends State<ProjectManagementHomePage>
           userName = userData['name'];
           workingHours = userData['workingHours'];
         });
+
+        currentEmployee = Employee.fromMap(userData, currentUser.uid);
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) =>
+                PlanningDetails(currentUserID: currentEmployee!.id),
+          ),
+        );
       }
     }
   }

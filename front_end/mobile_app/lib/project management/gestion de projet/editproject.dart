@@ -55,14 +55,14 @@ class _EditProjectScreenState extends State<EditProjectScreen> {
   }
 
   void _editTask(BuildContext context, Task task) {
+    TextEditingController nameController =
+        TextEditingController(text: task.name);
+    TextEditingController dueDateController = TextEditingController(
+        text: DateFormat('yyyy-MM-dd').format(task.dueDate));
+
     showDialog(
       context: context,
       builder: (context) {
-        TextEditingController nameController =
-            TextEditingController(text: task.name);
-        TextEditingController dueDateController = TextEditingController(
-            text: DateFormat('yyyy-MM-dd').format(task.dueDate));
-
         return AlertDialog(
           title: Text('Edit Task'),
           content: Form(
@@ -102,10 +102,23 @@ class _EditProjectScreenState extends State<EditProjectScreen> {
           actions: [
             TextButton(
               onPressed: () async {
-                task.name = nameController.text;
-                task.dueDate = DateTime.parse(dueDateController.text);
-                await _projectService.updateTask(widget.project.id, task);
-                setState(() {});
+                final updatedTask = Task(
+                  id: task.id,
+                  name: nameController.text,
+                  assignedTo: task.assignedTo,
+                  dueDate: DateTime.parse(dueDateController.text),
+                  isCompleted: task.isCompleted,
+                  subtasks: task.subtasks,
+                );
+                await _projectService.updateTask(
+                    widget.project.id, updatedTask);
+                setState(() {
+                  int index =
+                      widget.project.tasks.indexWhere((t) => t.id == task.id);
+                  if (index != -1) {
+                    widget.project.tasks[index] = updatedTask;
+                  }
+                });
                 Navigator.of(context).pop();
               },
               child: Text('Save'),
@@ -229,8 +242,10 @@ class _EditProjectScreenState extends State<EditProjectScreen> {
               onPressed: () async {
                 if (nameController.text.isNotEmpty &&
                     dueDateController.text.isNotEmpty) {
+                  // Generate a new ID for the task
+                  String taskId = _projectService.generateTaskId();
                   Task newTask = Task(
-                    id: '',
+                    id: taskId,
                     name: nameController.text,
                     assignedTo: '',
                     dueDate: DateTime.parse(dueDateController.text),
