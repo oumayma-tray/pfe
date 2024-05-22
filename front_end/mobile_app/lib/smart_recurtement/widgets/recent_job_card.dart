@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:mobile_app/smart_recurtement/constants.dart';
 import 'package:mobile_app/smart_recurtement/models/company.dart';
+import 'package:mobile_app/smart_recurtement/constants.dart';
 
 class RecentJobCard extends StatelessWidget {
   final Company company;
@@ -9,37 +9,28 @@ class RecentJobCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final screenWidth = MediaQuery.of(context).size.width;
-    final screenHeight = MediaQuery.of(context).size.height;
-
     return Card(
-      elevation: 0.0,
-      margin: EdgeInsets.only(
-        right: screenWidth * 0.01,
-        top: screenHeight * 0.02,
-      ),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12.0),
-      ),
-      child: ListTile(
-        leading: Container(
-          width: screenWidth * 0.13,
-          height: screenWidth * 0.13,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(12.0),
-            image: DecorationImage(
-              image: AssetImage(company.image ?? 'assets/placeholder.jpg'),
-              fit: BoxFit.cover,
+      margin: EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              company.job ?? 'Job Title',
+              style: kTitleStyle,
             ),
-          ),
-        ),
-        title: Text(company.job ?? 'Job Title', style: kTitleStyle),
-        subtitle: Text(
-          "${company.companyName ?? 'Company Name'} • ${company.mainCriteria ?? 'Criteria'}",
-        ),
-        trailing: Icon(
-          Icons.more_vert,
-          color: kTextColor,
+            SizedBox(height: 8.0),
+            Text(
+              company.companyName ?? 'Company Name',
+              style: kSubtitleStyle,
+            ),
+            SizedBox(height: 8.0),
+            Text(
+              company.city ?? 'City',
+              style: kSubtitleStyle,
+            ),
+          ],
         ),
       ),
     );
