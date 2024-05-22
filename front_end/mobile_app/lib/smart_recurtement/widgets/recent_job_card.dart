@@ -3,35 +3,43 @@ import 'package:mobile_app/smart_recurtement/constants.dart';
 import 'package:mobile_app/smart_recurtement/models/company.dart';
 
 class RecentJobCard extends StatelessWidget {
-  final Company? company;
-  RecentJobCard({this.company});
+  final Company company;
+
+  RecentJobCard({required this.company});
+
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
+
     return Card(
       elevation: 0.0,
-      margin: EdgeInsets.only(right: 18.0, top: 15.0),
+      margin: EdgeInsets.only(
+        right: screenWidth * 0.01,
+        top: screenHeight * 0.02,
+      ),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12.0),
       ),
       child: ListTile(
         leading: Container(
-          width: 50.0,
-          height: 50.0,
+          width: screenWidth * 0.13,
+          height: screenWidth * 0.13,
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(12.0),
             image: DecorationImage(
-              image: AssetImage(company!.image!),
+              image: AssetImage(company.image ?? 'assets/placeholder.jpg'),
               fit: BoxFit.cover,
             ),
           ),
         ),
-        title: Text(company!.job!, style: kTitleStyle),
+        title: Text(company.job ?? 'Job Title', style: kTitleStyle),
         subtitle: Text(
-          "${company!.companyName} • ${company!.mainCriteria}",
+          "${company.companyName ?? 'Company Name'} • ${company.mainCriteria ?? 'Criteria'}",
         ),
         trailing: Icon(
           Icons.more_vert,
-          color: kBlack,
+          color: kTextColor,
         ),
       ),
     );

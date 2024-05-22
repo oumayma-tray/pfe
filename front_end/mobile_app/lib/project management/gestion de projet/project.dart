@@ -117,7 +117,14 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
     setState(() {
       final int taskIndex = widget.project.tasks.indexOf(task);
       if (taskIndex != -1) {
-        widget.project.tasks[taskIndex].isCompleted = isCompleted;
+        widget.project.tasks[taskIndex] = Task(
+          id: task.id,
+          name: task.name,
+          assignedTo: task.assignedTo,
+          dueDate: task.dueDate,
+          isCompleted: isCompleted,
+          subtasks: task.subtasks,
+        );
       }
     });
 
@@ -128,14 +135,17 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
     }
   }
 
-  int _calculateProgress(List<Task> tasks) {
+  double _calculateProgress(List<Task> tasks) {
+    if (tasks.isEmpty) return 0.0;
     int completedTasks = tasks.where((task) => task.isCompleted).length;
-    return (completedTasks / tasks.length * 100).round();
+    return completedTasks / tasks.length;
   }
 
   @override
   Widget build(BuildContext context) {
     List<Task> tasksToShow = _showUserTasks ? _userTasks : widget.project.tasks;
+    double progress = _calculateProgress(tasksToShow) * 100;
+
     return Scaffold(
       backgroundColor: Color(0xffC5A5FE),
       appBar: AppBar(
@@ -189,8 +199,8 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
               DetailItem(
                 icon: Icons.trending_up,
                 title: 'Progress',
-                subtitle: '${widget.project.progress}%',
-                progress: widget.project.progress / 100,
+                subtitle: '${progress.toStringAsFixed(1)}%',
+                progress: progress / 100,
               ),
               SizedBox(height: 20),
               Text(

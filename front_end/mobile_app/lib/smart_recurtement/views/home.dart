@@ -1,20 +1,107 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:mobile_app/services/job_Service/RecruitmentServicedart';
 import 'package:mobile_app/smart_recurtement/constants.dart';
 import 'package:mobile_app/smart_recurtement/models/company.dart';
+import 'package:mobile_app/smart_recurtement/views/AddCompanyPage.dart';
+import 'package:mobile_app/smart_recurtement/views/ShowApplicantsPage.dart';
 import 'package:mobile_app/smart_recurtement/views/job_detail.dart';
 import 'package:mobile_app/smart_recurtement/widgets/company_card.dart';
 import 'package:mobile_app/smart_recurtement/widgets/company_card2.dart';
 import 'package:mobile_app/smart_recurtement/widgets/recent_job_card.dart';
 
-class Home extends StatelessWidget {
+class Home extends StatefulWidget {
+  @override
+  _HomeState createState() => _HomeState();
+}
+
+class _HomeState extends State<Home> {
+  final RecruitmentService _recruitmentService = RecruitmentService();
+  List<Company> companyList = [];
+  List<Company> recentList = [];
+  bool isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchData();
+  }
+
+  Future<void> _fetchData() async {
+    setState(() => isLoading = true);
+    try {
+      List<Company> companies = await _recruitmentService.fetchAllCompanies();
+      List<Company> recentJobs = await _recruitmentService.fetchRecentJobs();
+      setState(() {
+        companyList = companies;
+        recentList = recentJobs;
+      });
+    } catch (e) {
+      print('Error fetching data: $e');
+    }
+    setState(() => isLoading = false);
+  }
+
+  void _showDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Menu'),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+                _navigateToAddCompany();
+              },
+              child: Text('Add Company'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+                _navigateToShowApplicants();
+              },
+              child: Text('Show Applicants'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _navigateToAddCompany() async {
+    bool? result = await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => AddCompanyPage()),
+    );
+    if (result == true) {
+      _fetchData();
+    }
+  }
+
+  void _navigateToShowApplicants() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => ShowApplicantsPage()),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    double screenWidth = MediaQuery.of(context).size.width;
+    double screenHeight = MediaQuery.of(context).size.height;
+
+    if (isLoading) {
+      return Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+
     return Scaffold(
-      backgroundColor: kSilver,
+      backgroundColor: kBackgroundColor,
       appBar: AppBar(
-        backgroundColor: kSilver,
+        backgroundColor: kPrimaryColor,
         elevation: 0.0,
         leading: Padding(
           padding: const EdgeInsets.only(
@@ -23,16 +110,19 @@ class Home extends StatelessWidget {
             bottom: 12.0,
             right: 12.0,
           ),
-          child: SvgPicture.asset(
-            "assets/drawer.svg",
-            color: kBlack,
+          child: InkWell(
+            onTap: _showDialog,
+            child: SvgPicture.asset(
+              "assets/drawer.svg",
+              color: kTextColor,
+            ),
           ),
         ),
         actions: <Widget>[
           SvgPicture.asset(
             "assets/user.svg",
             width: 25.0,
-            color: kBlack,
+            color: kTextColor,
           ),
           SizedBox(width: 18.0)
         ],
@@ -63,12 +153,12 @@ class Home extends StatelessWidget {
                           borderRadius: BorderRadius.circular(12.0),
                         ),
                         child: TextField(
-                          cursorColor: kBlack,
+                          cursorColor: kTextColor,
                           decoration: InputDecoration(
                             icon: Icon(
                               Icons.search,
                               size: 25.0,
-                              color: kBlack,
+                              color: kTextColor,
                             ),
                             border: InputBorder.none,
                             hintText: "Search for job title",
@@ -84,7 +174,7 @@ class Home extends StatelessWidget {
                       height: 50.0,
                       margin: EdgeInsets.only(left: 12.0),
                       decoration: BoxDecoration(
-                        color: kBlack,
+                        color: kSecondaryColor,
                         borderRadius: BorderRadius.circular(12.0),
                       ),
                       child: Icon(
@@ -104,7 +194,7 @@ class Home extends StatelessWidget {
               SizedBox(height: 15.0),
               Container(
                 width: double.infinity,
-                height: 190.0,
+                height: screenHeight * 0.25,
                 child: ListView.builder(
                   itemCount: companyList.length,
                   scrollDirection: Axis.horizontal,
@@ -130,7 +220,7 @@ class Home extends StatelessWidget {
                   },
                 ),
               ),
-              SizedBox(height: 35.0),
+              SizedBox(height: screenHeight * 0.05),
               Text(
                 "Recent Jobs",
                 style: kTitleStyle,
