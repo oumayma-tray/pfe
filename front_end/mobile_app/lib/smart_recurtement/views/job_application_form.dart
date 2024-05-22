@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:mobile_app/services/job_Service/RecruitmentServicedart';
 import 'package:mobile_app/smart_recurtement/constants.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:mobile_app/smart_recurtement/models/applicant.dart';
 
 class JobApplicationFormScreen extends StatefulWidget {
   final String jobTitle;
@@ -20,6 +22,7 @@ class _JobApplicationFormScreenState extends State<JobApplicationFormScreen> {
   final TextEditingController _phoneController = TextEditingController();
   final TextEditingController _coverLetterController = TextEditingController();
   String? _cvFileName;
+  RecruitmentService _recruitmentService = RecruitmentService();
 
   @override
   void dispose() {
@@ -40,13 +43,39 @@ class _JobApplicationFormScreenState extends State<JobApplicationFormScreen> {
     }
   }
 
-  void _submitApplication() {
+  Future<void> _submitApplication() async {
     if (_formKey.currentState!.validate()) {
-      // Submit application logic
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Application submitted successfully!')),
+      if (_cvFileName == null || _cvFileName!.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Please upload your CV')),
+        );
+        return;
+      }
+
+      // Create an applicant instance
+      Applicant applicant = Applicant(
+        name: _nameController.text,
+        email: _emailController.text,
+        phone: _phoneController.text,
+        coverLetter: _coverLetterController.text,
+        cv: _cvFileName!,
       );
-      Navigator.pop(context);
+
+      try {
+        // Add applicant to the company
+        await _recruitmentService.addApplicantToCompany(
+            widget.companyName, applicant);
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Application submitted successfully!')),
+        );
+
+        Navigator.pop(context);
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to submit application: $e')),
+        );
+      }
     }
   }
 

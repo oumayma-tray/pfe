@@ -1,3 +1,5 @@
+import 'package:mobile_app/smart_recurtement/models/Applicant.dart';
+
 class Company {
   final String? companyName;
   final String? job;
@@ -9,7 +11,7 @@ class Company {
   final String? aboutCompany;
   final List<String>? jobResponsbilities;
   final List<String>? tag;
-  final List<String>? applicants;
+  final List<Applicant>? applicants;
 
   Company({
     this.city,
@@ -37,7 +39,9 @@ class Company {
       aboutCompany: map['aboutCompany'] as String?,
       jobResponsbilities: List<String>.from(map['jobResponsbilities'] ?? []),
       tag: List<String>.from(map['tag'] ?? []),
-      applicants: List<String>.from(map['applicants'] ?? []),
+      applicants: (map['applicants'] as List<dynamic>?)
+          ?.map((e) => Applicant.fromMap(e as Map<String, dynamic>))
+          .toList(),
     );
   }
 
@@ -53,7 +57,7 @@ class Company {
       'aboutCompany': aboutCompany,
       'jobResponsbilities': jobResponsbilities,
       'tag': tag,
-      'applicants': applicants,
+      'applicants': applicants?.map((e) => e.toMap()).toList(),
     };
   }
 }
