@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:mobile_app/services/job_Service/RecruitmentServicedart';
+import 'package:mobile_app/services/job_Service/RecruitmentService.dart';
+
 import 'package:mobile_app/smart_recurtement/constants.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:mobile_app/smart_recurtement/models/applicant.dart';

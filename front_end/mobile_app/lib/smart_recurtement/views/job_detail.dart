@@ -16,21 +16,20 @@ class JobDetail extends StatelessWidget {
     final screenHeight = MediaQuery.of(context).size.height;
 
     return Scaffold(
-      backgroundColor: kPrimaryColor, // Updated to primary color
+      backgroundColor: kPrimaryColor,
       appBar: AppBar(
-        backgroundColor: kPrimaryColor, // Updated to primary color
+        backgroundColor: kPrimaryColor,
         elevation: 0,
         leading: IconButton(
           icon: Icon(
             Icons.arrow_back_ios,
-            color: kSecondaryColor, // Updated to secondary color
+            color: kSecondaryColor,
           ),
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
           company.companyName ?? 'Company Name',
-          style: kTitleStyle.copyWith(
-              color: kSecondaryColor), // Updated to secondary color
+          style: kTitleStyle.copyWith(color: kSecondaryColor),
         ),
         centerTitle: true,
       ),
@@ -39,9 +38,11 @@ class JobDetail extends StatelessWidget {
         child: Container(
           width: double.infinity,
           padding: EdgeInsets.symmetric(
-              horizontal: screenWidth * 0.05, vertical: screenHeight * 0.005),
+            horizontal: screenWidth * 0.05,
+            vertical: screenHeight * 0.005,
+          ),
           decoration: BoxDecoration(
-            color: kBackgroundColor, // Updated to background color
+            color: kBackgroundColor,
             borderRadius: BorderRadius.only(
               topLeft: Radius.circular(40.0),
               topRight: Radius.circular(40.0),
@@ -59,8 +60,9 @@ class JobDetail extends StatelessWidget {
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(15.0),
                           image: DecorationImage(
-                            image: AssetImage(
-                                company.image ?? 'assets/placeholder.jpg'),
+                            image: NetworkImage(
+                              company.image ?? 'assets/placeholder.jpg',
+                            ),
                             fit: BoxFit.cover,
                           ),
                         ),
@@ -71,42 +73,38 @@ class JobDetail extends StatelessWidget {
                       company.job ?? 'Job Title',
                       style: kTitleStyle.copyWith(
                         fontWeight: FontWeight.bold,
-                        color: kSecondaryColor, // Updated to secondary color
+                        color: kSecondaryColor,
                       ),
                     ),
                     SizedBox(height: screenHeight * 0.015),
                     Text(
                       company.sallary ?? 'N/A',
-                      style: kSubtitleStyle.copyWith(
-                          color: kSecondaryColor), // Updated to secondary color
+                      style: kSubtitleStyle.copyWith(color: kSecondaryColor),
                     ),
                     SizedBox(height: screenHeight * 0.015),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
-                      children: company.tag
-                              ?.map(
-                                (e) => Container(
-                                  margin: EdgeInsets.symmetric(
-                                      horizontal: screenWidth * 0.01),
-                                  padding: EdgeInsets.symmetric(
-                                    horizontal: screenWidth * 0.02,
-                                    vertical: screenHeight * 0.01,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(8.0),
-                                    border: Border.all(
-                                        color: kSecondaryColor.withOpacity(
-                                            .5)), // Updated to secondary color
-                                  ),
-                                  child: Text(
-                                    e,
-                                    style: kSubtitleStyle.copyWith(
-                                        color:
-                                            kSecondaryColor), // Updated to secondary color
-                                  ),
+                      children: company.tag?.map((e) {
+                            return Container(
+                              margin: EdgeInsets.symmetric(
+                                  horizontal: screenWidth * 0.01),
+                              padding: EdgeInsets.symmetric(
+                                horizontal: screenWidth * 0.02,
+                                vertical: screenHeight * 0.01,
+                              ),
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(8.0),
+                                border: Border.all(
+                                  color: kSecondaryColor.withOpacity(.5),
                                 ),
-                              )
-                              .toList() ??
+                              ),
+                              child: Text(
+                                e,
+                                style: kSubtitleStyle.copyWith(
+                                    color: kSecondaryColor),
+                              ),
+                            );
+                          }).toList() ??
                           [],
                     ),
                     SizedBox(height: screenHeight * 0.03),
@@ -115,14 +113,13 @@ class JobDetail extends StatelessWidget {
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12.0),
                         side: BorderSide(
-                          color: kSecondaryColor
-                              .withOpacity(.2), // Updated to secondary color
+                          color: kSecondaryColor.withOpacity(.2),
                         ),
                       ),
                       child: TabBar(
                         unselectedLabelColor: kTextColor,
                         indicator: BoxDecoration(
-                          color: kAccentColor, // Updated to accent color
+                          color: kAccentColor,
                           borderRadius: BorderRadius.circular(12.0),
                         ),
                         tabs: [
@@ -151,9 +148,10 @@ class JobDetail extends StatelessWidget {
         preferredSize: Size.fromHeight(screenHeight * 0.1),
         child: Container(
           padding: EdgeInsets.only(
-              left: screenWidth * 0.05,
-              bottom: screenHeight * 0.03,
-              right: screenWidth * 0.05),
+            left: screenWidth * 0.05,
+            bottom: screenHeight * 0.03,
+            right: screenWidth * 0.05,
+          ),
           color: Colors.white,
           child: Row(
             children: <Widget>[
@@ -161,14 +159,12 @@ class JobDetail extends StatelessWidget {
                 width: screenWidth * 0.13,
                 height: screenWidth * 0.13,
                 decoration: BoxDecoration(
-                  border: Border.all(
-                      color: kSecondaryColor
-                          .withOpacity(.5)), // Updated to secondary color
+                  border: Border.all(color: kSecondaryColor.withOpacity(.5)),
                   borderRadius: BorderRadius.circular(12.0),
                 ),
                 child: Icon(
                   Icons.bookmark_border,
-                  color: kSecondaryColor, // Updated to secondary color
+                  color: kSecondaryColor,
                 ),
               ),
               SizedBox(width: screenWidth * 0.04),
@@ -182,14 +178,13 @@ class JobDetail extends StatelessWidget {
                         MaterialPageRoute(
                           builder: (context) => JobApplicationFormScreen(
                             jobTitle: company.job ?? 'Job Title',
-                            companyName: company.companyName ?? 'Company Name',
+                            companyName: company.companyName!,
                           ),
                         ),
                       );
                     },
                     style: ElevatedButton.styleFrom(
-                      backgroundColor:
-                          kSecondaryColor, // Updated to secondary color
+                      backgroundColor: kSecondaryColor,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12.0),
                       ),

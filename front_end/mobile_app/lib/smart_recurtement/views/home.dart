@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:mobile_app/services/job_Service/RecruitmentServicedart';
+import 'package:mobile_app/services/job_Service/RecruitmentService.dart';
+
 import 'package:mobile_app/smart_recurtement/constants.dart';
 import 'package:mobile_app/smart_recurtement/models/company.dart';
 import 'package:mobile_app/smart_recurtement/views/AddCompanyPage.dart';
 import 'package:mobile_app/smart_recurtement/views/ShowApplicantsPage.dart';
+import 'package:mobile_app/smart_recurtement/views/ViewCompaniesPage.dart';
 import 'package:mobile_app/smart_recurtement/views/job_detail.dart';
 import 'package:mobile_app/smart_recurtement/widgets/company_card.dart';
 import 'package:mobile_app/smart_recurtement/widgets/company_card2.dart';
@@ -64,6 +66,13 @@ class _HomeState extends State<Home> {
               },
               child: Text('Show Applicants'),
             ),
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+                _navigateToViewCompanies();
+              },
+              child: Text('View Companies'),
+            ),
           ],
         );
       },
@@ -84,6 +93,13 @@ class _HomeState extends State<Home> {
     Navigator.push(
       context,
       MaterialPageRoute(builder: (context) => ShowApplicantsPage()),
+    );
+  }
+
+  void _navigateToViewCompanies() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => ViewCompaniesPage()),
     );
   }
 

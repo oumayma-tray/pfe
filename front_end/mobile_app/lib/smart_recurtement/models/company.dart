@@ -1,6 +1,7 @@
-import 'package:mobile_app/smart_recurtement/models/Applicant.dart';
+import 'package:mobile_app/smart_recurtement/models/applicant.dart';
 
 class Company {
+  final String? companyId;
   final String? companyName;
   final String? job;
   final String? city;
@@ -14,6 +15,7 @@ class Company {
   final List<Applicant>? applicants;
 
   Company({
+    this.companyId,
     this.city,
     this.job,
     this.companyName,
@@ -27,8 +29,9 @@ class Company {
     this.applicants,
   });
 
-  factory Company.fromMap(Map<String, dynamic> map) {
+  factory Company.fromMap(Map<String, dynamic> map, String id) {
     return Company(
+      companyId: id,
       companyName: map['companyName'] as String?,
       job: map['job'] as String?,
       city: map['city'] as String?,
