@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:mobile_app/services/job_Service/RecruitmentService.dart';
+import 'package:mobile_app/smart_recurtement/constants.dart';
 import 'package:mobile_app/smart_recurtement/models/company.dart';
 
 class EditCompanyPage extends StatefulWidget {
@@ -96,9 +97,12 @@ class _EditCompanyPageState extends State<EditCompanyPage> {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+
     return Scaffold(
       appBar: AppBar(
         title: Text('Edit Company'),
+        backgroundColor: kPrimaryColor,
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -106,117 +110,72 @@ class _EditCompanyPageState extends State<EditCompanyPage> {
           key: _formKey,
           child: ListView(
             children: <Widget>[
-              TextFormField(
-                controller: _companyNameController,
-                decoration: InputDecoration(labelText: 'Company Name'),
-                validator: (value) {
-                  if (value!.isEmpty) {
-                    return 'Please enter a company name';
-                  }
-                  return null;
-                },
-              ),
-              TextFormField(
-                controller: _jobTitleController,
-                decoration: InputDecoration(labelText: 'Job Title'),
-                validator: (value) {
-                  if (value!.isEmpty) {
-                    return 'Please enter a job title';
-                  }
-                  return null;
-                },
-              ),
-              TextFormField(
-                controller: _cityController,
-                decoration: InputDecoration(labelText: 'City'),
-                validator: (value) {
-                  if (value!.isEmpty) {
-                    return 'Please enter a city';
-                  }
-                  return null;
-                },
-              ),
-              TextFormField(
-                controller: _salaryController,
-                decoration: InputDecoration(labelText: 'Salary'),
-                validator: (value) {
-                  if (value!.isEmpty) {
-                    return 'Please enter a salary';
-                  }
-                  return null;
-                },
-              ),
-              TextFormField(
-                controller: _imageController,
-                decoration: InputDecoration(labelText: 'Image URL'),
-                validator: (value) {
-                  if (value!.isEmpty) {
-                    return 'Please enter an image URL';
-                  }
-                  return null;
-                },
-              ),
-              TextFormField(
-                controller: _criteriaController,
-                decoration: InputDecoration(labelText: 'Criteria'),
-                validator: (value) {
-                  if (value!.isEmpty) {
-                    return 'Please enter criteria';
-                  }
-                  return null;
-                },
-              ),
-              TextFormField(
-                controller: _jobOpportunityController,
-                decoration: InputDecoration(labelText: 'Job Opportunity'),
-                validator: (value) {
-                  if (value!.isEmpty) {
-                    return 'Please enter job opportunity';
-                  }
-                  return null;
-                },
-              ),
-              TextFormField(
-                controller: _aboutCompanyController,
-                decoration: InputDecoration(labelText: 'About Company'),
-                validator: (value) {
-                  if (value!.isEmpty) {
-                    return 'Please enter information about the company';
-                  }
-                  return null;
-                },
-              ),
-              TextFormField(
-                controller: _jobResponsibilitiesController,
-                decoration: InputDecoration(
-                    labelText: 'Job Responsibilities (comma separated)'),
-                validator: (value) {
-                  if (value!.isEmpty) {
-                    return 'Please enter job responsibilities';
-                  }
-                  return null;
-                },
-              ),
-              TextFormField(
-                controller: _tagController,
-                decoration:
-                    InputDecoration(labelText: 'Tags (comma separated)'),
-                validator: (value) {
-                  if (value!.isEmpty) {
-                    return 'Please enter tags';
-                  }
-                  return null;
-                },
-              ),
-              SizedBox(height: 20),
-              ElevatedButton(
-                onPressed: _submitForm,
-                child: Text('Update Company'),
+              _buildTextField(_companyNameController, 'Company Name'),
+              SizedBox(height: 16.0),
+              _buildTextField(_jobTitleController, 'Job Title'),
+              SizedBox(height: 16.0),
+              _buildTextField(_cityController, 'City'),
+              SizedBox(height: 16.0),
+              _buildTextField(_salaryController, 'Salary'),
+              SizedBox(height: 16.0),
+              _buildTextField(_imageController, 'Image URL'),
+              SizedBox(height: 16.0),
+              _buildTextField(_criteriaController, 'Criteria'),
+              SizedBox(height: 16.0),
+              _buildTextField(_jobOpportunityController, 'Job Opportunity'),
+              SizedBox(height: 16.0),
+              _buildTextField(_aboutCompanyController, 'About Company'),
+              SizedBox(height: 16.0),
+              _buildTextField(_jobResponsibilitiesController,
+                  'Job Responsibilities (comma separated)'),
+              SizedBox(height: 16.0),
+              _buildTextField(_tagController, 'Tags (comma separated)'),
+              SizedBox(height: 32.0),
+              SizedBox(
+                width: screenWidth,
+                child: ElevatedButton(
+                  onPressed: _submitForm,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: kPrimaryColor,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12.0),
+                    ),
+                    padding: EdgeInsets.symmetric(vertical: 16.0),
+                  ),
+                  child: Text(
+                    'Update Company',
+                    style: TextStyle(fontSize: 16.0),
+                  ),
+                ),
               ),
             ],
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildTextField(TextEditingController controller, String label) {
+    return TextFormField(
+      controller: controller,
+      decoration: InputDecoration(
+        labelText: label,
+        labelStyle: TextStyle(color: kPrimaryColor),
+        focusedBorder: OutlineInputBorder(
+          borderSide: BorderSide(color: kPrimaryColor),
+          borderRadius: BorderRadius.circular(12.0),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderSide: BorderSide(color: Colors.grey),
+          borderRadius: BorderRadius.circular(12.0),
+        ),
+      ),
+      validator: (value) {
+        if (value!.isEmpty) {
+          return 'Please enter $label';
+        }
+        return null;
+      },
     );
   }
 }

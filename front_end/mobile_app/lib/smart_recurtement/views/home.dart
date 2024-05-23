@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:mobile_app/services/job_Service/RecruitmentService.dart';
-
 import 'package:mobile_app/smart_recurtement/constants.dart';
 import 'package:mobile_app/smart_recurtement/models/company.dart';
 import 'package:mobile_app/smart_recurtement/views/AddCompanyPage.dart';
@@ -23,11 +23,13 @@ class _HomeState extends State<Home> {
   List<Company> companyList = [];
   List<Company> recentList = [];
   bool isLoading = true;
+  String? userName;
 
   @override
   void initState() {
     super.initState();
     _fetchData();
+    _fetchUserName();
   }
 
   Future<void> _fetchData() async {
@@ -43,6 +45,17 @@ class _HomeState extends State<Home> {
       print('Error fetching data: $e');
     }
     setState(() => isLoading = false);
+  }
+
+  Future<void> _fetchUserName() async {
+    User? currentUser = await _recruitmentService.getCurrentUser();
+    if (currentUser != null) {
+      Map<String, dynamic>? userData =
+          await _recruitmentService.getUserData(currentUser);
+      setState(() {
+        userName = userData?['name'] ?? 'User';
+      });
+    }
   }
 
   void _showDialog() {
@@ -151,7 +164,7 @@ class _HomeState extends State<Home> {
             children: <Widget>[
               SizedBox(height: 25.0),
               Text(
-                "Hi Robert,\nFind your Dream Job",
+                "Hi $userName,\nFind your Dream Job",
                 style: kPageTitleStyle,
               ),
               SizedBox(height: 25.0),

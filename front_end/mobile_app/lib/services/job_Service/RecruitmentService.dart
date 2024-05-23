@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:mobile_app/smart_recurtement/models/applicant.dart';
 import 'package:mobile_app/smart_recurtement/models/company.dart';
 
@@ -65,6 +66,21 @@ class RecruitmentService {
     } catch (e) {
       print('Error fetching companies: $e');
       throw Exception('Error fetching companies: $e');
+    }
+  }
+
+  Future<User?> getCurrentUser() async {
+    return FirebaseAuth.instance.currentUser;
+  }
+
+  Future<Map<String, dynamic>?> getUserData(User currentUser) async {
+    try {
+      DocumentSnapshot userDoc =
+          await _firestore.collection('users').doc(currentUser.uid).get();
+      return userDoc.data() as Map<String, dynamic>?;
+    } catch (e) {
+      print('Failed to load user data: $e');
+      return null;
     }
   }
 
