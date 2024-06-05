@@ -68,7 +68,7 @@ class ETCPEventsPage extends StatelessWidget {
                     trailing: IconButton(
                       icon: Icon(Icons.edit, color: Colors.deepPurple),
                       onPressed: () {
-                        showDialog(
+                       showDialog(
                           context: context,
                           builder: (context) => EventActionsDialog(
                             eventId: event['id'],

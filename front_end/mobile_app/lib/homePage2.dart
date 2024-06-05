@@ -1,24 +1,25 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:mobile_app/Employee%20Management/employee_tile.dart';
+import 'package:mobile_app/compteUser/compteUser.dart';
+import 'package:mobile_app/services/Auth_service/homepage_service.dart';
 import 'package:mobile_app/auth/login.dart';
+
 import 'package:mobile_app/calendar/calendarHome.dart';
 import 'package:mobile_app/chat/chatHomePage.dart';
-import 'package:mobile_app/compteUser/compteUser.dart';
 import 'package:mobile_app/mail/mailHomePage.dart';
 import 'package:mobile_app/project%20management/ProjectManagementHomePage.dart';
-import 'package:mobile_app/services/Auth_service/homepage_service.dart';
 import 'package:mobile_app/smart_recurtement/views/home.dart';
 
-class HomePage extends StatefulWidget {
-  const HomePage({Key? key}) : super(key: key);
+class HomePage2 extends StatefulWidget {
+  const HomePage2({Key? key}) : super(key: key);
 
   @override
-  State<HomePage> createState() => _HomePageState();
+  State<HomePage2> createState() => _HomePage2State();
 }
 
-class _HomePageState extends State<HomePage> {
+class _HomePage2State extends State<HomePage2> {
   bool isSwitched = false;
   User? currentUser;
   String name = '';
@@ -284,16 +285,6 @@ class _HomePageState extends State<HomePage> {
                               builder: (context) => CalendarHome()),
                         );
                       }),
-                      SizedBox(height: 5),
-                      appRow(context, 'Employee Management',
-                          Icons.manage_accounts_outlined, () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => EmployeeDirectoryPage()),
-                        );
-                      }),
-                      SizedBox(height: 5),
                       appRow(context, 'Smart Project Management',
                           Icons.recent_actors_outlined, () {
                         Navigator.push(
@@ -307,14 +298,6 @@ class _HomePageState extends State<HomePage> {
                       appRow(context, 'Chat', Icons.chat, () {
                         Navigator.push(context,
                             MaterialPageRoute(builder: (context) => Chat()));
-                      }),
-                      SizedBox(height: 5),
-                      appRow(context, 'Smart Recruitment',
-                          Icons.recent_actors_outlined, () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (context) => Home()),
-                        );
                       }),
                     ],
                   ),

@@ -30,8 +30,15 @@ class _UpdateUserInfoScreenState extends State<UpdateUserInfoScreen> {
   String? selectedLanguage;
   String imageUrl = '';
 
-  final List<String> roles = ['Admin', 'User', 'Viewer'];
-  final List<String> languages = ['English', 'French', 'Spanish'];
+  final List<String> roles = [
+    'admin',
+    'User',
+    'project management',
+    'team lead',
+    'recruiter',
+    'employee'
+  ];
+  final List<String> languages = ['English', 'French', 'arabic'];
 
   @override
   void initState() {
@@ -44,8 +51,10 @@ class _UpdateUserInfoScreenState extends State<UpdateUserInfoScreen> {
     phoneNumberController =
         TextEditingController(text: widget.user.phoneNumber);
     jobTitleController = TextEditingController(text: widget.user.jobTitle);
-    selectedRole = widget.user.role;
-    selectedLanguage = widget.user.language;
+    selectedRole = widget.user.role.isNotEmpty ? widget.user.role : roles.first;
+    selectedLanguage = widget.user.language.isNotEmpty
+        ? widget.user.language
+        : languages.first;
     imageUrl = widget.user.imagePath;
   }
 
@@ -64,7 +73,6 @@ class _UpdateUserInfoScreenState extends State<UpdateUserInfoScreen> {
         'country': countryController.text,
         'phoneNumber': phoneNumberController.text,
         'jobTitle': jobTitleController.text,
-        'role': selectedRole,
         'language': selectedLanguage,
         'imageUrl': imageUrl,
       });
@@ -149,7 +157,6 @@ class _UpdateUserInfoScreenState extends State<UpdateUserInfoScreen> {
               _buildSection('Account Details'),
               _buildTextField('Name', nameController),
               _buildTextField('Email', emailController),
-              _buildDropdown('Select Role', roles, selectedRole),
               _buildSection('Personal Info'),
               _buildTextField('First Name', firstNameController),
               _buildTextField('Last Name', lastNameController),

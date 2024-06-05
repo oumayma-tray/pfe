@@ -50,7 +50,7 @@ class CompanyCard2 extends StatelessWidget {
               ),
               Spacer(),
               Text(
-                company.sallary ?? 'N/A',
+                company.salary ?? 'N/A',
                 style: kTitleStyle,
               ),
             ],

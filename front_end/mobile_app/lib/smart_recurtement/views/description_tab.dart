@@ -34,7 +34,7 @@ class DescriptionTab extends StatelessWidget {
           ),
           SizedBox(height: 15.0),
           Column(
-            children: company.jobResponsbilities?.map((e) {
+            children: company.jobResponsibilities?.map((e) {
                   return Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: <Widget>[

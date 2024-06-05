@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:mobile_app/services/job_Service/RecruitmentService.dart';
-
 import 'package:mobile_app/smart_recurtement/models/company.dart';
 
 class AddCompanyPage extends StatefulWidget {
@@ -24,6 +23,8 @@ class _AddCompanyPageState extends State<AddCompanyPage> {
   final TextEditingController _jobResponsibilitiesController =
       TextEditingController();
   final TextEditingController _tagController = TextEditingController();
+  final TextEditingController _requiredSkillsController =
+      TextEditingController(); // Add this controller
 
   void _submitForm() async {
     if (_formKey.currentState!.validate()) {
@@ -32,14 +33,16 @@ class _AddCompanyPageState extends State<AddCompanyPage> {
           companyName: _companyNameController.text,
           job: _jobTitleController.text,
           city: _cityController.text,
-          sallary: _salaryController.text,
+          salary: _salaryController.text,
           image: _imageController.text,
           mainCriteria: _criteriaController.text,
           jobOpportunity: _jobOpportunityController.text,
           aboutCompany: _aboutCompanyController.text,
-          jobResponsbilities: _jobResponsibilitiesController.text.split(','),
+          jobResponsibilities: _jobResponsibilitiesController.text.split(','),
           tag: _tagController.text.split(','),
           applicants: [],
+          requiredSkills:
+              _requiredSkillsController.text.split(','), // Add this field
         );
         await _recruitmentService.addCompany(newCompany);
         Navigator.pop(context, true);
@@ -88,6 +91,10 @@ class _AddCompanyPageState extends State<AddCompanyPage> {
                   'Please enter job responsibilities'),
               _buildTextFormField(_tagController, 'Tags (comma separated)',
                   'Please enter tags'),
+              _buildTextFormField(
+                  _requiredSkillsController,
+                  'Required Skills (comma separated)',
+                  'Please enter required skills'), // Add this field
               SizedBox(height: screenHeight * 0.03),
               SizedBox(
                 height: screenHeight * 0.08,

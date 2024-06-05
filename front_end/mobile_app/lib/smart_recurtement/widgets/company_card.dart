@@ -13,9 +13,9 @@ class CompanyCard extends StatelessWidget {
     final screenHeight = MediaQuery.of(context).size.height;
 
     return Container(
-      width: screenWidth * 0.8, // Adjust width relative to screen size
+      width: screenWidth * 0.7, // Adjust width relative to screen size
       margin: EdgeInsets.only(right: 15.0),
-      padding: EdgeInsets.all(screenWidth * 0.04), // Adjust padding
+      padding: EdgeInsets.all(screenWidth * 0.02), // Adjust padding
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(12.0),
         color: kPrimaryColor,
@@ -42,7 +42,7 @@ class CompanyCard extends StatelessWidget {
               ),
               Spacer(),
               Text(
-                company.sallary ?? 'Salary',
+                company.salary ?? 'Salary',
                 style: kTitleStyle.copyWith(color: Colors.white),
               ),
             ],

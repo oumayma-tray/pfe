@@ -1,14 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:mobile_app/calendar/AllEventsPage.dart';
 import 'package:mobile_app/calendar/BusinessEventsPage.dart';
 import 'package:mobile_app/calendar/ETCPEventsPage.dart';
 import 'package:mobile_app/calendar/FamilyEventsPage.dart';
 import 'package:mobile_app/calendar/HolidayEventsPage.dart';
 import 'package:mobile_app/calendar/PersonalEventsPage.dart';
-import 'package:mobile_app/calendar/event.dart';
+import 'package:mobile_app/services/calendarService/service_calendar.dart';
 
 import 'package:table_calendar/table_calendar.dart';
+import 'package:mobile_app/calendar/event.dart';
 
 class CalendarHome extends StatefulWidget {
   const CalendarHome({super.key});
@@ -18,13 +21,97 @@ class CalendarHome extends StatefulWidget {
 }
 
 class _CalendarHomeState extends State<CalendarHome> {
+  final CalendarService _calendarService = CalendarService();
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  TextEditingController _searchController = TextEditingController();
   DateTime today = DateTime.now();
   DateTime selectedDay = DateTime.now();
+  List<Map<String, dynamic>> _events = [];
+  List<Map<String, dynamic>> _filteredEvents = [];
 
   @override
   void initState() {
     super.initState();
-    // Add initial events if necessary
+    _fetchUserEvents();
+  }
+
+  Future<void> _fetchUserEvents() async {
+    try {
+      User? currentUser = _auth.currentUser;
+      if (currentUser == null) {
+        print('User not logged in');
+        return;
+      }
+
+      List<Map<String, dynamic>> events =
+          await _calendarService.fetchUserEvents(currentUser.uid);
+      setState(() {
+        _events = events;
+        _filteredEvents = [];
+      });
+    } catch (e) {
+      print('Error fetching user events: $e');
+    }
+  }
+
+  void _filterEvents(String query) {
+    if (query.isEmpty) {
+      setState(() {
+        _filteredEvents = [];
+      });
+      return;
+    }
+
+    final events = _events.where((event) {
+      final titleLower = event['title'].toLowerCase();
+      final searchLower = query.toLowerCase();
+      return titleLower.contains(searchLower);
+    }).toList();
+
+    setState(() {
+      _filteredEvents = events;
+    });
+  }
+
+  void _navigateToEventPage(String eventType) {
+    switch (eventType) {
+      case 'Personal':
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => PersonalEventsPage()),
+        );
+        break;
+      case 'Holiday':
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => HolidayEventsPage()),
+        );
+        break;
+      case 'Family':
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => FamilyEventsPage()),
+        );
+        break;
+      case 'Business':
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => BusinessEventsPage()),
+        );
+        break;
+      case 'ETC':
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => ETCPEventsPage()),
+        );
+        break;
+      default:
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => EventDisplayWidget()),
+        );
+        break;
+    }
   }
 
   void _showAddEventSheet(BuildContext context) {
@@ -97,7 +184,7 @@ class _CalendarHomeState extends State<CalendarHome> {
                   child: Image.asset("assets/image.png"),
                 ),
                 Positioned(
-                  top: 30,
+                  top: 5,
                   left: 60,
                   child: Text(
                     'CALENDARS',
@@ -109,7 +196,7 @@ class _CalendarHomeState extends State<CalendarHome> {
                   ),
                 ),
                 Positioned(
-                  top: screenHeight * 0.12,
+                  top: screenHeight * 0.08,
                   left: screenWidth * 0.05,
                   right: screenWidth * 0.05,
                   child: Padding(
@@ -117,19 +204,18 @@ class _CalendarHomeState extends State<CalendarHome> {
                     child: Material(
                       color: Colors.transparent,
                       child: Container(
-                        height: screenHeight * 0.05,
+                        height: screenHeight * 0.25,
                         width: screenWidth * 0.9,
-                        child: SearchAnchor(
-                          builder: (BuildContext context,
-                              SearchController controller) {
-                            return TextField(
-                              controller: controller,
+                        child: Column(
+                          children: [
+                            TextField(
+                              controller: _searchController,
                               style: TextStyle(color: Colors.white),
                               decoration: InputDecoration(
                                 fillColor: Colors.transparent,
                                 filled: true,
                                 hintText: 'Search (Ctrl+/)',
-                                hintStyle: TextStyle(color: Colors.white),
+                                hintStyle: TextStyle(color: Colors.grey),
                                 border: OutlineInputBorder(
                                   borderSide: BorderSide(
                                     color: Colors.white,
@@ -138,7 +224,7 @@ class _CalendarHomeState extends State<CalendarHome> {
                                 focusedBorder: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(30.0),
                                   borderSide: BorderSide(
-                                    color: Colors.white,
+                                    color: Colors.grey,
                                   ),
                                 ),
                                 enabledBorder: OutlineInputBorder(
@@ -149,28 +235,47 @@ class _CalendarHomeState extends State<CalendarHome> {
                                 ),
                                 prefixIcon:
                                     Icon(Icons.search, color: Colors.grey),
-                              ),
-                            );
-                          },
-                          suggestionsBuilder: (BuildContext context,
-                              SearchController controller) {
-                            return List<ListTile>.generate(
-                              5,
-                              (int index) {
-                                final String item = 'item $index';
-                                return ListTile(
-                                  title: Text(item),
-                                  onTap: () {
-                                    setState(
-                                      () {
-                                        controller.closeView(item);
-                                      },
-                                    );
+                                suffixIcon: IconButton(
+                                  icon: Icon(Icons.clear, color: Colors.grey),
+                                  onPressed: () {
+                                    _searchController.clear();
+                                    _filterEvents('');
                                   },
-                                );
-                              },
-                            );
-                          },
+                                ),
+                              ),
+                              onChanged: (query) => _filterEvents(query),
+                            ),
+                            if (_searchController.text.isNotEmpty &&
+                                _filteredEvents.isNotEmpty)
+                              Expanded(
+                                child: Container(
+                                  height: 20,
+                                  color: Colors.white30,
+                                  child: ListView.builder(
+                                    shrinkWrap: true,
+                                    itemCount: _filteredEvents.length,
+                                    itemBuilder: (context, index) {
+                                      final event = _filteredEvents[index];
+                                      return ListTile(
+                                        title: Text(event['title']),
+                                        subtitle: Text(event['description']),
+                                        trailing: ElevatedButton(
+                                          onPressed: () {
+                                            _navigateToEventPage(
+                                                event['calendar']);
+                                          },
+                                          child: Text('Go'),
+                                        ),
+                                        onTap: () {
+                                          _navigateToEventPage(
+                                              event['calendar']);
+                                        },
+                                      );
+                                    },
+                                  ),
+                                ),
+                              ),
+                          ],
                         ),
                       ),
                     ),

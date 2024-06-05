@@ -39,5 +39,19 @@ class ServiceHomePage {
     return null;
   }
 
+  Future<String?> identifyUserRole(User currentUser) async {
+    try {
+      DocumentSnapshot userDoc =
+          await _firestore.collection('users').doc(currentUser.uid).get();
+      var userData = userDoc.data() as Map<String, dynamic>?;
+      if (userData != null && userData.containsKey('role')) {
+        return userData['role'] as String?;
+      }
+    } catch (e) {
+      print('Failed to identify user role: $e');
+    }
+    return null;
+  }
+
   // Other service functions can be added here as needed
 }

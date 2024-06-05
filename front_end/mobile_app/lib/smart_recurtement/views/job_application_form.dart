@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:mobile_app/services/job_Service/RecruitmentService.dart';
-
 import 'package:mobile_app/smart_recurtement/constants.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:mobile_app/smart_recurtement/models/applicant.dart';
+import 'package:firebase_storage/firebase_storage.dart';
+import 'dart:io';
 
 class JobApplicationFormScreen extends StatefulWidget {
   final String jobTitle;
@@ -23,6 +24,7 @@ class _JobApplicationFormScreenState extends State<JobApplicationFormScreen> {
   final TextEditingController _phoneController = TextEditingController();
   final TextEditingController _coverLetterController = TextEditingController();
   String? _cvFileName;
+  File? _cvFile; // Variable to store the selected CV file
   RecruitmentService _recruitmentService = RecruitmentService();
 
   @override
@@ -38,31 +40,49 @@ class _JobApplicationFormScreenState extends State<JobApplicationFormScreen> {
     FilePickerResult? result = await FilePicker.platform.pickFiles();
 
     if (result != null) {
-      setState(() {
-        _cvFileName = result.files.single.name;
-      });
+      String filePath = result.files.single.path!;
+      String fileExtension = filePath.split('.').last;
+
+      if (fileExtension.toLowerCase() == 'pdf') {
+        setState(() {
+          _cvFileName = result.files.single.name;
+          _cvFile = File(filePath); // Store the selected CV file
+        });
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Please upload a PDF file')),
+        );
+      }
     }
   }
 
   Future<void> _submitApplication() async {
     if (_formKey.currentState!.validate()) {
-      if (_cvFileName == null || _cvFileName!.isEmpty) {
+      if (_cvFileName == null || _cvFileName!.isEmpty || _cvFile == null) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Please upload your CV')),
         );
         return;
       }
 
-      // Create an applicant instance
-      Applicant applicant = Applicant(
-        name: _nameController.text,
-        email: _emailController.text,
-        phone: _phoneController.text,
-        coverLetter: _coverLetterController.text,
-        cv: _cvFileName!,
-      );
-
       try {
+        // Upload CV to Firebase Storage
+        String fileName = _nameController.text + '_' + _cvFileName!;
+        UploadTask uploadTask = FirebaseStorage.instance
+            .ref('applicants_cv/$fileName')
+            .putFile(_cvFile!);
+        TaskSnapshot taskSnapshot = await uploadTask;
+        String downloadURL = await taskSnapshot.ref.getDownloadURL();
+
+        // Create an applicant instance with the CV URL
+        Applicant applicant = Applicant(
+          name: _nameController.text,
+          email: _emailController.text,
+          phone: _phoneController.text,
+          coverLetter: _coverLetterController.text,
+          cv: downloadURL, // Use the CV URL
+        );
+
         // Add applicant to the company
         await _recruitmentService.addApplicantToCompany(
             widget.companyName, applicant);

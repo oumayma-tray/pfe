@@ -1,15 +1,14 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:mobile_app/auth/forgotPassword.dart';
 import 'package:mobile_app/auth/otp.dart';
-import 'package:provider/provider.dart';
-import 'package:mobile_app/auth/ForgotandResetPassword.dart';
 import 'package:mobile_app/auth/register.dart';
 import 'package:mobile_app/components/textfield.dart';
 import 'package:mobile_app/homePage.dart';
-import 'package:mobile_app/services/Auth_service/authentificationService.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:mobile_app/homePage2.dart';
+import 'package:mobile_app/homePage3.dart';
 
 class LoginScreen extends StatefulWidget {
   @override
@@ -22,6 +21,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController phoneController = TextEditingController();
   bool _isObscure = true;
   bool _isLoading = false;
+  bool isChecked = false; // Ajout de la variable isChecked
   bool isOTPEnabled = false;
   String? _verificationId;
 
@@ -56,11 +56,23 @@ class _LoginScreenState extends State<LoginScreen> {
         Map<String, dynamic>? userData =
             userDoc.data() as Map<String, dynamic>?;
 
-        if (userData != null && userData['isTwoFactorEnabled'] == true) {
-          _showPhoneNumberInput(userData['phoneNumber']);
+        if (userData != null) {
+          String role = userData['role'] ?? 'user';
+
+          if (role == 'admin' ||
+              role == 'project management' ||
+              role == 'team lead') {
+            Navigator.of(context).pushReplacement(
+                MaterialPageRoute(builder: (context) => HomePage()));
+          } else if (role == 'employee') {
+            Navigator.of(context).pushReplacement(
+                MaterialPageRoute(builder: (context) => HomePage2()));
+          } else if (role == 'recruiter' || role == 'user') {
+            Navigator.of(context).pushReplacement(
+                MaterialPageRoute(builder: (context) => HomePage3()));
+          }
         } else {
-          Navigator.of(context).pushReplacement(
-              MaterialPageRoute(builder: (context) => HomePage()));
+          _showErrorDialog('Failed to login. Check credentials.');
         }
       } else {
         _showErrorDialog('Failed to login. Check credentials.');
@@ -137,8 +149,6 @@ class _LoginScreenState extends State<LoginScreen> {
       },
     );
   }
-
-  bool isChecked = false;
 
   @override
   Widget build(BuildContext context) {

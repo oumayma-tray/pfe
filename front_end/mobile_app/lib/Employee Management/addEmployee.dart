@@ -14,8 +14,13 @@ class AddEmployeeScreen extends StatefulWidget {
 class _AddEmployeeScreenState extends State<AddEmployeeScreen> {
   String? selectedRole;
   String? selectedLanguage;
-  final List<String> roles = ['Admin', 'User', 'Viewer'];
-  final List<String> languages = ['English', 'French', 'Spanish'];
+  final List<String> roles = [
+    'project management',
+    'team lead',
+    'recruiter',
+    'employee'
+  ];
+  final List<String> languages = ['English', 'French', 'arabic'];
 
   final TextEditingController usernameController = TextEditingController();
   final TextEditingController emailController = TextEditingController();

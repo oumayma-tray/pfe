@@ -24,6 +24,7 @@ class _HomeState extends State<Home> {
   List<Company> recentList = [];
   bool isLoading = true;
   String? userName;
+  String userRole = 'user';
 
   @override
   void initState() {
@@ -54,6 +55,7 @@ class _HomeState extends State<Home> {
           await _recruitmentService.getUserData(currentUser);
       setState(() {
         userName = userData?['name'] ?? 'User';
+        userRole = userData?['role'] ?? 'user'; // Récupération du rôle
       });
     }
   }
@@ -132,29 +134,23 @@ class _HomeState extends State<Home> {
       appBar: AppBar(
         backgroundColor: kPrimaryColor,
         elevation: 0.0,
-        leading: Padding(
-          padding: const EdgeInsets.only(
-            left: 18.0,
-            top: 12.0,
-            bottom: 12.0,
-            right: 12.0,
-          ),
-          child: InkWell(
-            onTap: _showDialog,
-            child: SvgPicture.asset(
-              "assets/drawer.svg",
-              color: kTextColor,
-            ),
-          ),
-        ),
-        actions: <Widget>[
-          SvgPicture.asset(
-            "assets/user.svg",
-            width: 25.0,
-            color: kTextColor,
-          ),
-          SizedBox(width: 18.0)
-        ],
+        leading: userRole == 'admin' || userRole == 'recruiter'
+            ? Padding(
+                padding: const EdgeInsets.only(
+                  left: 18.0,
+                  top: 12.0,
+                  bottom: 12.0,
+                  right: 12.0,
+                ),
+                child: InkWell(
+                  onTap: _showDialog,
+                  child: SvgPicture.asset(
+                    "assets/drawer.svg",
+                    color: kTextColor,
+                  ),
+                ),
+              )
+            : null,
       ),
       body: Container(
         margin: EdgeInsets.only(left: 18.0),

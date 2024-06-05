@@ -26,6 +26,7 @@ class _EditCompanyPageState extends State<EditCompanyPage> {
   late TextEditingController _aboutCompanyController;
   late TextEditingController _jobResponsibilitiesController;
   late TextEditingController _tagController;
+  late TextEditingController _requiredSkillsController;
 
   @override
   void initState() {
@@ -34,7 +35,7 @@ class _EditCompanyPageState extends State<EditCompanyPage> {
         TextEditingController(text: widget.company.companyName);
     _jobTitleController = TextEditingController(text: widget.company.job);
     _cityController = TextEditingController(text: widget.company.city);
-    _salaryController = TextEditingController(text: widget.company.sallary);
+    _salaryController = TextEditingController(text: widget.company.salary);
     _imageController = TextEditingController(text: widget.company.image);
     _criteriaController =
         TextEditingController(text: widget.company.mainCriteria);
@@ -43,9 +44,12 @@ class _EditCompanyPageState extends State<EditCompanyPage> {
     _aboutCompanyController =
         TextEditingController(text: widget.company.aboutCompany);
     _jobResponsibilitiesController = TextEditingController(
-        text: widget.company.jobResponsbilities?.join(',') ?? '');
+        text: widget.company.jobResponsibilities?.join(',') ?? '');
     _tagController =
         TextEditingController(text: widget.company.tag?.join(',') ?? '');
+    _requiredSkillsController = TextEditingController(
+        text: widget.company.requiredSkills?.join(',') ??
+            ''); // Initialize with required skills
   }
 
   @override
@@ -60,6 +64,7 @@ class _EditCompanyPageState extends State<EditCompanyPage> {
     _aboutCompanyController.dispose();
     _jobResponsibilitiesController.dispose();
     _tagController.dispose();
+    _requiredSkillsController.dispose();
     super.dispose();
   }
 
@@ -70,14 +75,16 @@ class _EditCompanyPageState extends State<EditCompanyPage> {
         companyName: _companyNameController.text,
         job: _jobTitleController.text,
         city: _cityController.text,
-        sallary: _salaryController.text,
+        salary: _salaryController.text,
         image: _imageController.text,
         mainCriteria: _criteriaController.text,
         jobOpportunity: _jobOpportunityController.text,
         aboutCompany: _aboutCompanyController.text,
-        jobResponsbilities: _jobResponsibilitiesController.text.split(','),
+        jobResponsibilities: _jobResponsibilitiesController.text.split(','),
         tag: _tagController.text.split(','),
         applicants: widget.company.applicants,
+        requiredSkills:
+            _requiredSkillsController.text.split(','), // Add this field
       );
 
       try {
@@ -130,6 +137,9 @@ class _EditCompanyPageState extends State<EditCompanyPage> {
                   'Job Responsibilities (comma separated)'),
               SizedBox(height: 16.0),
               _buildTextField(_tagController, 'Tags (comma separated)'),
+              SizedBox(height: 16.0),
+              _buildTextField(_requiredSkillsController,
+                  'Required Skills (comma separated)'), // Add this field
               SizedBox(height: 32.0),
               SizedBox(
                 width: screenWidth,

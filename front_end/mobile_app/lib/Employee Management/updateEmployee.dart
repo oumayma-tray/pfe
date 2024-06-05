@@ -18,9 +18,15 @@ class _UpdateEmployeePageState extends State<UpdateEmployeePage> {
   final GestionEmployeService _employeeService = GestionEmployeService();
   String? selectedRole;
   String? selectedLanguage;
-  final List<String> roles = ['Admin', 'User', 'Viewer'];
-  final List<String> languages = ['English', 'French', 'Spanish'];
-
+  final List<String> roles = [
+    'admin',
+    'User',
+    'project management',
+    'team lead',
+    'recruiter',
+    'employee'
+  ];
+  final List<String> languages = ['English', 'French', 'arabic'];
   late TextEditingController nameController;
   late TextEditingController emailController;
   late TextEditingController firstNameController;

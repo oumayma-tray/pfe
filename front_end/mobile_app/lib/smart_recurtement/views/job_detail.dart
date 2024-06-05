@@ -78,7 +78,7 @@ class JobDetail extends StatelessWidget {
                     ),
                     SizedBox(height: screenHeight * 0.015),
                     Text(
-                      company.sallary ?? 'N/A',
+                      company.salary ?? 'N/A',
                       style: kSubtitleStyle.copyWith(color: kSecondaryColor),
                     ),
                     SizedBox(height: screenHeight * 0.015),

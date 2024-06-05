@@ -1,9 +1,9 @@
 class Applicant {
-  final String name;
-  final String email;
-  final String phone;
-  final String coverLetter;
-  final String cv;
+  String name;
+  String email;
+  String phone;
+  String coverLetter;
+  String cv;
 
   Applicant({
     required this.name,
@@ -13,16 +13,6 @@ class Applicant {
     required this.cv,
   });
 
-  factory Applicant.fromMap(Map<String, dynamic> map) {
-    return Applicant(
-      name: map['name'] as String,
-      email: map['email'] as String,
-      phone: map['phone'] as String,
-      coverLetter: map['coverLetter'] as String,
-      cv: map['cv'] as String,
-    );
-  }
-
   Map<String, dynamic> toMap() {
     return {
       'name': name,
@@ -31,5 +21,15 @@ class Applicant {
       'coverLetter': coverLetter,
       'cv': cv,
     };
+  }
+
+  factory Applicant.fromMap(Map<String, dynamic> map) {
+    return Applicant(
+      name: map['name'],
+      email: map['email'],
+      phone: map['phone'],
+      coverLetter: map['coverLetter'],
+      cv: map['cv'],
+    );
   }
 }

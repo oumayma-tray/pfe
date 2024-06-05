@@ -18,7 +18,7 @@ class ProjectManagementDetails extends StatefulWidget {
 
 class _ProjectManagementDetailsState extends State<ProjectManagementDetails> {
   final ProjectManagementService _projectService = ProjectManagementService();
-  bool isAdmin = true;
+  bool isAdmin = false;
   Employee? currentUser;
   bool isLoading = true;
   List<Project> projects = [];
@@ -46,6 +46,10 @@ class _ProjectManagementDetailsState extends State<ProjectManagementDetails> {
           currentUser = Employee.fromMap(
               userDoc.data() as Map<String, dynamic>, firebaseUser.uid);
           print('Current user: ${currentUser?.name}'); // Debug print
+
+          // Vérifiez le rôle de l'utilisateur
+          isAdmin = currentUser?.role == 'admin';
+          print('Is admin: $isAdmin'); // Debug print
           _fetchProjects();
         } else {
           print('No user document found in Firestore'); // Debug print

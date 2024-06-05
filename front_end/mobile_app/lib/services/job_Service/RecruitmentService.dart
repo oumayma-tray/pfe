@@ -2,6 +2,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:mobile_app/smart_recurtement/models/applicant.dart';
 import 'package:mobile_app/smart_recurtement/models/company.dart';
+import 'package:flutter/services.dart';
+import 'dart:io';
 
 class RecruitmentService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
